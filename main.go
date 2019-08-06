@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strings"
 
@@ -17,6 +17,10 @@ import (
 )
 
 func main() {
+	if len(os.Args) <= 1 {
+		log.Fatalln("no parameters passed in. Expecting image as parameter")
+	}
+
 	cli, err := client.NewClientWithOpts(client.WithVersion("1.39"), client.FromEnv)
 	if err != nil {
 		panic(err)
@@ -36,27 +40,37 @@ func main() {
 		},
 	}
 
-	resp, _ := cli.ImageBuild(context.Background(), &stdOutBuffer, opt)
+	resp, err := cli.ImageBuild(context.Background(), &stdOutBuffer, opt)
+	if err != nil {
+		log.Fatalf("could not build image: %s\n", err)
+	}
 
-	rd := bufio.NewReader(resp.Body)
+	rd := json.NewDecoder(resp.Body)
 
 	for {
-		line, err := rd.ReadString('\n')
+		line := struct {
+			Aux struct {
+				ID string
+			}
+			Stream string
+			Error  string
+		}{}
+
+		err := rd.Decode(&line)
 
 		if err == io.EOF {
-			break
+			log.Fatalln("could not find the new image ID")
+		} else if err != nil {
+			fmt.Fprintln(os.Stderr, "error reading line")
+			continue
 		}
-		if strings.HasPrefix(line, `{"aux":`) {
-			out := struct {
-				Aux struct {
-					ID string
-				}
-			}{}
 
-			_ = json.Unmarshal([]byte(line), &out)
-			fmt.Println(out.Aux.ID)
+		if line.Error != "" {
+			log.Fatalf("error building image: %s\n", line.Error)
+		} else if line.Aux.ID != "" {
+			fmt.Println(line.Aux.ID)
 			return
 		}
-
 	}
+
 }
