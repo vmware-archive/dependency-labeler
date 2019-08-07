@@ -25,7 +25,10 @@ const ValidImageNameRE = `^([a-z0-9](?:/?(?:[._-])?(?:[a-z0-9]))*)(:[a-z0-9]+(?:
 
 func init() {
 	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "Image for the metadata to be added to")
-	rootCmd.MarkFlagRequired("image")
+	err := rootCmd.MarkFlagRequired("image")
+	if err != nil {
+		log.Fatalf("image name is required\n")
+	}
 }
 
 var rootCmd = &cobra.Command{
@@ -42,12 +45,12 @@ var rootCmd = &cobra.Command{
 
 		resp, err := CreateNewImage(inputImage)
 		if err != nil {
-			log.Fatalf("could not build image: %s\n", err)
+			log.Fatalf("could not create new image: %s\n", err)
 		}
 
 		newID, err := GetIDOfNewImage(resp)
 		if err != nil {
-			log.Fatalf("could not get ID from the image: %s\n", err)
+			log.Fatalf("could not get ID of the new image: %s\n", err)
 		}
 		fmt.Println(newID)
 	},
@@ -69,9 +72,18 @@ func CreateNewImage(inputImage string) (resp types.ImageBuildResponse, err error
 	stdOutBuffer := bytes.Buffer{}
 
 	tar := new(archivex.TarFile)
-	tar.CreateWriter("docker context", &stdOutBuffer)
-	tar.Add("Dockerfile", strings.NewReader("FROM "+inputImage), nil)
-	tar.Close()
+	err = tar.CreateWriter("docker context", &stdOutBuffer)
+	if err != nil {
+		return resp, fmt.Errorf("error creating tar writer: %s\n", err.Error())
+	}
+	err = tar.Add("Dockerfile", strings.NewReader("FROM "+inputImage), nil)
+	if err != nil {
+		return resp, fmt.Errorf("error adding to the tar: %s\n", err.Error())
+	}
+	err = tar.Close()
+	if err != nil {
+		return resp, fmt.Errorf("error closing the tar: %s\n", err.Error())
+	}
 
 	opt := types.ImageBuildOptions{
 		Labels: map[string]string{
@@ -99,7 +111,7 @@ func GetIDOfNewImage(resp types.ImageBuildResponse) (string, error) {
 		if err == io.EOF {
 			return "", fmt.Errorf("could not find the new image ID")
 		} else if err != nil {
-			fmt.Fprintln(os.Stderr, "error reading line")
+			_, _ = fmt.Fprintln(os.Stderr, "error reading line")
 			continue
 		}
 
