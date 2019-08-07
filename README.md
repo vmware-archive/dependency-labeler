@@ -13,7 +13,7 @@ Golang is required to be installed and available on your path, test this by runn
 Download the latest `deplab` binary from the releases page.
 To run the tool run the following command:
 ```bash
-./deplab <image name>
+./deplab --image <image name>
 ```
 
 Where `<image name>` is the name of the image that you want to add the meta data to. 
