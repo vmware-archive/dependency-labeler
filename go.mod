@@ -20,6 +20,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
+	github.com/spf13/cobra v0.0.5
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/grpc v1.22.1 // indirect
 	gotest.tools v2.2.0+incompatible // indirect
