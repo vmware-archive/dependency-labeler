@@ -42,7 +42,7 @@ var _ = Describe("deplab", func() {
 
 		By("executing it")
 		inputImage := "alpine"
-		stdOutBuffer, _ := runDepLab([]string{inputImage}, 0)
+		stdOutBuffer, _ := runDepLab([]string{"--image", inputImage}, 0)
 
 		By("checking if it returns an image sha")
 		outputImage = strings.TrimSpace(stdOutBuffer.String())
@@ -70,7 +70,7 @@ var _ = Describe("deplab", func() {
 
 		By("executing it")
 		inputImage := "swkichtlsmhasd" // random string unlikely for an image ever to exist
-		_, stdErrBuffer := runDepLab([]string{inputImage}, 1)
+		_, stdErrBuffer := runDepLab([]string{"--image", inputImage}, 1)
 
 		errorOutput := strings.TrimSpace(stdErrBuffer.String())
 		Expect(errorOutput).To(ContainSubstring("error building image: pull access denied for swkichtlsmhasd, repository does not exist or may require 'docker login'"))
@@ -82,6 +82,16 @@ var _ = Describe("deplab", func() {
 		_, stdErrBuffer := runDepLab([]string{}, 1)
 
 		errorOutput := strings.TrimSpace(stdErrBuffer.String())
-		Expect(errorOutput).To(ContainSubstring("no parameters passed in. Expecting image as parameter"))
+		Expect(errorOutput).To(ContainSubstring("required flag(s) \"image\" not set"))
+	})
+
+	It("throws an error if invalid characters are in image name", func() {
+
+		By("executing it")
+		inputImage := "£$Invalid_image_name$£"
+		_, stdErrBuffer := runDepLab([]string{"--image", inputImage}, 1)
+
+		errorOutput := strings.TrimSpace(stdErrBuffer.String())
+		Expect(errorOutput).To(ContainSubstring("invalid image name"))
 	})
 })
