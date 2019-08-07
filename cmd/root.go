@@ -21,7 +21,7 @@ import (
 
 var inputImage string
 
-const ValidImageNameChars = `^[a-zA-Z0-9][a-zA-Z0-9_.-]+$`
+const ValidImageNameRE = `^([a-z0-9](?:/?(?:[._-])?(?:[a-z0-9]))*)(:[a-z0-9]+(?:[._-][a-z0-9]+)*)?$`
 
 func init() {
 	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "Image for the metadata to be added to")
@@ -36,7 +36,7 @@ var rootCmd = &cobra.Command{
 	Complete documentation is available at http://github.com/pivotal/deplab`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if !regexp.MustCompile(ValidImageNameChars).MatchString(inputImage) {
+		if !regexp.MustCompile(ValidImageNameRE).MatchString(inputImage) {
 			log.Fatalf("invalid image name: %s\n", inputImage)
 		}
 
