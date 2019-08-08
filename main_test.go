@@ -9,7 +9,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 
-	"github.com/docker/docker/client"
+	docker "github.com/docker/docker/client"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -18,11 +18,11 @@ import (
 
 var outputImage string
 
-func runDepLab(inputImage []string, expErrCode int) (stdOutBuffer bytes.Buffer, stdErrBuffer bytes.Buffer) {
+func runDepLab(args []string, expErrCode int) (stdOutBuffer bytes.Buffer, stdErrBuffer bytes.Buffer) {
 	stdOutBuffer = bytes.Buffer{}
 	stdErrBuffer = bytes.Buffer{}
 
-	cmd := exec.Command(pathToBin, inputImage...)
+	cmd := exec.Command(pathToBin, args...)
 
 	session, err := gexec.Start(cmd, &stdOutBuffer, &stdErrBuffer)
 	Expect(err).ToNot(HaveOccurred())
@@ -33,7 +33,7 @@ func runDepLab(inputImage []string, expErrCode int) (stdOutBuffer bytes.Buffer, 
 }
 
 var _ = Describe("deplab", func() {
-	cli, err := client.NewClientWithOpts(client.WithVersion("1.39"), client.FromEnv)
+	dockerCli, err := docker.NewClientWithOpts(docker.WithVersion("1.39"), docker.FromEnv)
 	if err != nil {
 		panic(err)
 	}
@@ -49,19 +49,19 @@ var _ = Describe("deplab", func() {
 		Expect(outputImage).To(MatchRegexp("^sha256:[a-f0-9]+$"))
 
 		By("checking if the label exists")
-		inspectOutput, _, err := cli.ImageInspectWithRaw(context.TODO(), outputImage)
+		inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
 		Expect(err).ToNot(HaveOccurred())
 
 		labelValue := inspectOutput.Config.Labels["io.pivotal.metadata"]
 		Expect(labelValue).To(Equal("metadata here"))
 
 		By("checking that the input image is parent of the output image")
-		inspectInput, _, err := cli.ImageInspectWithRaw(context.TODO(), inputImage)
+		inspectInput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), inputImage)
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(inspectOutput.Parent).To(Equal(inspectInput.ID))
 
-		_, err = cli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
+		_, err = dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
 		Expect(err).ToNot(HaveOccurred())
 
 	})

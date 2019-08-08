@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/docker/docker/client"
+	docker "github.com/docker/docker/client"
 
 	"github.com/docker/docker/api/types"
 	"github.com/jhoonb/archivex"
@@ -39,11 +39,11 @@ var rootCmd = &cobra.Command{
 	Complete documentation is available at http://github.com/pivotal/deplab`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if !regexp.MustCompile(ValidImageNameRE).MatchString(inputImage) {
+		if !IsValidImageName() {
 			log.Fatalf("invalid image name: %s\n", inputImage)
 		}
 
-		resp, err := CreateNewImage(inputImage)
+		resp, err := CreateNewImage()
 		if err != nil {
 			log.Fatalf("could not create new image: %s\n", err)
 		}
@@ -63,26 +63,19 @@ func Execute() {
 	}
 }
 
-func CreateNewImage(inputImage string) (resp types.ImageBuildResponse, err error) {
-	cli, err := client.NewClientWithOpts(client.WithVersion("1.39"), client.FromEnv)
+func IsValidImageName() bool {
+	return regexp.MustCompile(ValidImageNameRE).MatchString(inputImage)
+}
+
+func CreateNewImage() (resp types.ImageBuildResponse, err error) {
+	dockerCli, err := docker.NewClientWithOpts(docker.WithVersion("1.39"), docker.FromEnv)
 	if err != nil {
 		return resp, err
 	}
 
-	stdOutBuffer := bytes.Buffer{}
-
-	tar := new(archivex.TarFile)
-	err = tar.CreateWriter("docker context", &stdOutBuffer)
+	dockerfileBuffer, err := createDockerFileBuffer()
 	if err != nil {
-		return resp, fmt.Errorf("error creating tar writer: %s\n", err.Error())
-	}
-	err = tar.Add("Dockerfile", strings.NewReader("FROM "+inputImage), nil)
-	if err != nil {
-		return resp, fmt.Errorf("error adding to the tar: %s\n", err.Error())
-	}
-	err = tar.Close()
-	if err != nil {
-		return resp, fmt.Errorf("error closing the tar: %s\n", err.Error())
+		return resp, err
 	}
 
 	opt := types.ImageBuildOptions{
@@ -91,8 +84,28 @@ func CreateNewImage(inputImage string) (resp types.ImageBuildResponse, err error
 		},
 	}
 
-	resp, err = cli.ImageBuild(context.Background(), &stdOutBuffer, opt)
+	resp, err = dockerCli.ImageBuild(context.Background(), &dockerfileBuffer, opt)
 	return resp, err
+}
+
+func createDockerFileBuffer() (bytes.Buffer, error) {
+	dockerfileBuffer := bytes.Buffer{}
+
+	tar := new(archivex.TarFile)
+	err := tar.CreateWriter("docker context", &dockerfileBuffer)
+	if err != nil {
+		return dockerfileBuffer, fmt.Errorf("error creating tar writer: %s\n", err.Error())
+	}
+	err = tar.Add("Dockerfile", strings.NewReader("FROM "+inputImage), nil)
+	if err != nil {
+		return dockerfileBuffer, fmt.Errorf("error adding to the tar: %s\n", err.Error())
+	}
+	err = tar.Close()
+	if err != nil {
+		return dockerfileBuffer, fmt.Errorf("error closing the tar: %s\n", err.Error())
+	}
+
+	return dockerfileBuffer, nil
 }
 
 func GetIDOfNewImage(resp types.ImageBuildResponse) (string, error) {
