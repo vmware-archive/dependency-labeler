@@ -41,7 +41,7 @@ var _ = Describe("deplab", func() {
 	It("labels an image and returns the new sha", func() {
 
 		By("executing it")
-		inputImage := "alpine"
+		inputImage := "ubuntu:bionic"
 		stdOutBuffer, _ := runDepLab([]string{"--image", inputImage}, 0)
 
 		By("checking if it returns an image sha")
