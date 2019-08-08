@@ -7,8 +7,6 @@ Deplab adds metadata about a container image's dependencies as a label to the co
 Docker is required to be installed and available on your path, test this by running `docker --version`.
 Version 1.39 or higher is required.
 
-Golang is required to be installed and available on your path, test this by running `go version`.
-
 ## Usage
 Download the latest `deplab` binary from the releases page.
 To run the tool run the following command:
