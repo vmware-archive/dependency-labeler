@@ -3,9 +3,12 @@ package main_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/pivotal/deplab/packages/metadata"
 
 	"github.com/docker/docker/api/types"
 
@@ -38,7 +41,7 @@ var _ = Describe("deplab", func() {
 		panic(err)
 	}
 
-	It("labels an image and returns the new sha", func() {
+	It("labels an image and returns the sha of the labelled image with a dpkg list", func() {
 
 		By("executing it")
 		inputImage := "ubuntu:bionic"
@@ -53,7 +56,14 @@ var _ = Describe("deplab", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		labelValue := inspectOutput.Config.Labels["io.pivotal.metadata"]
-		Expect(labelValue).To(Equal("metadata here"))
+		Expect(labelValue).ToNot(BeEmpty())
+
+		By("checking if the dpkg dependencies exists")
+		jd := json.NewDecoder(strings.NewReader(labelValue))
+		result := metadata.Metadata{}
+		err = jd.Decode(&result)
+		Expect(err).ToNot(HaveOccurred())
+		Expect(len(result.Dependencies)).To(Equal(1))
 
 		By("checking that the input image is parent of the output image")
 		inspectInput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), inputImage)
@@ -81,7 +91,7 @@ var _ = Describe("deplab", func() {
 		_, stdErrBuffer := runDepLab([]string{"--image", inputImage}, 1)
 
 		errorOutput := strings.TrimSpace(stdErrBuffer.String())
-		Expect(errorOutput).To(ContainSubstring("error building image: pull access denied for swkichtlsmhasd, repository does not exist or may require 'docker login'"))
+		Expect(errorOutput).To(ContainSubstring("pull access denied for swkichtlsmhasd, repository does not exist or may require 'docker login'"))
 	})
 
 	It("throws an error if missing parameters", func() {

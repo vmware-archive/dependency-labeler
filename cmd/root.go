@@ -8,8 +8,11 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
+
+	"github.com/pivotal/deplab/packages/metadata"
 
 	docker "github.com/docker/docker/client"
 
@@ -85,14 +88,66 @@ func CreateNewImage() (resp types.ImageBuildResponse, err error) {
 		return resp, err
 	}
 
+	dependencies, err := GenerateDependencies(inputImage)
+	if err != nil {
+		return resp, err
+	}
+	md := metadata.Metadata{Dependencies: dependencies}
+
+	mdMarshalled, err := json.Marshal(md)
+
 	opt := types.ImageBuildOptions{
 		Labels: map[string]string{
-			"io.pivotal.metadata": "metadata here",
+			"io.pivotal.metadata": string(mdMarshalled),
 		},
 	}
 
 	resp, err = dockerCli.ImageBuild(context.Background(), &dockerfileBuffer, opt)
 	return resp, err
+}
+
+func GenerateDependencies(imageName string) ([]metadata.Dependency, error) {
+
+	dpkgList := metadata.Dependency{
+		Type: "debian_package_list",
+		Source: metadata.Source{
+			Type: "inline",
+			Metadata: metadata.DebianPackageListSourceMetadata{
+				Packages: getDebianPackages(imageName),
+			},
+		},
+	}
+
+	dependencies := []metadata.Dependency{dpkgList}
+
+	return dependencies, nil
+}
+
+func getDebianPackages(imageName string) []metadata.Package {
+	query := "{\"package\":\"${Package}\", \"version\":\"${Version}\", \"architecture\":\"${architecture}\", \"source\":{\"package\":\"${source:Package}\", \"version\":\"${source:Version}\", \"upstreamVersion\":\"${source:Upstream-Version}\"}},"
+
+	dpkgQuery := exec.Command("docker", "run", "--rm", imageName, "dpkg-query", "-W", "-f="+query)
+
+	out, err := dpkgQuery.CombinedOutput()
+	if err != nil {
+		if strings.Contains(string(out), "executable file not found in $PATH") {
+			log.Print("This image does not contain dpkg, so skipping dpkg dependencies.")
+			return []metadata.Package{}
+		}
+		log.Fatalf("dpkgQuery failed: %s, with error: %s\n", string(out), err.Error())
+	}
+
+	amendedOut := string(out)
+	amendedOut = amendedOut[:len(amendedOut)-1]
+	amendedOut = "[" + amendedOut + "]"
+	decoder := json.NewDecoder(strings.NewReader(amendedOut))
+	var packages []metadata.Package
+	err = decoder.Decode(&packages)
+	if err != nil {
+		log.Fatalf("%s\n", err.Error())
+	}
+
+	return packages
 }
 
 func createDockerFileBuffer() (bytes.Buffer, error) {
