@@ -66,6 +66,14 @@ var _ = Describe("deplab", func() {
 
 	})
 
+	It("throws an error if scratch image is provided", func() {
+		By("executing it")
+		inputImage := "scratch"
+		_, stdErrBuffer := runDepLab([]string{"--image", inputImage}, 1)
+		errorOutput := strings.TrimSpace(stdErrBuffer.String())
+		Expect(errorOutput).To(ContainSubstring("deplab does not work with scratch"))
+	})
+
 	It("throws an error if an invalid image sent to docker engine", func() {
 
 		By("executing it")
