@@ -1,6 +1,8 @@
 package cmd_test
 
 import (
+	"log"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/deplab/packages/metadata"
@@ -14,7 +16,7 @@ var _ = Describe("Cmd", func() {
 		Context("GenerateDependencies", func() {
 			Context("image with dpkg", func() {
 				It("should generate valid json string of dpkg dependencies", func() {
-
+					log.SetOutput(GinkgoWriter)
 					dependencies, err := GenerateDependencies("ubuntu:bionic")
 					Expect(err).ToNot(HaveOccurred())
 
@@ -29,7 +31,7 @@ var _ = Describe("Cmd", func() {
 			})
 			Context("image without dpkg", func() {
 				It("should generate valid json string with zero dpkg dependencies", func() {
-
+					log.SetOutput(GinkgoWriter)
 					dependencies, err := GenerateDependencies("alpine:latest")
 					Expect(err).ToNot(HaveOccurred())
 

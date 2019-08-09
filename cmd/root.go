@@ -80,7 +80,6 @@ func CreateNewImage() (resp types.ImageBuildResponse, err error) {
 	if err != nil {
 		return resp, err
 	}
-
 	dependencies, err := GenerateDependencies(inputImage)
 	if err != nil {
 		return resp, err
@@ -88,6 +87,9 @@ func CreateNewImage() (resp types.ImageBuildResponse, err error) {
 	md := metadata.Metadata{Dependencies: dependencies}
 
 	mdMarshalled, err := json.Marshal(md)
+	if err != nil {
+		return resp, err
+	}
 
 	opt := types.ImageBuildOptions{
 		Labels: map[string]string{
@@ -101,12 +103,14 @@ func CreateNewImage() (resp types.ImageBuildResponse, err error) {
 
 func GenerateDependencies(imageName string) ([]metadata.Dependency, error) {
 
+	packages := getDebianPackages(imageName)
+
 	dpkgList := metadata.Dependency{
 		Type: "debian_package_list",
 		Source: metadata.Source{
 			Type: "inline",
 			Metadata: metadata.DebianPackageListSourceMetadata{
-				Packages: getDebianPackages(imageName),
+				Packages: packages,
 			},
 		},
 	}
