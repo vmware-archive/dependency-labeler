@@ -135,13 +135,16 @@ func getDebianPackages(imageName string) []metadata.Package {
 	}
 
 	amendedOut := string(out)
-	amendedOut = amendedOut[:len(amendedOut)-1]
+	pattern := regexp.MustCompile(`{`)
+	loc := pattern.FindIndex(out)
+	amendedOut = amendedOut[loc[0] : len(amendedOut)-1]
 	amendedOut = "[" + amendedOut + "]"
+
 	decoder := json.NewDecoder(strings.NewReader(amendedOut))
 	var packages []metadata.Package
 	err = decoder.Decode(&packages)
 	if err != nil {
-		log.Fatalf("%s\n", err.Error())
+		log.Fatalf("unable to decode packages: %s\n", err.Error())
 	}
 
 	return packages
