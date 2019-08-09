@@ -1,13 +1,13 @@
-package cmd_test
+package deplab_test
 
 import (
 	"log"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/deplab/packages/metadata"
+	"github.com/pivotal/deplab/pkg/metadata"
 
-	. "github.com/pivotal/deplab/cmd"
+	. "github.com/pivotal/deplab/deplab"
 )
 
 var _ = Describe("Cmd", func() {

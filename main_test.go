@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pivotal/deplab/packages/metadata"
+	"github.com/pivotal/deplab/pkg/metadata"
 
 	"github.com/docker/docker/api/types"
 

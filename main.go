@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/pivotal/deplab/cmd"
+	"github.com/pivotal/deplab/deplab"
 )
 
 func main() {
-	cmd.Execute()
+	deplab.Execute()
 }

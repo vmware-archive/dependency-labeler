@@ -16,7 +16,7 @@ type Source struct {
 }
 
 type DebianPackageListSourceMetadata struct {
-	Packages []Package `json:"packages"`
+	Packages []Package `json:"pkg"`
 }
 
 type Package struct {

@@ -1,4 +1,4 @@
-package cmd
+package deplab
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pivotal/deplab/packages/metadata"
+	"github.com/pivotal/deplab/pkg/metadata"
 
 	docker "github.com/docker/docker/client"
 
@@ -144,7 +144,7 @@ func getDebianPackages(imageName string) []metadata.Package {
 	var packages []metadata.Package
 	err = decoder.Decode(&packages)
 	if err != nil {
-		log.Fatalf("unable to decode packages: %s\n", err.Error())
+		log.Fatalf("unable to decode pkg: %s\n", err.Error())
 	}
 
 	return packages
