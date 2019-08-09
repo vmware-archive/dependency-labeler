@@ -10,40 +10,42 @@ import (
 	. "github.com/pivotal/deplab/deplab"
 )
 
-var _ = Describe("Cmd", func() {
+var _ = Describe("deplab", func() {
 
-	Context("Root", func() {
-		Context("GenerateDependencies", func() {
-			Context("image with dpkg", func() {
-				It("should generate valid json string of dpkg dependencies", func() {
-					log.SetOutput(GinkgoWriter)
-					dependencies, err := GenerateDependencies("ubuntu:bionic")
-					Expect(err).ToNot(HaveOccurred())
+	Context("GenerateDependencies", func() {
 
-					Expect(len(dependencies)).To(Equal(1))
+		Context("image with dpkg", func() {
+			It("should generate valid json string of dpkg dependencies", func() {
+				log.SetOutput(GinkgoWriter)
+				dependencies, err := GenerateDependencies("ubuntu:bionic")
+				Expect(err).ToNot(HaveOccurred())
 
-					dependencyMetadata := dependencies[0].Source.Metadata
+				Expect(len(dependencies)).To(Equal(1))
 
-					dpkgMetadata := dependencyMetadata.(metadata.DebianPackageListSourceMetadata)
+				dependencyMetadata := dependencies[0].Source.Metadata
 
-					Expect(len(dpkgMetadata.Packages)).To(Equal(89))
-				})
-			})
-			Context("image without dpkg", func() {
-				It("should generate valid json string with zero dpkg dependencies", func() {
-					log.SetOutput(GinkgoWriter)
-					dependencies, err := GenerateDependencies("alpine:latest")
-					Expect(err).ToNot(HaveOccurred())
+				dpkgMetadata := dependencyMetadata.(metadata.DebianPackageListSourceMetadata)
 
-					Expect(len(dependencies)).To(Equal(1))
-
-					dependencyMetadata := dependencies[0].Source.Metadata
-
-					dpkgMetadata := dependencyMetadata.(metadata.DebianPackageListSourceMetadata)
-
-					Expect(len(dpkgMetadata.Packages)).To(Equal(0))
-				})
+				Expect(len(dpkgMetadata.Packages)).To(Equal(89))
 			})
 		})
+
+		Context("image without dpkg", func() {
+			It("should generate valid json string with zero dpkg dependencies", func() {
+				log.SetOutput(GinkgoWriter)
+				dependencies, err := GenerateDependencies("alpine:latest")
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(len(dependencies)).To(Equal(1))
+
+				dependencyMetadata := dependencies[0].Source.Metadata
+
+				dpkgMetadata := dependencyMetadata.(metadata.DebianPackageListSourceMetadata)
+
+				Expect(len(dpkgMetadata.Packages)).To(Equal(0))
+			})
+		})
+
 	})
+
 })
