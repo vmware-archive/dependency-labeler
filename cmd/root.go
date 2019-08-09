@@ -42,9 +42,6 @@ var rootCmd = &cobra.Command{
 	Complete documentation is available at http://github.com/pivotal/deplab`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if IsScratchImage() {
-			log.Fatal("deplab does not work with scratch\n")
-		}
 		if !IsValidImageName() {
 			log.Fatalf("invalid image name: %s\n", inputImage)
 		}
@@ -67,10 +64,6 @@ func Execute() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-}
-
-func IsScratchImage() bool {
-	return inputImage == "scratch"
 }
 
 func IsValidImageName() bool {
