@@ -29,8 +29,9 @@ func runDepLab(args []string, expErrCode int) (stdOutBuffer bytes.Buffer, stdErr
 
 	session, err := gexec.Start(cmd, &stdOutBuffer, &stdErrBuffer)
 	Expect(err).ToNot(HaveOccurred())
-	Eventually(session, time.Second*5).Should(gexec.Exit(expErrCode))
 	<-session.Exited
+
+	Eventually(session, time.Minute).Should(gexec.Exit(expErrCode))
 
 	return stdOutBuffer, stdErrBuffer
 }
