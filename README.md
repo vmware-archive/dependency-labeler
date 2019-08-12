@@ -11,20 +11,20 @@ Version 1.39 or higher is required.
 Download the latest `deplab` binary from the releases page.
 To run the tool run the following command:
 ```bash
-./deplab --image <image name>
+./deplab --image <image name> --git <path to git repo>
 ```
 
-Where `<image name>` is the name of the image that you want to add the meta data to.
+`<image name>` is the name of the image that you want to add the meta data to.
+
+The `--git` flag is optional. The  `<path to git repo>` is a path to a directory under git version control.
 
 This returns the sha256 of the new image with added metadata.
 Currently this will add the label `io.pivotal.metadata` along with the necessary metadata.
 
 ## Data
-The deplab tool adds the following dependencies:
-- debian_package_list
 
-##### debian_package_list
-The debian_package_list is generated with the following format
+##### debian package list
+The debian package list is generated with the following format
 
 ```json
 {
@@ -44,6 +44,28 @@ The debian_package_list is generated with the following format
 ```
 
 The `debian_package_list` requires `dpkg` to be a package on the image being instrumented on. If not present, the metadata structure will be injected into metadata of the container, with an empty array of packages.
+
+##### git dependency
+If the `--git` flag is provided with a valid path to a git repository, a git dependency will be added:
+```json
+{
+  "dependencies": [
+    {
+      "type": "package",
+      "source": {
+        "type": "git",
+        "version": {
+          "commit":  "d2c3ccdffd3c5a014891e40a3ed8ba020d00eefd"
+         },
+        "metadata": {
+          "uri": "https://github.com/pivotal/deplab.git",
+          "refs": ["0.5.0"]
+        }
+      }
+    }
+  ]
+}
+```
 
 
 ## Testing

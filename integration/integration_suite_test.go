@@ -25,5 +25,10 @@ func TestDeplab(t *testing.T) {
 		Expect(err).ToNot(HaveOccurred())
 	})
 
+	AfterSuite(func() {
+		gexec.Kill()
+		gexec.CleanupBuildArtifacts()
+	})
+
 	RunSpecs(t, "Deplab Suite")
 }

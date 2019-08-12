@@ -19,6 +19,11 @@ type DebianPackageListSourceMetadata struct {
 	Packages []Package `json:"pkg"`
 }
 
+type GitSourceMetadata struct {
+	URI  string   `json:"uri"`
+	Refs []string `json:"refs"`
+}
+
 type Package struct {
 	Package      string        `json:"package"`
 	Version      string        `json:"version"`

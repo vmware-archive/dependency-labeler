@@ -10,7 +10,6 @@ require (
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/gogo/protobuf v1.2.1 // indirect
-	github.com/google/go-cmp v0.3.0 // indirect
 	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/jhoonb/archivex v0.0.0-20180718040744-0488e4ce1681
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
@@ -23,6 +22,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/grpc v1.22.1 // indirect
+	gopkg.in/src-d/go-git.v4 v4.13.1
 	gotest.tools v2.2.0+incompatible // indirect
 
 )

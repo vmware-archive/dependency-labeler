@@ -17,7 +17,7 @@ var _ = Describe("deplab", func() {
 		Context("image with dpkg", func() {
 			It("should generate valid json string of dpkg dependencies", func() {
 				log.SetOutput(GinkgoWriter)
-				dependencies, err := GenerateDependencies("ubuntu:bionic")
+				dependencies, err := GenerateDependencies("ubuntu:bionic-20190718", "")
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(len(dependencies)).To(Equal(1))
@@ -33,7 +33,7 @@ var _ = Describe("deplab", func() {
 		Context("image without dpkg", func() {
 			It("should generate valid json string with zero dpkg dependencies", func() {
 				log.SetOutput(GinkgoWriter)
-				dependencies, err := GenerateDependencies("alpine:latest")
+				dependencies, err := GenerateDependencies("alpine:latest", "")
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(len(dependencies)).To(Equal(1))

@@ -12,6 +12,10 @@ import (
 	"regexp"
 	"strings"
 
+	"gopkg.in/src-d/go-git.v4/plumbing"
+
+	"gopkg.in/src-d/go-git.v4"
+
 	"github.com/pivotal/deplab/pkg/metadata"
 
 	docker "github.com/docker/docker/client"
@@ -23,11 +27,13 @@ import (
 )
 
 var inputImage string
+var gitPath string
 
 const ValidImageNameRE = `^([a-z0-9](?:/?(?:[._-])?(?:[a-z0-9]))*)(:[a-z0-9]+(?:[._-][a-z0-9]+)*)?$`
 
 func init() {
 	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "Image for the metadata to be added to")
+	rootCmd.Flags().StringVarP(&gitPath, "git", "g", "", "Path to directory under git revision control")
 	err := rootCmd.MarkFlagRequired("image")
 	if err != nil {
 		log.Fatalf("image name is required\n")
@@ -80,7 +86,7 @@ func CreateNewImage() (resp types.ImageBuildResponse, err error) {
 	if err != nil {
 		return resp, err
 	}
-	dependencies, err := GenerateDependencies(inputImage)
+	dependencies, err := GenerateDependencies(inputImage, gitPath)
 	if err != nil {
 		return resp, err
 	}
@@ -101,8 +107,19 @@ func CreateNewImage() (resp types.ImageBuildResponse, err error) {
 	return resp, err
 }
 
-func GenerateDependencies(imageName string) ([]metadata.Dependency, error) {
+func GenerateDependencies(imageName, pathToGit string) ([]metadata.Dependency, error) {
 
+	dpkgList := buildDebianDependencyMetadata(imageName)
+	dependencies := []metadata.Dependency{dpkgList}
+
+	if gitPath != "" {
+		dependencies = append(dependencies, buildGitDependencyMetadata(pathToGit))
+	}
+
+	return dependencies, nil
+}
+
+func buildDebianDependencyMetadata(imageName string) metadata.Dependency {
 	packages := getDebianPackages(imageName)
 
 	dpkgList := metadata.Dependency{
@@ -115,9 +132,48 @@ func GenerateDependencies(imageName string) ([]metadata.Dependency, error) {
 		},
 	}
 
-	dependencies := []metadata.Dependency{dpkgList}
+	return dpkgList
+}
 
-	return dependencies, nil
+func buildGitDependencyMetadata(pathToGit string) metadata.Dependency {
+	repo, err := git.PlainOpen(pathToGit)
+	if err != nil {
+		log.Fatalf("cannot open git repository: %s\n", err)
+	}
+
+	ref, err := repo.Head()
+	if err != nil {
+		log.Fatalf("cannot find head of git repository: %s\n", err)
+	}
+
+	remotes, err := repo.Remotes()
+	if err != nil {
+		log.Fatalf("cannot find remotes for repository: %s\n", err)
+	}
+
+	refs := []string{}
+	tags, _ := repo.Tags()
+	tags.ForEach(func(ref *plumbing.Reference) error {
+		if ref.Type() == plumbing.HashReference {
+			refs = append(refs, ref.Name().Short())
+		}
+
+		return nil
+	})
+
+	return metadata.Dependency{
+		Type: "package",
+		Source: metadata.Source{
+			Type: "git",
+			Version: map[string]interface{}{
+				"commit": ref.Hash().String(),
+			},
+			Metadata: metadata.GitSourceMetadata{
+				URI:  remotes[0].Config().URLs[0],
+				Refs: refs,
+			},
+		},
+	}
 }
 
 func getDebianPackages(imageName string) []metadata.Package {
