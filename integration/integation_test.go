@@ -228,11 +228,13 @@ var _ = Describe("deplab", func() {
 		It("labels an image and returns the sha of the labelled image with null instead of base metadata", func() {
 			By("executing it")
 			inputImage := "pivotalnavcon/noosrelease"
-			stdOutBuffer, _ := runDepLab([]string{"--image", inputImage}, 0)
+			stdOutBuffer, stdErrBuffer := runDepLab([]string{"--image", inputImage}, 0)
 
 			By("checking if it returns an image sha")
 			outputImage = strings.TrimSpace(stdOutBuffer.String())
 			Expect(outputImage).To(MatchRegexp("^sha256:[a-f0-9]+$"))
+
+			Expect(stdErrBuffer.String()).To(ContainSubstring("WARNING: error getting OS info"))
 
 			By("checking if the label exists")
 			inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)

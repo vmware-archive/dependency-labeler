@@ -47,6 +47,9 @@ var rootCmd = &cobra.Command{
 		md := metadata.Metadata{Dependencies: dependencies}
 
 		osMetadata, err := providers.BuildOSMetadata(inputImage)
+		if err != nil {
+			log.Printf("WARNING: error getting OS info: %s", err)
+		}
 		md.Base = osMetadata
 
 		resp, err := builder.CreateNewImage(inputImage, md)
