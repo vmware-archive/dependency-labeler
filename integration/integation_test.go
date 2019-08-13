@@ -84,7 +84,6 @@ var _ = Describe("deplab", func() {
 
 		_, err = dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
 		Expect(err).ToNot(HaveOccurred())
-
 	})
 
 	Context("with an image without dpkg", func() {
@@ -181,6 +180,9 @@ var _ = Describe("deplab", func() {
 			By("checking only 1 tag is included in refs")
 			Expect(len(gitSourceMetadata["refs"].([]interface{}))).To(Equal(1))
 			Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).To(Equal("bar"))
+
+			_, err = dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 
@@ -191,6 +193,62 @@ var _ = Describe("deplab", func() {
 			_, stdErrBuffer := runDepLab([]string{"--image", inputImage, "--git", "/dev/null"}, 1)
 
 			Expect(stdErrBuffer.String()).To(ContainSubstring("cannot open git repository"))
+		})
+	})
+
+	It("labels an image and returns the sha of the labelled image with a base image", func() {
+		By("executing it")
+		inputImage := "ubuntu:bionic"
+		stdOutBuffer, _ := runDepLab([]string{"--image", inputImage}, 0)
+
+		By("checking if it returns an image sha")
+		outputImage = strings.TrimSpace(stdOutBuffer.String())
+		Expect(outputImage).To(MatchRegexp("^sha256:[a-f0-9]+$"))
+
+		By("checking if the label exists")
+		inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
+		Expect(err).ToNot(HaveOccurred())
+
+		labelValue := inspectOutput.Config.Labels["io.pivotal.metadata"]
+		Expect(labelValue).ToNot(BeEmpty())
+
+		By("checking if the base metadata exists")
+		result := metadata.Metadata{}
+		err = json.Unmarshal([]byte(labelValue), &result)
+
+		Expect(result.Base.Name).To(Equal("Ubuntu"))
+		Expect(result.Base.VersionCodename).To(Equal("bionic"))
+		Expect(result.Base.VersionID).To(Equal("18.04"))
+
+		_, err = dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
+		Expect(err).ToNot(HaveOccurred())
+	})
+
+	Context("with an image that dosen't have an os-release", func() {
+		It("labels an image and returns the sha of the labelled image with null instead of base metadata", func() {
+			By("executing it")
+			inputImage := "pivotalnavcon/noosrelease"
+			stdOutBuffer, _ := runDepLab([]string{"--image", inputImage}, 0)
+
+			By("checking if it returns an image sha")
+			outputImage = strings.TrimSpace(stdOutBuffer.String())
+			Expect(outputImage).To(MatchRegexp("^sha256:[a-f0-9]+$"))
+
+			By("checking if the label exists")
+			inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
+			Expect(err).ToNot(HaveOccurred())
+
+			labelValue := inspectOutput.Config.Labels["io.pivotal.metadata"]
+			Expect(labelValue).ToNot(BeEmpty())
+
+			By("checking if the base metadata exists")
+			result := metadata.Metadata{}
+			err = json.Unmarshal([]byte(labelValue), &result)
+
+			Expect(result.Base).To(BeNil())
+
+			_, err = dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 })

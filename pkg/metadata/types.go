@@ -1,7 +1,14 @@
 package metadata
 
 type Metadata struct {
+	Base         *Base        `json:"base"`
 	Dependencies []Dependency `json:"dependencies"`
+}
+
+type Base struct {
+	Name            string `json:"name"`
+	VersionID       string `json:"version_id"`
+	VersionCodename string `json:"version_codename"`
 }
 
 type Dependency struct {

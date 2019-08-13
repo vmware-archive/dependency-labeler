@@ -12,6 +12,7 @@ require (
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/jhoonb/archivex v0.0.0-20180718040744-0488e4ce1681
+	github.com/joho/godotenv v1.3.0
 	github.com/morikuni/aec v0.0.0-20170113033406-39771216ff4c // indirect
 
 	github.com/onsi/ginkgo v1.8.0

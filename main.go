@@ -46,6 +46,9 @@ var rootCmd = &cobra.Command{
 		}
 		md := metadata.Metadata{Dependencies: dependencies}
 
+		osMetadata, err := providers.BuildOSMetadata(inputImage)
+		md.Base = osMetadata
+
 		resp, err := builder.CreateNewImage(inputImage, md)
 		if err != nil {
 			log.Fatalf("could not create new image: %s\n", err)
