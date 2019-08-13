@@ -39,7 +39,7 @@ var _ = Describe("deplab", func() {
 		_, stdErrBuffer := runDepLab([]string{"--image", inputImage}, 1)
 
 		errorOutput := strings.TrimSpace(stdErrBuffer.String())
-		Expect(errorOutput).To(ContainSubstring("invalid image name"))
+		Expect(errorOutput).To(ContainSubstring("invalid reference format"))
 	})
 
 })

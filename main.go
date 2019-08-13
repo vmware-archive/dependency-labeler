@@ -36,10 +36,6 @@ var rootCmd = &cobra.Command{
 	Version: deplabVersion,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		if !builder.IsValidImageName(inputImage) {
-			log.Fatalf("invalid image name: %s\n", inputImage)
-		}
-
 		dependencies, err := GenerateDependencies(inputImage, gitPath)
 		if err != nil {
 			log.Fatalf("error generating dependencies: %s", err)

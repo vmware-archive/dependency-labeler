@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -15,12 +14,6 @@ import (
 	"github.com/jhoonb/archivex"
 	"github.com/pivotal/deplab/pkg/metadata"
 )
-
-const ValidImageNameRE = `^([a-z0-9](?:/?(?:[._-])?(?:[a-z0-9]))*)(:[a-z0-9]+(?:[._-][a-z0-9]+)*)?$`
-
-func IsValidImageName(inputImage string) bool {
-	return regexp.MustCompile(ValidImageNameRE).MatchString(inputImage)
-}
 
 func CreateNewImage(inputImage string, md metadata.Metadata) (resp types.ImageBuildResponse, err error) {
 	dockerCli, err := client.NewClientWithOpts(client.WithVersion("1.39"), client.FromEnv)
