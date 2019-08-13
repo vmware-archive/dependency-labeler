@@ -31,18 +31,12 @@ var _ = Describe("deplab", func() {
 		})
 
 		Context("image without dpkg", func() {
-			It("should generate valid json string with zero dpkg dependencies", func() {
+			It("should not have a package list dependency", func() {
 				log.SetOutput(GinkgoWriter)
 				dependencies, err := GenerateDependencies("alpine:latest", "")
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(len(dependencies)).To(Equal(1))
-
-				dependencyMetadata := dependencies[0].Source.Metadata
-
-				dpkgMetadata := dependencyMetadata.(metadata.DebianPackageListSourceMetadata)
-
-				Expect(len(dpkgMetadata.Packages)).To(Equal(0))
+				Expect(len(dependencies)).To(Equal(0))
 			})
 		})
 

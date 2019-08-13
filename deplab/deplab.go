@@ -108,9 +108,12 @@ func CreateNewImage() (resp types.ImageBuildResponse, err error) {
 }
 
 func GenerateDependencies(imageName, pathToGit string) ([]metadata.Dependency, error) {
+	dependencies := []metadata.Dependency{}
 
-	dpkgList := buildDebianDependencyMetadata(imageName)
-	dependencies := []metadata.Dependency{dpkgList}
+	dpkgList, ok := buildDebianDependencyMetadata(imageName)
+	if ok {
+		dependencies = append(dependencies, dpkgList)
+	}
 
 	if gitPath != "" {
 		dependencies = append(dependencies, buildGitDependencyMetadata(pathToGit))
@@ -119,20 +122,24 @@ func GenerateDependencies(imageName, pathToGit string) ([]metadata.Dependency, e
 	return dependencies, nil
 }
 
-func buildDebianDependencyMetadata(imageName string) metadata.Dependency {
-	packages := getDebianPackages(imageName)
+func buildDebianDependencyMetadata(imageName string) (metadata.Dependency, bool) {
+	packages, ok := getDebianPackages(imageName)
 
-	dpkgList := metadata.Dependency{
-		Type: "debian_package_list",
-		Source: metadata.Source{
-			Type: "inline",
-			Metadata: metadata.DebianPackageListSourceMetadata{
-				Packages: packages,
+	if ok {
+		dpkgList := metadata.Dependency{
+			Type: "debian_package_list",
+			Source: metadata.Source{
+				Type: "inline",
+				Metadata: metadata.DebianPackageListSourceMetadata{
+					Packages: packages,
+				},
 			},
-		},
+		}
+
+		return dpkgList, ok
 	}
 
-	return dpkgList
+	return metadata.Dependency{}, ok
 }
 
 func buildGitDependencyMetadata(pathToGit string) metadata.Dependency {
@@ -176,7 +183,7 @@ func buildGitDependencyMetadata(pathToGit string) metadata.Dependency {
 	}
 }
 
-func getDebianPackages(imageName string) []metadata.Package {
+func getDebianPackages(imageName string) ([]metadata.Package, bool) {
 	query := "{\"package\":\"${Package}\", \"version\":\"${Version}\", \"architecture\":\"${architecture}\", \"source\":{\"package\":\"${source:Package}\", \"version\":\"${source:Version}\", \"upstreamVersion\":\"${source:Upstream-Version}\"}},"
 
 	dpkgQuery := exec.Command("docker", "run", "--rm", imageName, "dpkg-query", "-W", "-f="+query)
@@ -185,7 +192,7 @@ func getDebianPackages(imageName string) []metadata.Package {
 	if err != nil {
 		if strings.Contains(string(out), "executable file not found in $PATH") {
 			log.Print("This image does not contain dpkg, so skipping dpkg dependencies.")
-			return []metadata.Package{}
+			return []metadata.Package{}, false
 		}
 		log.Fatalf("dpkgQuery failed: %s, with error: %s\n", string(out), err.Error())
 	}
@@ -203,7 +210,7 @@ func getDebianPackages(imageName string) []metadata.Package {
 		log.Fatalf("unable to decode pkg: %s\n", err.Error())
 	}
 
-	return packages
+	return packages, true
 }
 
 func createDockerFileBuffer() (bytes.Buffer, error) {
