@@ -148,7 +148,10 @@ var _ = Describe("deplab", func() {
 			By("checking a remote is specified")
 			gitSourceMetadata := gitDependency.Source.Metadata.(map[string]interface{})
 			Expect(gitSourceMetadata["uri"].(string)).To(Equal("https://example.com/example.git"))
-			Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).To(Equal("foo"))
+
+			By("checking only 1 tag is included in refs")
+			Expect(len(gitSourceMetadata["refs"].([]interface{}))).To(Equal(1))
+			Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).To(Equal("bar"))
 		})
 	})
 
@@ -197,6 +200,17 @@ func makeFakeGitRepo() (string, string) {
 	Expect(err).ToNot(HaveOccurred())
 
 	repo.CreateTag("foo", ch, nil)
+
+	ch, err = w.Commit("Second test commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Pivotal Example",
+			Email: "example@pivotal.io",
+			When:  time.Now(),
+		},
+	})
+	Expect(err).ToNot(HaveOccurred())
+
+	repo.CreateTag("bar", ch, nil)
 
 	return ch.String(), path
 }
