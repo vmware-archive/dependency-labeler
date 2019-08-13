@@ -72,6 +72,10 @@ var _ = Describe("deplab", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(len(result.Dependencies)).To(Equal(1))
 
+		dependencyMetadata := result.Dependencies[0].Source.Metadata
+		dpkgMetadata := dependencyMetadata.(map[string]interface{})
+		Expect(len(dpkgMetadata["pkg"].([]interface{}))).To(Equal(89))
+
 		By("checking that the input image is parent of the output image")
 		inspectInput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), inputImage)
 		Expect(err).ToNot(HaveOccurred())
@@ -83,6 +87,31 @@ var _ = Describe("deplab", func() {
 
 	})
 
+	Context("with an image without dpkg", func() {
+		It("does not return a dpkg list", func() {
+			By("executing it")
+			inputImage := "alpine:latest"
+			stdOutBuffer, _ := runDepLab([]string{"--image", inputImage}, 0)
+
+			By("checking if it returns an image sha")
+			outputImage = strings.TrimSpace(stdOutBuffer.String())
+			Expect(outputImage).To(MatchRegexp("^sha256:[a-f0-9]+$"))
+
+			By("checking if the label exists")
+			inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
+			Expect(err).ToNot(HaveOccurred())
+
+			labelValue := inspectOutput.Config.Labels["io.pivotal.metadata"]
+			Expect(labelValue).ToNot(BeEmpty())
+
+			By("checking if the dpkg dependencies exists")
+			result := metadata.Metadata{}
+			err = json.Unmarshal([]byte(labelValue), &result)
+			Expect(err).ToNot(HaveOccurred())
+
+			Expect(len(result.Dependencies)).To(Equal(0))
+		})
+	})
 	It("throws an error if scratch image is provided", func() {
 		By("executing it")
 		inputImage := "scratch"
