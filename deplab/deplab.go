@@ -8,7 +8,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"os/exec"
 	"regexp"
 	"strings"
 
@@ -106,10 +105,13 @@ func CreateNewImage() (resp types.ImageBuildResponse, err error) {
 }
 
 func GenerateDependencies(imageName, pathToGit string) ([]metadata.Dependency, error) {
-	dependencies := []metadata.Dependency{}
+	var dependencies []metadata.Dependency
 
-	dpkgList, ok := buildDebianDependencyMetadata(imageName)
-	if ok {
+	dpkgList, err := providers.BuildDebianDependencyMetadata(imageName)
+	if err != nil {
+		log.Fatalf("debian package metadata: %s", err)
+	}
+	if dpkgList.Type != "" {
 		dependencies = append(dependencies, dpkgList)
 	}
 
@@ -122,56 +124,6 @@ func GenerateDependencies(imageName, pathToGit string) ([]metadata.Dependency, e
 	}
 
 	return dependencies, nil
-}
-
-func buildDebianDependencyMetadata(imageName string) (metadata.Dependency, bool) {
-	packages, ok := getDebianPackages(imageName)
-
-	if ok {
-		dpkgList := metadata.Dependency{
-			Type: "debian_package_list",
-			Source: metadata.Source{
-				Type: "inline",
-				Metadata: metadata.DebianPackageListSourceMetadata{
-					Packages: packages,
-				},
-			},
-		}
-
-		return dpkgList, ok
-	}
-
-	return metadata.Dependency{}, ok
-}
-
-func getDebianPackages(imageName string) ([]metadata.Package, bool) {
-	query := "{\"package\":\"${Package}\", \"version\":\"${Version}\", \"architecture\":\"${architecture}\", \"source\":{\"package\":\"${source:Package}\", \"version\":\"${source:Version}\", \"upstreamVersion\":\"${source:Upstream-Version}\"}},"
-
-	dpkgQuery := exec.Command("docker", "run", "--rm", imageName, "dpkg-query", "-W", "-f="+query)
-
-	out, err := dpkgQuery.CombinedOutput()
-	if err != nil {
-		if strings.Contains(string(out), "executable file not found in $PATH") {
-			log.Print("This image does not contain dpkg, so skipping dpkg dependencies.")
-			return []metadata.Package{}, false
-		}
-		log.Fatalf("dpkgQuery failed: %s, with error: %s\n", string(out), err.Error())
-	}
-
-	amendedOut := string(out)
-	pattern := regexp.MustCompile(`{`)
-	loc := pattern.FindIndex(out)
-	amendedOut = amendedOut[loc[0] : len(amendedOut)-1]
-	amendedOut = "[" + amendedOut + "]"
-
-	decoder := json.NewDecoder(strings.NewReader(amendedOut))
-	var packages []metadata.Package
-	err = decoder.Decode(&packages)
-	if err != nil {
-		log.Fatalf("unable to decode pkg: %s\n", err.Error())
-	}
-
-	return packages, true
 }
 
 func createDockerFileBuffer() (bytes.Buffer, error) {
