@@ -12,9 +12,7 @@ import (
 	"regexp"
 	"strings"
 
-	"gopkg.in/src-d/go-git.v4/plumbing"
-
-	"gopkg.in/src-d/go-git.v4"
+	"github.com/pivotal/deplab/deplab/providers"
 
 	"github.com/pivotal/deplab/pkg/metadata"
 
@@ -116,7 +114,11 @@ func GenerateDependencies(imageName, pathToGit string) ([]metadata.Dependency, e
 	}
 
 	if gitPath != "" {
-		dependencies = append(dependencies, buildGitDependencyMetadata(pathToGit))
+		gitMetadata, err := providers.BuildGitDependencyMetadata(pathToGit)
+		if err != nil {
+			log.Fatalf("git metadata: %s", err)
+		}
+		dependencies = append(dependencies, gitMetadata)
 	}
 
 	return dependencies, nil
@@ -140,52 +142,6 @@ func buildDebianDependencyMetadata(imageName string) (metadata.Dependency, bool)
 	}
 
 	return metadata.Dependency{}, ok
-}
-
-func buildGitDependencyMetadata(pathToGit string) metadata.Dependency {
-	repo, err := git.PlainOpen(pathToGit)
-	if err != nil {
-		log.Fatalf("cannot open git repository: %s\n", err)
-	}
-
-	ref, err := repo.Head()
-	if err != nil {
-		log.Fatalf("cannot find head of git repository: %s\n", err)
-	}
-
-	remotes, err := repo.Remotes()
-	if err != nil {
-		log.Fatalf("cannot find remotes for repository: %s\n", err)
-	}
-
-	currentHead, err := repo.Head()
-	if err != nil {
-		log.Fatalf("cannot find remotes for repository: %s\n", err)
-	}
-
-	refs := []string{}
-	tags, _ := repo.Tags()
-	tags.ForEach(func(ref *plumbing.Reference) error {
-		if ref.Type() == plumbing.HashReference && ref.Hash() == currentHead.Hash() {
-			refs = append(refs, ref.Name().Short())
-		}
-
-		return nil
-	})
-
-	return metadata.Dependency{
-		Type: "package",
-		Source: metadata.Source{
-			Type: "git",
-			Version: map[string]interface{}{
-				"commit": ref.Hash().String(),
-			},
-			Metadata: metadata.GitSourceMetadata{
-				URI:  remotes[0].Config().URLs[0],
-				Refs: refs,
-			},
-		},
-	}
 }
 
 func getDebianPackages(imageName string) ([]metadata.Package, bool) {
