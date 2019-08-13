@@ -26,6 +26,8 @@ import (
 var inputImage string
 var gitPath string
 
+var version = "0.0.0-dev"
+
 const ValidImageNameRE = `^([a-z0-9](?:/?(?:[._-])?(?:[a-z0-9]))*)(:[a-z0-9]+(?:[._-][a-z0-9]+)*)?$`
 
 func init() {
@@ -43,6 +45,7 @@ var rootCmd = &cobra.Command{
 	Long: `Dependency labeler adds information about a container image to that image's config. 
 	The information can be found in a "io.pivotal.metadata" label on the output image. 
 	Complete documentation is available at http://github.com/pivotal/deplab`,
+	Version: version,
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if !IsValidImageName() {
