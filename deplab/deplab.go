@@ -158,10 +158,15 @@ func buildGitDependencyMetadata(pathToGit string) metadata.Dependency {
 		log.Fatalf("cannot find remotes for repository: %s\n", err)
 	}
 
+	currentHead, err := repo.Head()
+	if err != nil {
+		log.Fatalf("cannot find remotes for repository: %s\n", err)
+	}
+
 	refs := []string{}
 	tags, _ := repo.Tags()
 	tags.ForEach(func(ref *plumbing.Reference) error {
-		if ref.Type() == plumbing.HashReference {
+		if ref.Type() == plumbing.HashReference && ref.Hash() == currentHead.Hash() {
 			refs = append(refs, ref.Name().Short())
 		}
 
