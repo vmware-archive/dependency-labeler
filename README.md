@@ -67,6 +67,17 @@ If the `--git` flag is provided with a valid path to a git repository, a git dep
 }
 ```
 
+##### base
+The base image metadata is generated with the following format
+```json
+  "base": {
+    "name": "Ubuntu",
+    "version_id": "18.04",
+    "version_codename": "bionic"
+  }
+```
+
+This relies on the `/etc/os-release` file being in the docker container, and `cat` being able to read it. If neither are present then this value will be null.
 
 ## Testing
 Testing requires `go` to be installed.  Please clone this git repository.  Tests can be run with:
