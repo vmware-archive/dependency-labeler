@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -15,12 +16,15 @@ func BuildDebianDependencyMetadata(imageName string) (metadata.Dependency, error
 	packages, err := getDebianPackages(imageName)
 
 	if len(packages) != 0 {
+		sources, _ := getAptSources(imageName)
+
 		dpkgList := metadata.Dependency{
 			Type: "debian_package_list",
 			Source: metadata.Source{
 				Type: "inline",
 				Metadata: metadata.DebianPackageListSourceMetadata{
-					Packages: packages,
+					Packages:   packages,
+					AptSources: sources,
 				},
 			},
 		}
@@ -31,10 +35,49 @@ func BuildDebianDependencyMetadata(imageName string) (metadata.Dependency, error
 	return metadata.Dependency{}, err
 }
 
-func getDebianPackages(imageName string) ([]metadata.Package, error) {
-	query := "{\"package\":\"${Package}\", \"version\":\"${Version}\", \"architecture\":\"${architecture}\", \"source\":{\"package\":\"${source:Package}\", \"version\":\"${source:Version}\", \"upstreamVersion\":\"${source:Upstream-Version}\"}},"
+func getAptSources(imageName string) ([]string, error) {
+	stdout := &bytes.Buffer{}
 
-	dpkgQuery := exec.Command("docker", "run", "--rm", imageName, "dpkg-query", "-W", "-f="+query)
+	grep := exec.Command("docker", "run", "--rm", imageName,
+		"grep",
+		"^[^#]",
+		"/etc/apt/sources.list",
+		"/etc/apt/sources.list.d",
+		"--no-filename",
+		"--no-message",
+		"--recursive")
+
+	grep.Stdout = stdout
+
+	_ = grep.Run()
+
+	//this requires an empty slice not a nil slice due to JSON serialization
+	//nil slices serialize as null
+	//empty slice serialize to []
+	sources := []string{}
+
+	for _, source := range strings.Split(stdout.String(), "\n") {
+		if strings.TrimSpace(source) != "" {
+			sources = append(sources, source)
+		}
+	}
+
+	return sources, nil
+}
+
+func getDebianPackages(imageName string) ([]metadata.Package, error) {
+	query := `{
+		"package":"${Package}",
+		"version":"${Version}",
+		"architecture":"${architecture}",
+		"source":{
+			"package":"${source:Package}",
+			"version":"${source:Version}",
+			"upstreamVersion":"${source:Upstream-Version}"
+		}
+	},`
+
+	dpkgQuery := exec.Command("docker", "run", "--rm", imageName, "dpkg-query", "-W", "-f", query)
 
 	out, err := dpkgQuery.CombinedOutput()
 	if err != nil {

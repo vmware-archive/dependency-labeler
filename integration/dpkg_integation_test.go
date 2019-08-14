@@ -26,18 +26,37 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
-			inputImage = "ubuntu:bionic"
+			inputImage = "pivotalnavcon/ubuntuwithsources"
 			outputImage, metadataLabelString, metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
 		It("applies a metadata label", func() {
 			Expect(metadataLabelString).ToNot(BeEmpty())
 
+			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
+			dpkgMetadata := dependencyMetadata.(map[string]interface{})
+
+			By("listing the dpkg sources")
+			sources, ok := dpkgMetadata["apt_sources"].([]interface{})
+			Expect(ok).To(BeTrue())
+			Expect(len(sources)).To(BeNumerically(">", 0))
+			Expect(sources).To(ConsistOf(
+				"deb http://archive.ubuntu.com/ubuntu/ bionic main restricted",
+				"deb http://archive.ubuntu.com/ubuntu/ bionic universe",
+				"deb http://archive.ubuntu.com/ubuntu/ bionic-updates main restricted",
+				"deb http://archive.ubuntu.com/ubuntu/ bionic-updates universe",
+				"deb http://archive.ubuntu.com/ubuntu/ bionic multiverse",
+				"deb http://archive.ubuntu.com/ubuntu/ bionic-updates multiverse",
+				"deb http://archive.ubuntu.com/ubuntu/ bionic-backports main restricted universe multiverse",
+				"deb http://security.ubuntu.com/ubuntu/ bionic-security main restricted",
+				"deb http://security.ubuntu.com/ubuntu/ bionic-security universe",
+				"deb http://security.ubuntu.com/ubuntu/ bionic-security multiverse",
+				"deb http://example.com/ubuntu getdeb example",
+			))
+
 			By("listing debian package dependencies in the image")
 			Expect(metadataLabel.Dependencies[0].Type).To(Equal("debian_package_list"))
 
-			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
-			dpkgMetadata := dependencyMetadata.(map[string]interface{})
 			Expect(len(dpkgMetadata["packages"].([]interface{}))).To(Equal(89))
 
 			By("generating an image with the input as the parent")
@@ -60,6 +79,44 @@ var _ = Describe("deplab dpkg", func() {
 		It("does not return a dpkg list", func() {
 			_, ok := filterDpkgDependency(metadataLabel.Dependencies)
 			Expect(ok).To(BeFalse())
+		})
+	})
+
+	Context("with an image with dpkg, but no apt sources", func() {
+		BeforeEach(func() {
+			inputImage = "pivotalnavcon/ubuntuwithoutsources"
+			outputImage, metadataLabelString, metadataLabel = runDeplabAgainstImage(inputImage)
+		})
+
+		It("does not return a dpkg list", func() {
+			Expect(metadataLabelString).ToNot(BeEmpty())
+
+			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
+			dpkgMetadata := dependencyMetadata.(map[string]interface{})
+
+			sources, ok := dpkgMetadata["apt_sources"].([]interface{})
+
+			Expect(ok).To(BeTrue())
+			Expect(sources).To(BeEmpty())
+		})
+	})
+
+	Context("with an image with dpkg, but no grep", func() {
+		BeforeEach(func() {
+			inputImage = "pivotalnavcon/ubuntuwithoutgrep"
+			outputImage, metadataLabelString, metadataLabel = runDeplabAgainstImage(inputImage)
+		})
+
+		It("does not return a dpkg list", func() {
+			Expect(metadataLabelString).ToNot(BeEmpty())
+
+			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
+			dpkgMetadata := dependencyMetadata.(map[string]interface{})
+
+			sources, ok := dpkgMetadata["apt_sources"].([]interface{})
+
+			Expect(ok).To(BeTrue())
+			Expect(sources).To(BeEmpty())
 		})
 	})
 })
