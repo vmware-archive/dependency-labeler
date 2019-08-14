@@ -8,7 +8,7 @@ import (
 	"github.com/pivotal/deplab/builder"
 	"github.com/pivotal/deplab/providers"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/metadata"
 
 	"github.com/spf13/cobra"
 )

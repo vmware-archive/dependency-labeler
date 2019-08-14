@@ -13,7 +13,7 @@ import (
 
 	"gopkg.in/src-d/go-git.v4"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/metadata"
 
 	"github.com/docker/docker/api/types"
 

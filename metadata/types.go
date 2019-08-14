@@ -23,7 +23,7 @@ type Source struct {
 }
 
 type DebianPackageListSourceMetadata struct {
-	Packages []Package `json:"pkg"`
+	Packages []Package `json:"packages"`
 }
 
 type GitSourceMetadata struct {

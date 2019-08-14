@@ -6,7 +6,7 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/metadata"
 )
 
 func BuildOSMetadata(imageName string) (*metadata.Base, error) {

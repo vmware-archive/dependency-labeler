@@ -12,7 +12,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/jhoonb/archivex"
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/metadata"
 )
 
 func CreateNewImage(inputImage string, md metadata.Metadata) (resp types.ImageBuildResponse, err error) {

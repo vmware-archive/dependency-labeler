@@ -3,7 +3,7 @@ package integration_test
 import (
 	"context"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/metadata"
 
 	"github.com/docker/docker/api/types"
 

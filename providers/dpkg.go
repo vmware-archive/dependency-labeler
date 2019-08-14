@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/metadata"
 )
 
 func BuildDebianDependencyMetadata(imageName string) (metadata.Dependency, error) {

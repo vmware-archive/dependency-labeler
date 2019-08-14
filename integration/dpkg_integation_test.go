@@ -3,7 +3,7 @@ package integration_test
 import (
 	"context"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/metadata"
 
 	"github.com/docker/docker/api/types"
 
@@ -39,7 +39,7 @@ var _ = Describe("deplab dpkg", func() {
 
 			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})
-			Expect(len(dpkgMetadata["pkg"].([]interface{}))).To(Equal(89))
+			Expect(len(dpkgMetadata["packages"].([]interface{}))).To(Equal(89))
 		})
 
 		It("generates an image with the input as the parent", func() {

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/metadata"
 
 	"github.com/onsi/gomega/gexec"
 
