@@ -49,23 +49,19 @@ var _ = Describe("deplab git", func() {
 
 		It("adds a gitDependency", func() {
 			Expect(gitDependency.Type).ToNot(BeEmpty())
-		})
 
-		It("adds the git commit of HEAD to a git dependency", func() {
+			By("adding the git commit of HEAD to a git dependency")
 			Expect(gitDependency.Type).To(Equal("package"))
 			Expect(gitDependency.Source.Version["commit"]).To(Equal(commitHash))
-		})
 
-		It("adds the git remote to a git dependency", func() {
+			By("adding the git remote to a git dependency")
 			Expect(gitSourceMetadata["uri"].(string)).To(Equal("https://example.com/example.git"))
-		})
 
-		It("adds refs for the current HEAD", func() {
+			By("adding refs for the current HEAD")
 			Expect(len(gitSourceMetadata["refs"].([]interface{}))).To(Equal(1))
 			Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).To(Equal("bar"))
-		})
 
-		It("does not add refs that are not the current HEAD", func() {
+			By("not adding refs that are not the current HEAD")
 			Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).ToNot(Equal("foo"))
 		})
 	})

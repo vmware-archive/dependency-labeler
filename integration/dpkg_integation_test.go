@@ -32,17 +32,15 @@ var _ = Describe("deplab dpkg", func() {
 
 		It("applies a metadata label", func() {
 			Expect(metadataLabelString).ToNot(BeEmpty())
-		})
 
-		It("lists debian package dependencies in the image", func() {
+			By("listing debian package dependencies in the image")
 			Expect(metadataLabel.Dependencies[0].Type).To(Equal("debian_package_list"))
 
 			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})
 			Expect(len(dpkgMetadata["packages"].([]interface{}))).To(Equal(89))
-		})
 
-		It("generates an image with the input as the parent", func() {
+			By("generating an image with the input as the parent")
 			inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
 			Expect(err).ToNot(HaveOccurred())
 
