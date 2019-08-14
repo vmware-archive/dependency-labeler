@@ -58,7 +58,17 @@ var _ = Describe("deplab dpkg", func() {
 		})
 
 		It("does not return a dpkg list", func() {
-			Expect(len(metadataLabel.Dependencies)).To(Equal(0))
+			_, ok := filterDpkgDependency(metadataLabel.Dependencies)
+			Expect(ok).To(BeFalse())
 		})
 	})
 })
+
+func filterDpkgDependency(dependencies []metadata.Dependency) (metadata.Dependency, bool) {
+	for _, dependency := range dependencies {
+		if dependency.Source.Type == "debian_package_list" {
+			return dependency, true
+		}
+	}
+	return metadata.Dependency{}, false //should never be reached
+}

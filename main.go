@@ -88,6 +88,8 @@ func generateDependencies(imageName, pathToGit string) ([]metadata.Dependency, e
 			log.Fatalf("git metadata: %s", err)
 		}
 		dependencies = append(dependencies, gitMetadata)
+	} else {
+		log.Fatalf("A git path must be provided\n")
 	}
 
 	return dependencies, nil

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -20,8 +21,9 @@ import (
 )
 
 var (
-	pathToBin string
-	dockerCli *docker.Client
+	pathToBin                 string
+	dockerCli                 *docker.Client
+	commitHash, pathToGitRepo string
 )
 
 func TestDeplab(t *testing.T) {
@@ -31,6 +33,8 @@ func TestDeplab(t *testing.T) {
 		var (
 			err error
 		)
+
+		commitHash, pathToGitRepo = makeFakeGitRepo()
 
 		dockerCli, err = docker.NewClientWithOpts(docker.WithVersion("1.39"), docker.FromEnv)
 		if err != nil {
@@ -42,6 +46,7 @@ func TestDeplab(t *testing.T) {
 	})
 
 	AfterSuite(func() {
+		os.RemoveAll(pathToGitRepo)
 		gexec.Kill()
 		gexec.CleanupBuildArtifacts()
 	})
@@ -66,7 +71,7 @@ func runDepLab(args []string, expErrCode int) (stdOutBuffer bytes.Buffer, stdErr
 
 func runDeplabAgainstImage(inputImage string, extraArgs ...string) (string, string, metadata.Metadata) {
 	By("executing it")
-	args := []string{"--image", inputImage}
+	args := []string{"--image", inputImage, "--git", pathToGitRepo}
 	args = append(args, extraArgs...)
 	stdOutBuffer, _ := runDepLab(args, 0)
 

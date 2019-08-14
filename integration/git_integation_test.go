@@ -3,7 +3,6 @@ package integration_test
 import (
 	"context"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"time"
 
@@ -27,16 +26,13 @@ var _ = Describe("deplab git", func() {
 	Context("when I supply a git repo as an argument", func() {
 		var (
 			metadataLabel     metadata.Metadata
-			commitHash        string
-			pathToGitRepo     string
 			gitDependency     metadata.Dependency
 			gitSourceMetadata map[string]interface{}
 		)
 
 		BeforeEach(func() {
 			inputImage := "ubuntu:bionic"
-			commitHash, pathToGitRepo = makeFakeGitRepo()
-			outputImage, _, metadataLabel = runDeplabAgainstImage(inputImage, "--git", pathToGitRepo)
+			outputImage, _, metadataLabel = runDeplabAgainstImage(inputImage)
 			gitDependency = filterGitDependency(metadataLabel.Dependencies)
 			gitSourceMetadata = gitDependency.Source.Metadata.(map[string]interface{})
 		})
@@ -44,7 +40,6 @@ var _ = Describe("deplab git", func() {
 		AfterEach(func() {
 			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
 			Expect(err).ToNot(HaveOccurred())
-			os.RemoveAll(pathToGitRepo)
 		})
 
 		It("adds a gitDependency", func() {
@@ -77,24 +72,12 @@ var _ = Describe("deplab git", func() {
 	})
 
 	Context("when I don't supply a git flag as an argument", func() {
-		var (
-			gitDependency metadata.Dependency
-			metadataLabel metadata.Metadata
-		)
-
-		BeforeEach(func() {
-			inputImage := "ubuntu:bionic"
-			outputImage, _, metadataLabel = runDeplabAgainstImage(inputImage)
-			gitDependency = filterGitDependency(metadataLabel.Dependencies)
-		})
-
-		AfterEach(func() {
-			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
-			Expect(err).ToNot(HaveOccurred())
-		})
-
 		It("has no git metadata", func() {
-			Expect(gitDependency.Type).To(BeEmpty())
+			By("executing it")
+			inputImage := "ubuntu:bionic"
+			_, stdErrBuffer := runDepLab([]string{"--image", inputImage}, 1)
+
+			Expect(stdErrBuffer.String()).To(ContainSubstring("A git path must be provided"))
 		})
 	})
 })
