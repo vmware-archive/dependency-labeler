@@ -2,15 +2,6 @@ package integration_test
 
 import (
 	"context"
-	"io/ioutil"
-	"path/filepath"
-	"time"
-
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
-
-	"gopkg.in/src-d/go-git.v4/config"
-
-	"gopkg.in/src-d/go-git.v4"
 
 	"github.com/pivotal/deplab/metadata"
 
@@ -81,55 +72,6 @@ var _ = Describe("deplab git", func() {
 		})
 	})
 })
-
-func makeFakeGitRepo() (string, string) {
-	path, err := ioutil.TempDir("", "deplab-integration")
-	Expect(err).ToNot(HaveOccurred())
-
-	repo, err := git.PlainInit(path, false)
-	Expect(err).ToNot(HaveOccurred())
-
-	_, err = repo.CreateRemote(&config.RemoteConfig{
-		Name: "origin",
-		URLs: []string{"https://example.com/example.git"},
-	})
-	Expect(err).ToNot(HaveOccurred())
-
-	testFilePath := filepath.Join(path, "test")
-	data := []byte("TestFile\n")
-	err = ioutil.WriteFile(testFilePath, data, 0644)
-	Expect(err).ToNot(HaveOccurred())
-
-	w, err := repo.Worktree()
-	Expect(err).ToNot(HaveOccurred())
-
-	err = w.AddGlob("*")
-	Expect(err).ToNot(HaveOccurred())
-
-	ch, err := w.Commit("Test commit", &git.CommitOptions{
-		Author: &object.Signature{
-			Name:  "Pivotal Example",
-			Email: "example@pivotal.io",
-			When:  time.Now(),
-		},
-	})
-	Expect(err).ToNot(HaveOccurred())
-
-	repo.CreateTag("foo", ch, nil)
-
-	ch, err = w.Commit("Second test commit", &git.CommitOptions{
-		Author: &object.Signature{
-			Name:  "Pivotal Example",
-			Email: "example@pivotal.io",
-			When:  time.Now(),
-		},
-	})
-	Expect(err).ToNot(HaveOccurred())
-
-	repo.CreateTag("bar", ch, nil)
-
-	return ch.String(), path
-}
 
 func filterGitDependency(dependencies []metadata.Dependency) metadata.Dependency {
 	for _, dependency := range dependencies {

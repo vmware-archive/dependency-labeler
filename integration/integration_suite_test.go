@@ -4,11 +4,17 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/config"
+	"gopkg.in/src-d/go-git.v4/plumbing/object"
 
 	"github.com/pivotal/deplab/metadata"
 
@@ -89,4 +95,53 @@ func runDeplabAgainstImage(inputImage string, extraArgs ...string) (string, stri
 	Expect(err).ToNot(HaveOccurred())
 
 	return outputImage, metadataLabelString, metadataLabel
+}
+
+func makeFakeGitRepo() (string, string) {
+	path, err := ioutil.TempDir("", "deplab-integration")
+	Expect(err).ToNot(HaveOccurred())
+
+	repo, err := git.PlainInit(path, false)
+	Expect(err).ToNot(HaveOccurred())
+
+	_, err = repo.CreateRemote(&config.RemoteConfig{
+		Name: "origin",
+		URLs: []string{"https://example.com/example.git"},
+	})
+	Expect(err).ToNot(HaveOccurred())
+
+	testFilePath := filepath.Join(path, "test")
+	data := []byte("TestFile\n")
+	err = ioutil.WriteFile(testFilePath, data, 0644)
+	Expect(err).ToNot(HaveOccurred())
+
+	w, err := repo.Worktree()
+	Expect(err).ToNot(HaveOccurred())
+
+	err = w.AddGlob("*")
+	Expect(err).ToNot(HaveOccurred())
+
+	ch, err := w.Commit("Test commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Pivotal Example",
+			Email: "example@pivotal.io",
+			When:  time.Now(),
+		},
+	})
+	Expect(err).ToNot(HaveOccurred())
+
+	repo.CreateTag("foo", ch, nil)
+
+	ch, err = w.Commit("Second test commit", &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Pivotal Example",
+			Email: "example@pivotal.io",
+			When:  time.Now(),
+		},
+	})
+	Expect(err).ToNot(HaveOccurred())
+
+	repo.CreateTag("bar", ch, nil)
+
+	return ch.String(), path
 }
