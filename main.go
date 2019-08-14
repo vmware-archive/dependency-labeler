@@ -36,7 +36,7 @@ var rootCmd = &cobra.Command{
 	Version: deplabVersion,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		dependencies, err := GenerateDependencies(inputImage, gitPath)
+		dependencies, err := generateDependencies(inputImage, gitPath)
 		if err != nil {
 			log.Fatalf("error generating dependencies: %s", err)
 		}
@@ -71,7 +71,7 @@ func main() {
 	}
 }
 
-func GenerateDependencies(imageName, pathToGit string) ([]metadata.Dependency, error) {
+func generateDependencies(imageName, pathToGit string) ([]metadata.Dependency, error) {
 	var dependencies []metadata.Dependency
 
 	dpkgList, err := providers.BuildDebianDependencyMetadata(imageName)
