@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
-	"regexp"
 	"strings"
 
 	"github.com/pivotal/deplab/metadata"
@@ -79,24 +78,28 @@ func getDebianPackages(imageName string) ([]metadata.Package, error) {
 
 	dpkgQuery := exec.Command("docker", "run", "--rm", imageName, "dpkg-query", "-W", "-f", query)
 
-	out, err := dpkgQuery.CombinedOutput()
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	dpkgQuery.Stdout = stdout
+	dpkgQuery.Stderr = stderr
+
+	err := dpkgQuery.Run()
+
 	if err != nil {
-		if strings.Contains(string(out), "executable file not found in $PATH") {
+		if strings.Contains(stderr.String(), "executable file not found in $PATH") {
 			log.Print("This image does not contain dpkg, so skipping dpkg dependencies.")
 			return []metadata.Package{}, nil
 		}
-		return []metadata.Package{}, fmt.Errorf("dpkgQuery failed: %s, with error: %s\n", string(out), err.Error())
+		return []metadata.Package{}, fmt.Errorf("dpkgQuery failed: %s, with error: %s\n", stderr.String(), err.Error())
 	}
 
-	amendedOut := string(out)
-	pattern := regexp.MustCompile(`{`)
-	loc := pattern.FindIndex(out)
-	amendedOut = amendedOut[loc[0] : len(amendedOut)-1]
-	amendedOut = "[" + amendedOut + "]"
+	out := stdout.String()
+	amendedOut := "[" + out[:len(out)-1] + "]"
 
-	decoder := json.NewDecoder(strings.NewReader(amendedOut))
 	var packages []metadata.Package
-	err = decoder.Decode(&packages)
+	err = json.Unmarshal([]byte(amendedOut), &packages)
+
 	if err != nil {
 		return []metadata.Package{}, fmt.Errorf("unable to decode pkg: %s\n", err.Error())
 	}
