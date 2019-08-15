@@ -21,6 +21,15 @@ The `--git` flag is optional. The  `<path to git repo>` is a path to a directory
 This returns the sha256 of the new image with added metadata.
 Currently this will add the label `io.pivotal.metadata` along with the necessary metadata.
 
+To visualize the metadata this command can be run
+
+```bash
+docker inspect $(./deplab --image <image-name> --git <path to git repo>) \
+  | jq -r '.[0].Config.Labels."io.pivotal.metadata"' \ 
+  | jq .
+```
+
+
 ## Data
 
 ##### debian package list
