@@ -46,7 +46,7 @@ func BuildGitDependencyMetadata(pathToGit string) (metadata.Dependency, error) {
 				"commit": ref.Hash().String(),
 			},
 			Metadata: metadata.GitSourceMetadata{
-				URI:  remotes[0].Config().URLs[0],
+				URL:  remotes[0].Config().URLs[0],
 				Refs: refs,
 			},
 		},

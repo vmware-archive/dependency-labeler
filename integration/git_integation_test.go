@@ -41,7 +41,7 @@ var _ = Describe("deplab git", func() {
 			Expect(gitDependency.Source.Version["commit"]).To(Equal(commitHash))
 
 			By("adding the git remote to a git dependency")
-			Expect(gitSourceMetadata["uri"].(string)).To(Equal("https://example.com/example.git"))
+			Expect(gitSourceMetadata["url"].(string)).To(Equal("https://example.com/example.git"))
 
 			By("adding refs for the current HEAD")
 			Expect(len(gitSourceMetadata["refs"].([]interface{}))).To(Equal(1))

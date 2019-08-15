@@ -94,7 +94,7 @@ If the `--git` flag is provided with a valid path to a git repository, a git dep
           "commit":  "d2c3ccdffd3c5a014891e40a3ed8ba020d00eefd"
          },
         "metadata": {
-          "uri": "https://github.com/pivotal/deplab.git",
+          "url": "https://github.com/pivotal/deplab.git",
           "refs": ["0.5.0"]
         }
       }
