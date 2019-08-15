@@ -55,8 +55,12 @@ var _ = Describe("deplab base image", func() {
 			outputImage, _, metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
-		It("labels an image and returns the sha of the labelled image with null instead of base metadata", func() {
-			Expect(metadataLabel.Base).To(BeNil())
+		It("set all fields of base to unknown", func() {
+			Expect(metadataLabel.Base).To(BeEquivalentTo(metadata.Base{
+				Name:            "unknown",
+				VersionID:       "unknown",
+				VersionCodename: "unknown",
+			}))
 		})
 	})
 })

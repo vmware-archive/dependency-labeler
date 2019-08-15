@@ -1,7 +1,7 @@
 package metadata
 
 type Metadata struct {
-	Base         *Base        `json:"base"`
+	Base         Base         `json:"base"`
 	Dependencies []Dependency `json:"dependencies"`
 }
 
@@ -43,4 +43,10 @@ type PackageSource struct {
 	Package         string `json:"package"`
 	Version         string `json:"version"`
 	UpstreamVersion string `json:"upstreamVersion"`
+}
+
+var UnknownBase = Base{
+	Name:            "unknown",
+	VersionCodename: "unknown",
+	VersionID:       "unknown",
 }
