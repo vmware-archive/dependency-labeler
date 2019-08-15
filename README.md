@@ -4,8 +4,8 @@
 Deplab adds metadata about a container image's dependencies as a label to the container image.
 
 ## Dependencies
-Docker is required to be installed and available on your path, test this by running `docker --version`.
-Version 1.39 or higher is required.
+Docker is required to be installed and available on your path, test this by running `docker version`.
+API version 1.39 or higher is required.
 
 ## Usage
 Download the latest `deplab` binary from the releases page.
@@ -24,7 +24,10 @@ Currently this will add the label `io.pivotal.metadata` along with the necessary
 ## Data
 
 ##### debian package list
-The debian package list is generated with the following format
+
+The `debian_package_list` requires `dpkg` to be a package on the image being instrumented on. If not present the dependency of type `The `debian_package_list` requires `dpkg` to be a package on the image being instrumented on. If not present the dependency of type `debian_package_list` will be omitted.
+
+The debian package list is generated with the following format.
 
 ```json
 {
@@ -35,7 +38,8 @@ The debian package list is generated with the following format
         "type": "inline",
         "version": null,
         "metadata": {
-          "packages": [array_of_packages]
+          "packages": [...],
+          "apt_sources": [...]
         }
       }
     }
@@ -43,7 +47,39 @@ The debian package list is generated with the following format
 }
 ```
 
-The `debian_package_list` requires `dpkg` to be a package on the image being instrumented on. If not present, the metadata structure will be injected into metadata of the container, with an empty array of packages.
+
+
+Example of a package item in field `packages` 
+
+```json
+{
+  "package": "zlib1g",
+  "version": "1:1.2.11.dfsg-0ubuntu2",
+  "architecture": "amd64",
+  "source": {
+    "package": "zlib",
+    "version": "1:1.2.11.dfsg-0ubuntu2",
+    "upstreamVersion": "1.2.11.dfsg"
+  }
+}
+```
+
+Example of `apt_sources` content
+
+```json
+[
+  "deb http://archive.ubuntu.com/ubuntu/ bionic main restricted",
+  "deb http://archive.ubuntu.com/ubuntu/ bionic-updates main restricted",
+  "deb http://archive.ubuntu.com/ubuntu/ bionic universe",
+  "deb http://archive.ubuntu.com/ubuntu/ bionic-updates universe",
+  "deb http://archive.ubuntu.com/ubuntu/ bionic multiverse",
+  "deb http://archive.ubuntu.com/ubuntu/ bionic-updates multiverse",
+  "deb http://archive.ubuntu.com/ubuntu/ bionic-backports main restricted universe multiverse",
+  "deb http://security.ubuntu.com/ubuntu/ bionic-security main restricted",
+  "deb http://security.ubuntu.com/ubuntu/ bionic-security universe",
+  "deb http://security.ubuntu.com/ubuntu/ bionic-security multiverse"
+]
+```
 
 ##### git dependency
 If the `--git` flag is provided with a valid path to a git repository, a git dependency will be added:
