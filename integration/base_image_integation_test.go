@@ -51,7 +51,7 @@ var _ = Describe("deplab base image", func() {
 
 	Context("with an image that doesn't have an os-release", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/noosrelease"
+			inputImage = "pivotalnavcon/ubuntu-no-os-release"
 			outputImage, _, metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 

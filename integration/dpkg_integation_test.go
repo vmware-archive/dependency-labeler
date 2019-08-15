@@ -26,7 +26,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/ubuntuwithsources"
+			inputImage = "pivotalnavcon/ubuntu-additional-sources"
 			outputImage, metadataLabelString, metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
@@ -84,7 +84,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an image with dpkg, but no apt sources", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/ubuntuwithoutsources"
+			inputImage = "pivotalnavcon/ubuntu-no-sources"
 			outputImage, metadataLabelString, metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
@@ -103,7 +103,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an image with dpkg, but no grep", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/ubuntuwithoutgrep"
+			inputImage = "pivotalnavcon/ubuntu-no-grep"
 			outputImage, metadataLabelString, metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 

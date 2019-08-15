@@ -1,3 +1,0 @@
-FROM ubuntu:bionic
-
-CMD rm /etc/os-release
