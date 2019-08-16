@@ -68,7 +68,7 @@ var _ = Describe("deplab git", func() {
 			inputImage := "ubuntu:bionic"
 			_, stdErrBuffer := runDepLab([]string{"--image", inputImage}, 1)
 
-			Expect(stdErrBuffer.String()).To(ContainSubstring("A git path must be provided"))
+			Expect(stdErrBuffer.String()).To(ContainSubstring("required flag(s) \"git\" not set"))
 		})
 	})
 })
