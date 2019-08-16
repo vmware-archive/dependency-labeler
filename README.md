@@ -14,7 +14,7 @@ To run the tool run the following command:
 ./deplab --image <image name> --git <path to git repo>
 ```
 
-* `<image name>` is the name of the image that you want to add the meta data to.
+* `<image name>` is the name of the image that you want to add the metadata to.
 * `<path to git repo>` is a path to a directory under git version control.
 
 This returns the sha256 of the new image with added metadata.
