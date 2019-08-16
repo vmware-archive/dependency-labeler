@@ -17,6 +17,12 @@ To run the tool run the following command:
 * `<image name>` is the name of the image that you want to add the metadata to.
 * `<path to git repo>` is a path to a directory under git version control.
 
+Deplab can output the metadata to a file providing the path with the argument `--metadata-file` or `-m` 
+
+```bash
+./deplab -i <image name> -g <path to git repo> --metadata-file <metadata file>
+```
+
 This returns the sha256 of the new image with added metadata.
 Currently this will add the label `io.pivotal.metadata` along with the necessary metadata.
 
