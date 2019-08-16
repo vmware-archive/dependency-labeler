@@ -46,20 +46,6 @@ var _ = Describe("deplab", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(string(metadataFileBytes)).To(Equal(fmt.Sprintf("%s\n", metadataLabelString)))
 			})
-
-			It("throws an error when the file cannot be written", func() {
-				var err error
-				metadataDestination, err = ioutil.TempFile("", "metadata-file")
-				Expect(err).ToNot(HaveOccurred())
-
-				err = os.Chmod(metadataDestination.Name(), 0400)
-				Expect(err).ToNot(HaveOccurred())
-
-				inputImage = "pivotalnavcon/ubuntu-additional-sources"
-				_, stdErrBuffer := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--metadata-file", metadataDestination.Name()}, 1)
-
-				Expect(stdErrBuffer.String()).To(ContainSubstring(metadataDestination.Name()))
-			})
 		})
 
 		Describe("when the metadata file does not exist", func() {
