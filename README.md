@@ -33,7 +33,9 @@ docker inspect $(./deplab --image <image-name> --git <path to git repo>) \
 
 ##### debian package list
 
-The `debian_package_list` requires `dpkg` to be a package on the image being instrumented on. If not present the dependency of type `The `debian_package_list` requires `dpkg` to be a package on the image being instrumented on. If not present the dependency of type `debian_package_list` will be omitted.
+The `debian_package_list` requires `dpkg` to be a package on the image being instrumented on. If not present the dependency of type The `debian_package_list` requires `dpkg` to be a package on the image being instrumented on. If not present the dependency of type `debian_package_list` will be omitted.
+
+`version` contains the _sha256_ of the `json` content of the metadata. Successive run of deplab on containers with the same `packages` and `apt_sources` are going to generate the same digest.
 
 The debian package list is generated with the following format.
 
@@ -42,6 +44,9 @@ The debian package list is generated with the following format.
   "dependencies": [
     {
       "type": "debian_package_list",
+      "version": {
+        "sha256": "a56...42b"
+      },
       "source": {
         "type": "inline",
         "version": null,
