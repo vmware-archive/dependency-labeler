@@ -26,10 +26,8 @@ func init() {
 	rootCmd.Flags().StringVarP(&gitPath, "git", "g", "", "Path to directory under git revision control")
 	rootCmd.Flags().StringVarP(&metadataFilePath, "metadata-file", "m", "", "Write metadata to this file")
 
-	err := rootCmd.MarkFlagRequired("image")
-	if err != nil {
-		log.Fatalf("image name is required\n")
-	}
+	_ = rootCmd.MarkFlagRequired("image")
+	_ = rootCmd.MarkFlagRequired("git")
 }
 
 var rootCmd = &cobra.Command{
@@ -93,15 +91,11 @@ func generateDependencies(imageName, pathToGit string) ([]metadata.Dependency, e
 		dependencies = append(dependencies, dpkgList)
 	}
 
-	if gitPath != "" {
-		gitMetadata, err := providers.BuildGitDependencyMetadata(pathToGit)
-		if err != nil {
-			log.Fatalf("git metadata: %s", err)
-		}
-		dependencies = append(dependencies, gitMetadata)
-	} else {
-		log.Fatalf("A git path must be provided\n")
+	gitMetadata, err := providers.BuildGitDependencyMetadata(pathToGit)
+	if err != nil {
+		log.Fatalf("git metadata: %s", err)
 	}
+	dependencies = append(dependencies, gitMetadata)
 
 	return dependencies, nil
 }
