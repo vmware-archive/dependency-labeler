@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -13,14 +14,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var inputImage string
-var gitPath string
-
-var deplabVersion string
+var (
+	inputImage       string
+	gitPath          string
+	deplabVersion    string
+	metadataFilePath string
+)
 
 func init() {
 	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "Image for the metadata to be added to")
 	rootCmd.Flags().StringVarP(&gitPath, "git", "g", "", "Path to directory under git revision control")
+	rootCmd.Flags().StringVarP(&metadataFilePath, "metadata-file", "m", "", "Write metadata to this file")
+
 	err := rootCmd.MarkFlagRequired("image")
 	if err != nil {
 		log.Fatalf("image name is required\n")
@@ -44,6 +49,15 @@ var rootCmd = &cobra.Command{
 
 		md.Base = providers.BuildOSMetadata(inputImage)
 
+		if metadataFilePath != "" {
+			metadataFile, err := os.OpenFile(metadataFilePath, os.O_RDWR|os.O_CREATE, 0644)
+			if err != nil {
+				log.Fatalf("no such file: %s\n", metadataFilePath)
+			}
+			encoder := json.NewEncoder(metadataFile)
+			_ = encoder.Encode(md)
+		}
+
 		resp, err := builder.CreateNewImage(inputImage, md)
 		if err != nil {
 			log.Fatalf("could not create new image: %s\n", err)
@@ -53,6 +67,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("could not get ID of the new image: %s\n", err)
 		}
+
 		fmt.Println(newID)
 	},
 }
