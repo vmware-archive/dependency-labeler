@@ -63,6 +63,9 @@ var _ = Describe("deplab dpkg", func() {
 			inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
 			Expect(err).ToNot(HaveOccurred())
 
+			By("generating a sha256 digest of the metadata content as version")
+			Expect(metadataLabel.Dependencies[0].Source.Version["sha256"]).To(MatchRegexp(`^[0-9a-f]{64}$`))
+
 			inspectInput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), inputImage)
 			Expect(err).ToNot(HaveOccurred())
 

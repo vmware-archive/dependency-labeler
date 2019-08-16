@@ -2,6 +2,8 @@ package providers
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -17,14 +19,21 @@ func BuildDebianDependencyMetadata(imageName string) (metadata.Dependency, error
 	if len(packages) != 0 {
 		sources, _ := getAptSources(imageName)
 
+		sourceMetadata := metadata.DebianPackageListSourceMetadata{
+			Packages:   packages,
+			AptSources: sources,
+		}
+
+		version := Digest(sourceMetadata)
+
 		dpkgList := metadata.Dependency{
 			Type: "debian_package_list",
 			Source: metadata.Source{
 				Type: "inline",
-				Metadata: metadata.DebianPackageListSourceMetadata{
-					Packages:   packages,
-					AptSources: sources,
+				Version: map[string]interface{}{
+					"sha256": version,
 				},
+				Metadata: sourceMetadata,
 			},
 		}
 
@@ -32,6 +41,14 @@ func BuildDebianDependencyMetadata(imageName string) (metadata.Dependency, error
 	}
 
 	return metadata.Dependency{}, err
+}
+
+func Digest(sourceMetadata metadata.DebianPackageListSourceMetadata) string {
+	hash := sha256.New()
+	encoder := json.NewEncoder(hash)
+	_ = encoder.Encode(sourceMetadata)
+	version := hex.EncodeToString(hash.Sum(nil))
+	return version
 }
 
 func getAptSources(imageName string) ([]string, error) {
