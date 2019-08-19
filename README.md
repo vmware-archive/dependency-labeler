@@ -135,7 +135,15 @@ The base image metadata is generated with the following format
   }
 ```
 
-This relies on the `/etc/os-release` file being in the docker container, and `cat` being able to read it. If neither are present then this value will be null.
+This relies on the `/etc/os-release` file being in the docker container, and `cat` being able to read it. If either are not present all the field will be set to `unknown`.
+
+```json
+{
+  "name": "unknown",
+  "version_id": "unknown",
+  "version_codename": "unknown"
+}
+```
 
 ## Testing
 Testing requires `go` to be installed.  Please clone this git repository.  Tests can be run with:
