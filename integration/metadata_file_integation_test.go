@@ -49,10 +49,11 @@ var _ = Describe("deplab", func() {
 		})
 
 		Describe("when the metadata file does not exist", func() {
-			It("throws an error", func() {
+			It("writes the image metadata, return the sha and throws an error about the file missing", func() {
 				inputImage = "pivotalnavcon/ubuntu-additional-sources"
-				_, stdErrBuffer := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--metadata-file", "a-path-that-does-not-exist/foo.json"}, 1)
+				stdOutBuffer, stdErrBuffer := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--metadata-file", "a-path-that-does-not-exist/foo.json"}, 1)
 
+				parseOutputAndValidate(stdOutBuffer)
 				Expect(stdErrBuffer.String()).To(ContainSubstring("a-path-that-does-not-exist/foo.json"))
 			})
 		})

@@ -75,22 +75,26 @@ func runDepLab(args []string, expErrCode int) (stdOutBuffer bytes.Buffer, stdErr
 	return stdOutBuffer, stdErrBuffer
 }
 
-func runDeplabAgainstImage(inputImage string, extraArgs ...string) (string, string, metadata.Metadata) {
+func runDeplabAgainstImage(inputImage string, extraArgs ...string) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata) {
 	By("executing it")
 	args := []string{"--image", inputImage, "--git", pathToGitRepo}
 	args = append(args, extraArgs...)
 	stdOutBuffer, _ := runDepLab(args, 0)
 
+	return parseOutputAndValidate(stdOutBuffer)
+}
+
+func parseOutputAndValidate(stdOutBuffer bytes.Buffer) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata) {
 	By("checking if it returns an image sha")
-	outputImage := strings.TrimSpace(stdOutBuffer.String())
+	outputImage = strings.TrimSpace(stdOutBuffer.String())
 	Expect(outputImage).To(MatchRegexp("^sha256:[a-f0-9]+$"))
 
 	By("checking if the label exists")
 	inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
 	Expect(err).ToNot(HaveOccurred())
 
-	metadataLabelString := inspectOutput.Config.Labels["io.pivotal.metadata"]
-	metadataLabel := metadata.Metadata{}
+	metadataLabelString = inspectOutput.Config.Labels["io.pivotal.metadata"]
+	metadataLabel = metadata.Metadata{}
 	err = json.Unmarshal([]byte(metadataLabelString), &metadataLabel)
 	Expect(err).ToNot(HaveOccurred())
 

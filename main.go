@@ -47,15 +47,6 @@ var rootCmd = &cobra.Command{
 
 		md.Base = providers.BuildOSMetadata(inputImage)
 
-		if metadataFilePath != "" {
-			metadataFile, err := os.OpenFile(metadataFilePath, os.O_RDWR|os.O_CREATE, 0644)
-			if err != nil {
-				log.Fatalf("no such file: %s\n", metadataFilePath)
-			}
-			encoder := json.NewEncoder(metadataFile)
-			_ = encoder.Encode(md)
-		}
-
 		resp, err := builder.CreateNewImage(inputImage, md)
 		if err != nil {
 			log.Fatalf("could not create new image: %s\n", err)
@@ -67,6 +58,15 @@ var rootCmd = &cobra.Command{
 		}
 
 		fmt.Println(newID)
+
+		if metadataFilePath != "" {
+			metadataFile, err := os.OpenFile(metadataFilePath, os.O_RDWR|os.O_CREATE, 0644)
+			if err != nil {
+				log.Fatalf("no such file: %s\n", metadataFilePath)
+			}
+			encoder := json.NewEncoder(metadataFile)
+			_ = encoder.Encode(md)
+		}
 	},
 }
 
