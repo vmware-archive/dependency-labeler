@@ -19,15 +19,17 @@ var (
 	gitPath          string
 	deplabVersion    string
 	metadataFilePath string
+	tag              string
 )
 
 func init() {
-	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "Image for the metadata to be added to")
 	rootCmd.Flags().StringVarP(&gitPath, "git", "g", "", "Path to directory under git revision control")
+	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "Image for the metadata to be added to")
 	rootCmd.Flags().StringVarP(&metadataFilePath, "metadata-file", "m", "", "Write metadata to this file")
+	rootCmd.Flags().StringVarP(&tag, "tag", "t", "", "Tags the output image")
 
-	_ = rootCmd.MarkFlagRequired("image")
 	_ = rootCmd.MarkFlagRequired("git")
+	_ = rootCmd.MarkFlagRequired("image")
 }
 
 var rootCmd = &cobra.Command{
@@ -47,7 +49,7 @@ var rootCmd = &cobra.Command{
 
 		md.Base = providers.BuildOSMetadata(inputImage)
 
-		resp, err := builder.CreateNewImage(inputImage, md)
+		resp, err := builder.CreateNewImage(inputImage, md, tag)
 		if err != nil {
 			log.Fatalf("could not create new image: %s\n", err)
 		}

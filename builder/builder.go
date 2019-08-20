@@ -15,7 +15,7 @@ import (
 	"github.com/pivotal/deplab/metadata"
 )
 
-func CreateNewImage(inputImage string, md metadata.Metadata) (resp types.ImageBuildResponse, err error) {
+func CreateNewImage(inputImage string, md metadata.Metadata, tag string) (resp types.ImageBuildResponse, err error) {
 	dockerCli, err := client.NewClientWithOpts(client.WithVersion("1.39"), client.FromEnv)
 	if err != nil {
 		return resp, err
@@ -35,6 +35,10 @@ func CreateNewImage(inputImage string, md metadata.Metadata) (resp types.ImageBu
 		Labels: map[string]string{
 			"io.pivotal.metadata": string(mdMarshalled),
 		},
+	}
+
+	if tag != "" {
+		opt.Tags = []string{tag}
 	}
 
 	resp, err = dockerCli.ImageBuild(context.Background(), &dockerfileBuffer, opt)

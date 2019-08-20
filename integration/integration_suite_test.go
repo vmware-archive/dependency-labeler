@@ -75,7 +75,7 @@ func runDepLab(args []string, expErrCode int) (stdOutBuffer bytes.Buffer, stdErr
 	return stdOutBuffer, stdErrBuffer
 }
 
-func runDeplabAgainstImage(inputImage string, extraArgs ...string) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata) {
+func runDeplabAgainstImage(inputImage string, extraArgs ...string) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {
 	By("executing it")
 	args := []string{"--image", inputImage, "--git", pathToGitRepo}
 	args = append(args, extraArgs...)
@@ -84,7 +84,7 @@ func runDeplabAgainstImage(inputImage string, extraArgs ...string) (outputImage 
 	return parseOutputAndValidate(stdOutBuffer)
 }
 
-func parseOutputAndValidate(stdOutBuffer bytes.Buffer) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata) {
+func parseOutputAndValidate(stdOutBuffer bytes.Buffer) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {
 	By("checking if it returns an image sha")
 	outputImage = strings.TrimSpace(stdOutBuffer.String())
 	Expect(outputImage).To(MatchRegexp("^sha256:[a-f0-9]+$"))
@@ -98,7 +98,9 @@ func parseOutputAndValidate(stdOutBuffer bytes.Buffer) (outputImage string, meta
 	err = json.Unmarshal([]byte(metadataLabelString), &metadataLabel)
 	Expect(err).ToNot(HaveOccurred())
 
-	return outputImage, metadataLabelString, metadataLabel
+	repoTags = inspectOutput.RepoTags
+
+	return outputImage, metadataLabelString, metadataLabel, repoTags
 }
 
 func makeFakeGitRepo() (string, string) {

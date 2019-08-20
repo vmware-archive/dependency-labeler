@@ -24,7 +24,7 @@ var _ = Describe("deplab", func() {
 		Describe("and metadata can be written", func() {
 			JustBeforeEach(func() {
 				inputImage = "pivotalnavcon/ubuntu-additional-sources"
-				outputImage, metadataLabelString, _ = runDeplabAgainstImage(inputImage, "--metadata-file", metadataDestinationPath)
+				outputImage, metadataLabelString, _, _ = runDeplabAgainstImage(inputImage, "--metadata-file", metadataDestinationPath)
 			})
 
 			Context("when the file exists", func() {
@@ -68,7 +68,7 @@ var _ = Describe("deplab", func() {
 				inputImage = "pivotalnavcon/ubuntu-additional-sources"
 				stdOutBuffer, stdErrBuffer := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--metadata-file", "a-path-that-does-not-exist/foo.json"}, 1)
 
-				outputImage, _, _ = parseOutputAndValidate(stdOutBuffer)
+				outputImage, _, _, _ = parseOutputAndValidate(stdOutBuffer)
 
 				Expect(stdErrBuffer.String()).To(ContainSubstring("a-path-that-does-not-exist/foo.json"))
 			})

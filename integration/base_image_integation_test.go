@@ -26,7 +26,7 @@ var _ = Describe("deplab base image", func() {
 	Context("with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
 			inputImage = "ubuntu:bionic"
-			outputImage, _, metadataLabel = runDeplabAgainstImage(inputImage)
+			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage)
 		})
 
 		It("adds the base image metadata to the label", func() {
@@ -39,7 +39,7 @@ var _ = Describe("deplab base image", func() {
 	Context("with a non-ubuntu:bionic image with /etc/os-release", func() {
 		BeforeEach(func() {
 			inputImage = "alpine:3.10.1"
-			outputImage, _, metadataLabel = runDeplabAgainstImage(inputImage)
+			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage)
 		})
 
 		It("adds the base image metadata to the label", func() {
@@ -52,7 +52,7 @@ var _ = Describe("deplab base image", func() {
 	Context("with an image that doesn't have an os-release", func() {
 		BeforeEach(func() {
 			inputImage = "pivotalnavcon/ubuntu-no-os-release"
-			outputImage, _, metadataLabel = runDeplabAgainstImage(inputImage)
+			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage)
 		})
 
 		It("set all fields of base to unknown", func() {

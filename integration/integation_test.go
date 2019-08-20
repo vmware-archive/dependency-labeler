@@ -42,4 +42,14 @@ var _ = Describe("deplab", func() {
 		Expect(errorOutput).To(ContainSubstring("invalid reference format"))
 	})
 
+	It("returns an image with a tag if the tag flag is provided", func() {
+		By("executing it")
+		inputImage := "ubuntu:bionic"
+		tag := "testtag"
+		_, _, _, repoTags := runDeplabAgainstImage(inputImage, "--tag", tag)
+
+		Expect(repoTags).ToNot(BeEmpty())
+		Expect(repoTags).To(ContainElement(ContainSubstring(tag)))
+	})
+
 })

@@ -23,7 +23,7 @@ var _ = Describe("deplab git", func() {
 
 		BeforeEach(func() {
 			inputImage := "ubuntu:bionic"
-			outputImage, _, metadataLabel = runDeplabAgainstImage(inputImage)
+			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage)
 			gitDependency = filterGitDependency(metadataLabel.Dependencies)
 			gitSourceMetadata = gitDependency.Source.Metadata.(map[string]interface{})
 		})

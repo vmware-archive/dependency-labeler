@@ -28,6 +28,9 @@ docker inspect $(./deplab --image <image-name> --git <path to git repo>) \
   | jq .
 ```
 
+## Optional Arguments
+
+### Metadata file
 Deplab can output the metadata to a file providing the path with the argument `--metadata-file` or `-m` 
 
 ```bash
@@ -38,6 +41,20 @@ If the file path cannot be created, deplab will return the newly labelled image,
 
 If a file exists, the file will be overwritten.
 
+### Tag
+Deplab can add a tag to the output image
+
+```bash
+./deplab -i <image name> -g <path to git repo> --tag <tag name>
+```
+The SHA256 will be returned as normal.
+
+You can inspect the tag has been added to the image:
+```bash
+docker inspect $(./deplab --image <image-name> --git <path to git repo> --tag <tag name>) \
+ | jq '.[0].RepoTags'
+```
+ 
 ## Data
 
 ##### debian package list
@@ -148,7 +165,7 @@ This relies on the `/etc/os-release` file being in the docker container, and `ca
 ## Testing
 Testing requires `go` to be installed.  Please clone this git repository.  Tests can be run with:
 ```bash
-go test
+go test ./...
 ```
 
 ## Building
