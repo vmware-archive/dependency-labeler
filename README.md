@@ -37,7 +37,7 @@ Deplab can output the metadata to a file providing the path with the argument `-
 ./deplab -i <image name> -g <path to git repo> --metadata-file <metadata file>
 ```
 
-If the file path cannot be created, deplab will return the newly labelled image, and return an error for the writing of the metadata. 
+If the file path cannot be created, deplab will return the newly labelled image, and return an error for the writing of the metadata file. 
 
 If a file exists, the file will be overwritten.
 
