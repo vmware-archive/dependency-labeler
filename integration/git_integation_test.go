@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"context"
-
 	"github.com/pivotal/deplab/metadata"
 
 	"github.com/docker/docker/api/types"
@@ -56,9 +55,9 @@ var _ = Describe("deplab git", func() {
 		It("exits with an error message", func() {
 			By("executing it")
 			inputImage := "ubuntu:bionic"
-			_, stdErrBuffer := runDepLab([]string{"--image", inputImage, "--git", "/dev/null"}, 1)
+			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", "/dev/null"}, 1)
 
-			Expect(stdErrBuffer.String()).To(ContainSubstring("cannot open git repository"))
+			Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("cannot open git repository"))
 		})
 	})
 
@@ -66,9 +65,9 @@ var _ = Describe("deplab git", func() {
 		It("has no git metadata", func() {
 			By("executing it")
 			inputImage := "ubuntu:bionic"
-			_, stdErrBuffer := runDepLab([]string{"--image", inputImage}, 1)
+			_, stdErr := runDepLab([]string{"--image", inputImage}, 1)
 
-			Expect(stdErrBuffer.String()).To(ContainSubstring("required flag(s) \"git\" not set"))
+			Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("required flag(s) \"git\" not set"))
 		})
 	})
 })

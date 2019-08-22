@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -60,9 +61,9 @@ func TestDeplab(t *testing.T) {
 	RunSpecs(t, "Deplab Suite")
 }
 
-func runDepLab(args []string, expErrCode int) (stdOutBuffer bytes.Buffer, stdErrBuffer bytes.Buffer) {
-	stdOutBuffer = bytes.Buffer{}
-	stdErrBuffer = bytes.Buffer{}
+func runDepLab(args []string, expErrCode int) (stdOut *bytes.Reader, stdErr *bytes.Reader) {
+	stdOutBuffer := bytes.Buffer{}
+	stdErrBuffer := bytes.Buffer{}
 
 	cmd := exec.Command(pathToBin, args...)
 
@@ -70,23 +71,33 @@ func runDepLab(args []string, expErrCode int) (stdOutBuffer bytes.Buffer, stdErr
 	Expect(err).ToNot(HaveOccurred())
 	<-session.Exited
 
+	stdOut = bytes.NewReader(stdOutBuffer.Bytes())
+	stdErr = bytes.NewReader(stdErrBuffer.Bytes())
+
+	if os.Getenv("DEBUG") != "" {
+		io.Copy(os.Stdout, stdOut)
+		io.Copy(os.Stdout, stdErr)
+		stdOut.Seek(0, 0)
+		stdErr.Seek(0, 0)
+	}
+
 	Eventually(session, time.Minute).Should(gexec.Exit(expErrCode))
 
-	return stdOutBuffer, stdErrBuffer
+	return stdOut, stdErr
 }
 
 func runDeplabAgainstImage(inputImage string, extraArgs ...string) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {
 	By("executing it")
 	args := []string{"--image", inputImage, "--git", pathToGitRepo}
 	args = append(args, extraArgs...)
-	stdOutBuffer, _ := runDepLab(args, 0)
+	stdOut, _ := runDepLab(args, 0)
 
-	return parseOutputAndValidate(stdOutBuffer)
+	return parseOutputAndValidate(stdOut)
 }
 
-func parseOutputAndValidate(stdOutBuffer bytes.Buffer) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {
+func parseOutputAndValidate(r io.Reader) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {
 	By("checking if it returns an image sha")
-	outputImage = strings.TrimSpace(stdOutBuffer.String())
+	outputImage = strings.TrimSpace(string(getContentsOfReader(r)))
 	Expect(outputImage).To(MatchRegexp("^sha256:[a-f0-9]+$"))
 
 	By("checking if the label exists")
@@ -150,4 +161,11 @@ func makeFakeGitRepo() (string, string) {
 	repo.CreateTag("bar", ch, nil)
 
 	return ch.String(), path
+}
+
+func getContentsOfReader(r io.Reader) []byte {
+	contents, err := ioutil.ReadAll(r)
+	Expect(err).NotTo(HaveOccurred())
+
+	return contents
 }

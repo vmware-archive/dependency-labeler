@@ -2,10 +2,8 @@ package integration_test
 
 import (
 	"context"
-
-	"github.com/pivotal/deplab/metadata"
-
 	"github.com/docker/docker/api/types"
+	"github.com/pivotal/deplab/metadata"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -56,11 +54,22 @@ var _ = Describe("deplab base image", func() {
 		})
 
 		It("set all fields of base to unknown", func() {
-			Expect(metadataLabel.Base).To(BeEquivalentTo(metadata.Base{
-				Name:            "unknown",
-				VersionID:       "unknown",
-				VersionCodename: "unknown",
-			}))
+			Expect(metadataLabel.Base.Name).To(Equal("unknown"))
+			Expect(metadataLabel.Base.VersionCodename).To(Equal("unknown"))
+			Expect(metadataLabel.Base.VersionID).To(Equal("unknown"))
+		})
+	})
+
+	Context("with an image that doesn't have cat but has an os-release", func() {
+		BeforeEach(func() {
+			inputImage = "pivotalnavcon/tiny"
+			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage)
+		})
+
+		It("adds the base image metadata to the label", func() {
+			Expect(metadataLabel.Base.Name).To(Equal("Pivotal Tiny"))
+			Expect(metadataLabel.Base.VersionCodename).To(Equal("dev"))
+			Expect(metadataLabel.Base.VersionID).To(Equal("dev"))
 		})
 	})
 })

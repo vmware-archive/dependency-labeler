@@ -66,11 +66,11 @@ var _ = Describe("deplab", func() {
 		Describe("and metadata can't be written", func() {
 			It("writes the image metadata, return the sha and throws an error about the file missing", func() {
 				inputImage = "pivotalnavcon/ubuntu-additional-sources"
-				stdOutBuffer, stdErrBuffer := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--metadata-file", "a-path-that-does-not-exist/foo.json"}, 1)
+				stdOut, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--metadata-file", "a-path-that-does-not-exist/foo.json"}, 1)
 
-				outputImage, _, _, _ = parseOutputAndValidate(stdOutBuffer)
+				outputImage, _, _, _ = parseOutputAndValidate(stdOut)
 
-				Expect(stdErrBuffer.String()).To(ContainSubstring("a-path-that-does-not-exist/foo.json"))
+				Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("a-path-that-does-not-exist/foo.json"))
 			})
 		})
 
