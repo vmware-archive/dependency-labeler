@@ -1,8 +1,8 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/pivotal/deplab/outputs"
 	"log"
 	"os"
 
@@ -19,6 +19,7 @@ var (
 	gitPath          string
 	deplabVersion    string
 	metadataFilePath string
+	dpkgFilePath     string
 	tag              string
 )
 
@@ -26,6 +27,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&gitPath, "git", "g", "", "Path to directory under git revision control")
 	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "Image for the metadata to be added to")
 	rootCmd.Flags().StringVarP(&metadataFilePath, "metadata-file", "m", "", "Write metadata to this file")
+	rootCmd.Flags().StringVarP(&dpkgFilePath, "dpkg-file", "d", "", "Write dpkg list metadata in (modified) `dpkg -l` format to this file")
 	rootCmd.Flags().StringVarP(&tag, "tag", "t", "", "Tags the output image")
 
 	_ = rootCmd.MarkFlagRequired("git")
@@ -61,14 +63,7 @@ var rootCmd = &cobra.Command{
 
 		fmt.Println(newID)
 
-		if metadataFilePath != "" {
-			metadataFile, err := os.OpenFile(metadataFilePath, os.O_RDWR|os.O_CREATE, 0644)
-			if err != nil {
-				log.Fatalf("no such file: %s\n", metadataFilePath)
-			}
-			encoder := json.NewEncoder(metadataFile)
-			_ = encoder.Encode(md)
-		}
+		writeOutputs(md)
 	},
 }
 
@@ -100,4 +95,14 @@ func generateDependencies(imageName, pathToGit string) ([]metadata.Dependency, e
 	dependencies = append(dependencies, gitMetadata)
 
 	return dependencies, nil
+}
+
+func writeOutputs(md metadata.Metadata) {
+	if metadataFilePath != "" {
+		outputs.WriteMetadataFile(md, metadataFilePath)
+	}
+
+	if dpkgFilePath != "" {
+		outputs.WriteDpkgFile(md, dpkgFilePath)
+	}
 }

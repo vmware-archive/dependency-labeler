@@ -39,7 +39,20 @@ Deplab can output the metadata to a file providing the path with the argument `-
 
 If the file path cannot be created, deplab will return the newly labelled image, and return an error for the writing of the metadata file. 
 
-If a file exists, the file will be overwritten.
+If a file exists at the given path, the file will be overwritten.
+
+### dpkg file
+Deplab can output the debian package list portion of the metadata to a file with the argument `--dpkg-file` or `-d`
+
+```bash
+./deplab -i <image name> -g <path to git repo> --dpkg-file <dpkg file>
+```
+
+If the file path cannot be created, deplab will return the newly labelled image, and return an error for the writing of the dpkg file. 
+
+If a file exists at the given path, the file will be overwritten.
+
+This file is approximately similar to the file which will be output by running `dpkg -l`, with the addition of an extra header which provides an ID for this list.
 
 ### Tag
 Deplab can add a tag to the output image
