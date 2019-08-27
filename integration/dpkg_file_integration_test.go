@@ -19,7 +19,7 @@ var _ = Describe("deplab", func() {
 		dpkgDestinationPath string
 	)
 
-	FContext("when called with --dpkg-file", func() {
+	Context("when called with --dpkg-file", func() {
 		Describe("and dpkg can be written", func() {
 			JustBeforeEach(func() {
 				inputImage = "pivotalnavcon/ubuntu-additional-sources"
@@ -37,6 +37,9 @@ var _ = Describe("deplab", func() {
 				It("overwrites the dpkg-file with the dpkg metadata content in dpkg -l format", func() {
 					dpkgFileBytes, err := ioutil.ReadFile(dpkgDestinationPath)
 					Expect(err).ToNot(HaveOccurred())
+					Expect(string(dpkgFileBytes)).To(ContainSubstring(
+						"SHASUM",
+					))
 					Expect(string(dpkgFileBytes)).To(ContainSubstring(
 						"Desired=Unknown/Install/Remove/Purge/Hold",
 					))
