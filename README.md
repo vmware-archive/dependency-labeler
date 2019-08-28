@@ -68,6 +68,18 @@ If a file exists at the given path, the file will be overwritten.
 
 This file is approximately similar to the file which will be output by running `dpkg -l`, with the addition of an extra header which provides an ID for this list.
 
+### Output as image tarball
+
+Deplab can output the image in tar format.
+
+```bash
+./deplab -i <image name> -g <path to git repo> --output-tar ./path/to/image.tar
+```
+
+If the file path cannot be created deplab will process the image and store it in Docker, but will also return an error for the writing of the tar. 
+
+If a file exists at the given path, the file will be overwritten.
+
 ### Tag
 Deplab can add a tag to the output image
 

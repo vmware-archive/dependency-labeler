@@ -20,6 +20,7 @@ import (
 var (
 	inputImage       string
 	inputImageTar    string
+	outputImageTar   string
 	gitPath          string
 	deplabVersion    string
 	metadataFilePath string
@@ -31,6 +32,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&gitPath, "git", "g", "", "Path to directory under git revision control")
 	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "Image for the metadata to be added to")
 	rootCmd.Flags().StringVarP(&inputImageTar, "image-tar", "p", "", "Path to tarball of input image")
+	rootCmd.Flags().StringVarP(&outputImageTar, "output-tar", "o", "", "Path to write a tarball of the image to")
 	rootCmd.Flags().StringVarP(&metadataFilePath, "metadata-file", "m", "", "Write metadata to this file")
 	rootCmd.Flags().StringVarP(&dpkgFilePath, "dpkg-file", "d", "", "Write dpkg list metadata in (modified) `dpkg -l` format to this file")
 	rootCmd.Flags().StringVarP(&tag, "tag", "t", "", "Tags the output image")
@@ -70,15 +72,7 @@ var rootCmd = &cobra.Command{
 
 	Run: func(cmd *cobra.Command, args []string) {
 		if inputImageTar != "" {
-			dockerLoad := exec.Command("docker", "load", "-i", inputImageTar)
-
-			stdout := &bytes.Buffer{}
-			stderr := &bytes.Buffer{}
-
-			dockerLoad.Stdout = stdout
-			dockerLoad.Stderr = stderr
-
-			err := dockerLoad.Run()
+			stdout, stderr, err := runCommand("docker", "load", "-i", inputImageTar)
 			if err != nil {
 				log.Fatalf("could not load docker image from tar: %s", stderr)
 			}
@@ -108,7 +102,31 @@ var rootCmd = &cobra.Command{
 		fmt.Println(newID)
 
 		writeOutputs(md)
+
+		if outputImageTar != "" {
+			_, stderr, err := runCommand("docker", "save", newID, "-o", outputImageTar)
+			if err != nil {
+				log.Fatalf("could not save docker image to tar: %s", stderr)
+			}
+		}
 	},
+}
+
+func runCommand(cmd string, args ...string) (*bytes.Buffer, *bytes.Buffer, error) {
+	dockerLoad := exec.Command(cmd, args...)
+
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	dockerLoad.Stdout = stdout
+	dockerLoad.Stderr = stderr
+
+	err := dockerLoad.Run()
+	if err != nil {
+		return stdout, stderr, err
+	}
+
+	return stdout, stderr, nil
 }
 
 func main() {
