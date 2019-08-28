@@ -7,7 +7,6 @@ import (
 	"github.com/pivotal/deplab/metadata"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -29,51 +28,70 @@ var _ = Describe("deplab", func() {
 
 	Context("when called with --output-tar", func() {
 		Describe("and tar can be written", func() {
-			BeforeEach(func() {
-				var err error
-				outputFilesDestination, err = ioutil.TempDir("", "output-files-")
-				Expect(err).ToNot(HaveOccurred())
-			})
-			JustBeforeEach(func() {
-				inputImage = "pivotalnavcon/ubuntu-additional-sources"
-				outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath)
-			})
-
-			Context("when there is an existing file at the output tar path", func() {
+			Context("without a tag", func() {
 				BeforeEach(func() {
-					tarDestination, err := ioutil.TempFile("", "image.tar")
+					var err error
+					outputFilesDestination, err = ioutil.TempDir("", "output-files-")
 					Expect(err).ToNot(HaveOccurred())
-
-					tarDestinationPath = tarDestination.Name()
-
+				})
+				JustBeforeEach(func() {
+					inputImage = "pivotalnavcon/ubuntu-additional-sources"
+					outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath)
 				})
 
-				It("overwrites the existing file with the output tar", func() {
-					md := getMetadataFromImageTarball(tarDestinationPath, outputFilesDestination)
+				Context("when there is an existing file at the output tar path", func() {
+					BeforeEach(func() {
+						tarDestination, err := ioutil.TempFile("", "image.tar")
+						Expect(err).ToNot(HaveOccurred())
 
-					Expect(md.Base.Name).To(Equal("Ubuntu"))
-					Expect(md.Base.VersionCodename).To(Equal("bionic"))
+						tarDestinationPath = tarDestination.Name()
+
+					})
+
+					It("overwrites the existing file with the output tar", func() {
+						md := getMetadataFromImageTarball(tarDestinationPath, outputFilesDestination)
+
+						Expect(md.Base.Name).To(Equal("Ubuntu"))
+						Expect(md.Base.VersionCodename).To(Equal("bionic"))
+					})
+				})
+
+				Context("when there is no existing file at the output tar path", func() {
+					BeforeEach(func() {
+						tempDir, err := ioutil.TempDir("", "deplab-integration-output-tar-file-")
+						Expect(err).ToNot(HaveOccurred())
+						tarDestinationPath = path.Join(tempDir, "image.tar")
+					})
+
+					It("writes the image as a tar", func() {
+						md := getMetadataFromImageTarball(tarDestinationPath, outputFilesDestination)
+
+						Expect(md.Base.Name).To(Equal("Ubuntu"))
+						Expect(md.Base.VersionCodename).To(Equal("bionic"))
+					})
+				})
+
+				AfterEach(func() {
+					err := os.Remove(tarDestinationPath)
+					Expect(err).ToNot(HaveOccurred())
 				})
 			})
 
-			Context("when there is no existing file at the output tar path", func() {
+			Context("when there is a tag", func() {
 				BeforeEach(func() {
 					tempDir, err := ioutil.TempDir("", "deplab-integration-output-tar-file-")
 					Expect(err).ToNot(HaveOccurred())
 					tarDestinationPath = path.Join(tempDir, "image.tar")
+					outputFilesDestination, err = ioutil.TempDir("", "output-files-")
+					Expect(err).ToNot(HaveOccurred())
+					inputImage = "pivotalnavcon/ubuntu-additional-sources"
+					outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath, "--tag", "foo:bar")
 				})
 
 				It("writes the image as a tar", func() {
-					md := getMetadataFromImageTarball(tarDestinationPath, outputFilesDestination)
-
-					Expect(md.Base.Name).To(Equal("Ubuntu"))
-					Expect(md.Base.VersionCodename).To(Equal("bionic"))
+					manifest := getManifestFromImageTarball(tarDestinationPath, outputFilesDestination)
+					Expect(manifest[0]["RepoTags"].([]interface{})[0].(string)).To(Equal("foo:bar"))
 				})
-			})
-
-			AfterEach(func() {
-				err := os.Remove(tarDestinationPath)
-				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 
@@ -96,32 +114,7 @@ var _ = Describe("deplab", func() {
 })
 
 func getMetadataFromImageTarball(tarDestinationPath string, outputFilesDestination string) metadata.Metadata {
-	tarDestinationFile, err := os.Open(tarDestinationPath)
-	Expect(err).ToNot(HaveOccurred())
-	defer tarDestinationFile.Close()
-	tr := tar.NewReader(tarDestinationFile)
-	for {
-		hdr, err := tr.Next()
-		if err == io.EOF {
-			break // End of archive
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-		if strings.Contains(hdr.Name, ".json") {
-			f, err := os.OpenFile(filepath.Join(outputFilesDestination, hdr.Name), os.O_RDWR|os.O_CREATE, 0644)
-			Expect(err).ToNot(HaveOccurred())
-			io.Copy(f, tr)
-			f.Close()
-			continue
-		}
-	}
-	manifestFile, err := os.Open(filepath.Join(outputFilesDestination, "manifest.json"))
-	Expect(err).ToNot(HaveOccurred())
-
-	manifest := make([]map[string]interface{}, 0)
-	err = json.NewDecoder(manifestFile).Decode(&manifest)
-	Expect(err).ToNot(HaveOccurred())
+	manifest := getManifestFromImageTarball(tarDestinationPath, outputFilesDestination)
 
 	configFilePath := manifest[0]["Config"].(string)
 	configFile, err := os.Open(filepath.Join(outputFilesDestination, configFilePath))
@@ -138,4 +131,38 @@ func getMetadataFromImageTarball(tarDestinationPath string, outputFilesDestinati
 	Expect(err).ToNot(HaveOccurred())
 
 	return md
+}
+
+func getManifestFromImageTarball(tarDestinationPath string, outputFilesDestination string) []map[string]interface{} {
+	tarDestinationFile, err := os.Open(tarDestinationPath)
+	Expect(err).ToNot(HaveOccurred())
+	defer tarDestinationFile.Close()
+
+	tr := tar.NewReader(tarDestinationFile)
+
+	for {
+		hdr, err := tr.Next()
+		if err == io.EOF {
+			break // End of archive
+		}
+		if err != nil {
+			Expect(err).ToNot(HaveOccurred())
+		}
+		if strings.Contains(hdr.Name, ".json") {
+			f, err := os.OpenFile(filepath.Join(outputFilesDestination, hdr.Name), os.O_RDWR|os.O_CREATE, 0644)
+			Expect(err).ToNot(HaveOccurred())
+			io.Copy(f, tr)
+			f.Close()
+			continue
+		}
+	}
+
+	manifestFile, err := os.Open(filepath.Join(outputFilesDestination, "manifest.json"))
+	Expect(err).ToNot(HaveOccurred())
+
+	manifest := make([]map[string]interface{}, 0)
+	err = json.NewDecoder(manifestFile).Decode(&manifest)
+	Expect(err).ToNot(HaveOccurred())
+
+	return manifest
 }

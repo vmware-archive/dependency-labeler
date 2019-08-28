@@ -104,7 +104,13 @@ var rootCmd = &cobra.Command{
 		writeOutputs(md)
 
 		if outputImageTar != "" {
-			_, stderr, err := runCommand("docker", "save", newID, "-o", outputImageTar)
+			id := newID
+
+			if tag != "" {
+				id = tag
+			}
+
+			_, stderr, err := runCommand("docker", "save", id, "-o", outputImageTar)
 			if err != nil {
 				log.Fatalf("could not save docker image to tar: %s", stderr)
 			}
