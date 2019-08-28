@@ -28,6 +28,20 @@ docker inspect $(./deplab --image <image-name> --git <path to git repo>) \
   | jq .
 ```
 
+### Usage with tarball
+
+Alternatively, deplab can be used with an image stored locally in tar format.
+
+```bash
+./deplab --image-tar <path to image.tar> --git <path to git repo>
+```
+
+* `<path to image.tar>` is the path to the tarball.
+* `<path to git repo>` is, as above, a path to a directory under git version control.
+
+This returns the sha256 of the new image with added metadata.
+Currently this will add the label `io.pivotal.metadata` along with the necessary metadata.
+
 ## Optional Arguments
 
 ### Metadata file

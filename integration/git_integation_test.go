@@ -78,5 +78,5 @@ func filterGitDependency(dependencies []metadata.Dependency) metadata.Dependency
 			return dependency
 		}
 	}
-	return metadata.Dependency{} //should never be reached
+	return metadata.Dependency{}
 }

@@ -95,6 +95,15 @@ func runDeplabAgainstImage(inputImage string, extraArgs ...string) (outputImage 
 	return parseOutputAndValidate(stdOut)
 }
 
+func runDeplabAgainstTar(inputTarPath string, extraArgs ...string) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {
+	By("executing it")
+	args := []string{"--image-tar", inputTarPath, "--git", pathToGitRepo}
+	args = append(args, extraArgs...)
+	stdOut, _ := runDepLab(args, 0)
+
+	return parseOutputAndValidate(stdOut)
+}
+
 func parseOutputAndValidate(r io.Reader) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {
 	By("checking if it returns an image sha")
 	outputImage = strings.TrimSpace(string(getContentsOfReader(r)))

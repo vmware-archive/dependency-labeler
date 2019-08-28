@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/pivotal/deplab/outputs"
 	"log"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/pivotal/deplab/builder"
 	"github.com/pivotal/deplab/providers"
@@ -16,6 +19,7 @@ import (
 
 var (
 	inputImage       string
+	inputImageTar    string
 	gitPath          string
 	deplabVersion    string
 	metadataFilePath string
@@ -26,12 +30,12 @@ var (
 func init() {
 	rootCmd.Flags().StringVarP(&gitPath, "git", "g", "", "Path to directory under git revision control")
 	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "Image for the metadata to be added to")
+	rootCmd.Flags().StringVarP(&inputImageTar, "image-tar", "p", "", "Path to tarball of input image")
 	rootCmd.Flags().StringVarP(&metadataFilePath, "metadata-file", "m", "", "Write metadata to this file")
 	rootCmd.Flags().StringVarP(&dpkgFilePath, "dpkg-file", "d", "", "Write dpkg list metadata in (modified) `dpkg -l` format to this file")
 	rootCmd.Flags().StringVarP(&tag, "tag", "t", "", "Tags the output image")
 
 	_ = rootCmd.MarkFlagRequired("git")
-	_ = rootCmd.MarkFlagRequired("image")
 }
 
 var rootCmd = &cobra.Command{
@@ -42,7 +46,47 @@ var rootCmd = &cobra.Command{
 	Complete documentation is available at http://github.com/pivotal/deplab`,
 	Version: deplabVersion,
 
+	PreRun: func(cmd *cobra.Command, args []string) {
+		flagset := cmd.Flags()
+		img, err := flagset.GetString("image")
+		if err != nil {
+			log.Fatalf("error processing flag: %s", err)
+		}
+		imgTar, err := flagset.GetString("image-tar")
+		if err != nil {
+			log.Fatalf("error processing flag: %s", err)
+		}
+
+		if img == "" && imgTar == "" {
+			log.Println("ERROR: requires one of --image or --image-tar")
+			cmd.Usage()
+			os.Exit(1)
+		} else if img != "" && imgTar != "" {
+			log.Println("ERROR: cannot accept both --image and --image-tar")
+			cmd.Usage()
+			os.Exit(1)
+		}
+	},
+
 	Run: func(cmd *cobra.Command, args []string) {
+		if inputImageTar != "" {
+			dockerLoad := exec.Command("docker", "load", "-i", inputImageTar)
+
+			stdout := &bytes.Buffer{}
+			stderr := &bytes.Buffer{}
+
+			dockerLoad.Stdout = stdout
+			dockerLoad.Stderr = stderr
+
+			err := dockerLoad.Run()
+			if err != nil {
+				log.Fatalf("could not load docker image from tar: %s", stderr)
+			}
+
+			imageTag := strings.Trim(stdout.String(), "Loaded image: \n")
+			inputImage = imageTag
+		}
+
 		dependencies, err := generateDependencies(inputImage, gitPath)
 		if err != nil {
 			log.Fatalf("error generating dependencies: %s", err)
