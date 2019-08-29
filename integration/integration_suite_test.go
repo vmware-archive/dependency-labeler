@@ -48,7 +48,7 @@ func TestDeplab(t *testing.T) {
 			panic(err)
 		}
 
-		pathToBin, err = gexec.Build("github.com/pivotal/deplab")
+		pathToBin, err = gexec.Build("github.com/pivotal/deplab/cmd/deplab")
 		Expect(err).ToNot(HaveOccurred())
 	})
 
