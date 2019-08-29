@@ -19,7 +19,12 @@ func Run(inputImageTar, inputImage, gitPath, tag, outputImageTar, metadataFilePa
 			log.Fatalf("could not load docker image from tar: %s", stderr)
 		}
 
-		imageTag := strings.Trim(stdout.String(), "Loaded image: \n")
+		imageTag := ""
+		if strings.Contains(stdout.String(), "image ID") {
+			imageTag = strings.Trim(stdout.String(), "Loaded image ID: \n")
+		} else {
+			imageTag = strings.Trim(stdout.String(), "Loaded image: \n")
+		}
 		inputImage = imageTag
 	}
 	dependencies, err := generateDependencies(inputImage, gitPath)
