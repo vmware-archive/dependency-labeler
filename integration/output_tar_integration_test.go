@@ -4,13 +4,15 @@ import (
 	"archive/tar"
 	"context"
 	"encoding/json"
-	"github.com/pivotal/deplab/metadata"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
+
+	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/pivotal/deplab/metadata"
 
 	"github.com/docker/docker/api/types"
 
@@ -28,61 +30,33 @@ var _ = Describe("deplab", func() {
 
 	Context("when called with --output-tar", func() {
 		Describe("and tar can be written", func() {
-			Context("without a tag", func() {
-				BeforeEach(func() {
-					var err error
-					outputFilesDestination, err = ioutil.TempDir("", "output-files-")
-					Expect(err).ToNot(HaveOccurred())
-				})
-				JustBeforeEach(func() {
-					inputImage = "pivotalnavcon/ubuntu-additional-sources"
-					outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath)
-				})
-
-				Context("when there is an existing file at the output tar path", func() {
-					BeforeEach(func() {
-						tarDestination, err := ioutil.TempFile("", "image.tar")
-						Expect(err).ToNot(HaveOccurred())
-
-						tarDestinationPath = tarDestination.Name()
-
-					})
-
-					It("overwrites the existing file with the output tar", func() {
-						md := getMetadataFromImageTarball(tarDestinationPath, outputFilesDestination)
-
-						Expect(md.Base.Name).To(Equal("Ubuntu"))
-						Expect(md.Base.VersionCodename).To(Equal("bionic"))
-					})
-				})
-
-				Context("when there is no existing file at the output tar path", func() {
-					BeforeEach(func() {
-						tempDir, err := ioutil.TempDir("", "deplab-integration-output-tar-file-")
-						Expect(err).ToNot(HaveOccurred())
-						tarDestinationPath = path.Join(tempDir, "image.tar")
-					})
-
-					It("writes the image as a tar", func() {
-						md := getMetadataFromImageTarball(tarDestinationPath, outputFilesDestination)
-
-						Expect(md.Base.Name).To(Equal("Ubuntu"))
-						Expect(md.Base.VersionCodename).To(Equal("bionic"))
-					})
-				})
-
-				AfterEach(func() {
-					err := os.Remove(tarDestinationPath)
-					Expect(err).ToNot(HaveOccurred())
-				})
+			BeforeEach(func() {
+				var err error
+				outputFilesDestination, err = ioutil.TempDir("", "output-files-")
+				Expect(err).ToNot(HaveOccurred())
 			})
+
+			DescribeTable("without a tag", func(tarDestinationPath string) {
+				defer cleanupFile(tarDestinationPath)
+
+				inputImage = "pivotalnavcon/ubuntu-additional-sources"
+				outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath)
+
+				md := getMetadataFromImageTarball(tarDestinationPath, outputFilesDestination)
+
+				Expect(md.Base.Name).To(Equal("Ubuntu"))
+				Expect(md.Base.VersionCodename).To(Equal("bionic"))
+			},
+				Entry("when the file exists", existingFileName()),
+				Entry("when the file does not exists", nonExistingFileName()),
+			)
 
 			Context("when there is a tag", func() {
 				BeforeEach(func() {
 					tempDir, err := ioutil.TempDir("", "deplab-integration-output-tar-file-")
 					Expect(err).ToNot(HaveOccurred())
 					tarDestinationPath = path.Join(tempDir, "image.tar")
-					outputFilesDestination, err = ioutil.TempDir("", "output-files-")
+
 					Expect(err).ToNot(HaveOccurred())
 					inputImage = "pivotalnavcon/ubuntu-additional-sources"
 					outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath, "--tag", "foo:bar")
@@ -92,6 +66,11 @@ var _ = Describe("deplab", func() {
 					manifest := getManifestFromImageTarball(tarDestinationPath, outputFilesDestination)
 					Expect(manifest[0]["RepoTags"].([]interface{})[0].(string)).To(Equal("foo:bar"))
 				})
+			})
+
+			AfterEach(func() {
+				err := os.RemoveAll(outputFilesDestination)
+				Expect(err).ToNot(HaveOccurred())
 			})
 		})
 
@@ -105,9 +84,7 @@ var _ = Describe("deplab", func() {
 		})
 
 		AfterEach(func() {
-			err := os.RemoveAll(outputFilesDestination)
-			Expect(err).ToNot(HaveOccurred())
-			_, err = dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
+			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
 			Expect(err).ToNot(HaveOccurred())
 		})
 	})
