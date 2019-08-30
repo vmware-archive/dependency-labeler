@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/docker/distribution/reference"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/jhoonb/archivex"
@@ -38,6 +40,10 @@ func CreateNewImage(inputImage string, md metadata.Metadata, tag string) (resp t
 	}
 
 	if tag != "" {
+		_, err := reference.ParseAnyReference(tag)
+		if err != nil {
+			return resp, fmt.Errorf("tag %s is not valid: %s", tag, err)
+		}
 		opt.Tags = []string{tag}
 	}
 

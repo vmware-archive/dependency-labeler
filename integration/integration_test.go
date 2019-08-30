@@ -59,5 +59,13 @@ var _ = Describe("deplab", func() {
 			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
 			Expect(err).ToNot(HaveOccurred())
 		})
+
+		It("exits with an error if the tag passed is not valid", func() {
+
+			_, stdErr := runDepLab([]string{"--image", "ubuntu:bionic", "--git", pathToGitRepo, "--tag", "foo:testtag/bar"}, 1)
+
+			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+			Expect(errorOutput).To(ContainSubstring("tag foo:testtag/bar is not valid"))
+		})
 	})
 })
