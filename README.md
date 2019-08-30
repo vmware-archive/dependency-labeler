@@ -216,7 +216,7 @@ go test ./...
 
 To build for release, please run the following:
 ```bash
-go build -o deplab
+go build -o deplab ./cmd/deplab
 ```
 
 ## Support
