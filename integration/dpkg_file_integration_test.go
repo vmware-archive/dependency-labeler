@@ -17,7 +17,6 @@ var _ = Describe("deplab", func() {
 	)
 
 	Describe("when called with --dpkg-file", func() {
-
 		DescribeTable("and dpkg can be written", func(dpkgDestinationPath string) {
 			defer cleanupFile(dpkgDestinationPath)
 
