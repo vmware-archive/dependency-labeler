@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"os"
+
+	. "github.com/onsi/ginkgo/extensions/table"
 
 	"github.com/docker/docker/api/types"
 
@@ -14,58 +15,28 @@ import (
 
 var _ = Describe("deplab", func() {
 	var (
-		inputImage              string
-		outputImage             string
-		metadataLabelString     string
-		metadataDestinationPath string
+		outputImage         string
+		metadataLabelString string
 	)
 
 	Context("when called with --metadata-file", func() {
-		Describe("and metadata can be written", func() {
-			JustBeforeEach(func() {
-				inputImage = "pivotalnavcon/ubuntu-additional-sources"
-				outputImage, metadataLabelString, _, _ = runDeplabAgainstImage(inputImage, "--metadata-file", metadataDestinationPath)
-			})
+		DescribeTable("and metadata can be written", func(metadataDestinationPath string) {
+			defer cleanupFile(metadataDestinationPath)
 
-			Context("when the file exists", func() {
-				BeforeEach(func() {
-					metadataDestination, err := ioutil.TempFile("", "metadata-file.json")
-					Expect(err).ToNot(HaveOccurred())
+			inputImage := "pivotalnavcon/ubuntu-additional-sources"
+			outputImage, metadataLabelString, _, _ = runDeplabAgainstImage(inputImage, "--metadata-file", metadataDestinationPath)
+			metadataFileBytes, err := ioutil.ReadFile(metadataDestinationPath)
 
-					metadataDestinationPath = metadataDestination.Name()
-				})
-
-				It("write the metadata content in json format into the metadata-file value", func() {
-					metadataFileBytes, err := ioutil.ReadFile(
-						metadataDestinationPath,
-					)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(string(metadataFileBytes)).To(Equal(fmt.Sprintf("%s\n", metadataLabelString)))
-				})
-			})
-			Context("when the file does not exist", func() {
-				BeforeEach(func() {
-					metadataDestinationPath = "/tmp/metadata-file.json"
-				})
-
-				It("write the metadata content in json format into the metadata-file value", func() {
-					metadataFileBytes, err := ioutil.ReadFile(
-						metadataDestinationPath,
-					)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(string(metadataFileBytes)).To(Equal(fmt.Sprintf("%s\n", metadataLabelString)))
-				})
-			})
-
-			AfterEach(func() {
-				err := os.Remove(metadataDestinationPath)
-				Expect(err).ToNot(HaveOccurred())
-			})
-		})
+			Expect(err).ToNot(HaveOccurred())
+			Expect(string(metadataFileBytes)).To(Equal(fmt.Sprintf("%s\n", metadataLabelString)))
+		},
+			Entry("when the file exists", existingFileName()),
+			Entry("when the file does not exists", nonExistingFileName()),
+		)
 
 		Describe("and metadata can't be written", func() {
 			It("writes the image metadata, return the sha and throws an error about the file missing", func() {
-				inputImage = "pivotalnavcon/ubuntu-additional-sources"
+				inputImage := "pivotalnavcon/ubuntu-additional-sources"
 				stdOut, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--metadata-file", "a-path-that-does-not-exist/foo.json"}, 1)
 
 				outputImage, _, _, _ = parseOutputAndValidate(stdOut)
@@ -73,10 +44,10 @@ var _ = Describe("deplab", func() {
 				Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("a-path-that-does-not-exist/foo.json"))
 			})
 		})
+	})
 
-		AfterEach(func() {
-			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
-			Expect(err).ToNot(HaveOccurred())
-		})
+	AfterEach(func() {
+		_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
+		Expect(err).ToNot(HaveOccurred())
 	})
 })

@@ -3,8 +3,6 @@ package integration_test
 import (
 	"context"
 	"io/ioutil"
-	"os"
-	"path"
 
 	"github.com/docker/docker/api/types"
 
@@ -13,27 +11,13 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func existingFile() string {
-	dpkgDestination, _ := ioutil.TempFile("", "dpkg-file.dpkg")
-	return dpkgDestination.Name()
-}
-
-func nonExistingFile() string {
-	tempDir, _ := ioutil.TempDir("", "deplab-integration-dpkg-file")
-	return path.Join(tempDir, "dpkg-list.dpkg")
-}
-
-func cleanupFile(dpkgDestinationPath string) {
-	err := os.Remove(dpkgDestinationPath)
-	Expect(err).ToNot(HaveOccurred())
-}
-
 var _ = Describe("deplab", func() {
 	var (
 		outputImage string
 	)
 
-	Context("when called with --dpkg-file", func() {
+	Describe("when called with --dpkg-file", func() {
+
 		DescribeTable("and dpkg can be written", func(dpkgDestinationPath string) {
 			defer cleanupFile(dpkgDestinationPath)
 
@@ -42,7 +26,7 @@ var _ = Describe("deplab", func() {
 
 			dpkgFileBytes, err := ioutil.ReadFile(dpkgDestinationPath)
 
-			Expect(err).To(HaveOccurred())
+			Expect(err).ToNot(HaveOccurred())
 			Expect(string(dpkgFileBytes)).To(ContainSubstring(
 				"deplab SHASUM",
 			))
@@ -53,8 +37,8 @@ var _ = Describe("deplab", func() {
 				"ii  zlib1g              1:1.2.11.dfsg-0ubuntu2   amd64",
 			))
 		},
-			Entry("when the file exists", existingFile()),
-			Entry("when the file does not exists", nonExistingFile()),
+			Entry("when the file exists", existingFileName()),
+			Entry("when the file does not exists", nonExistingFileName()),
 		)
 
 		Describe("and metadata can't be written", func() {
@@ -65,10 +49,10 @@ var _ = Describe("deplab", func() {
 				Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("a-path-that-does-not-exist/foo.dpkg"))
 			})
 		})
+	})
 
-		AfterEach(func() {
-			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
-			Expect(err).ToNot(HaveOccurred())
-		})
+	AfterEach(func() {
+		_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
+		Expect(err).ToNot(HaveOccurred())
 	})
 })
