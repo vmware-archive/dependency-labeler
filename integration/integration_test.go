@@ -1,7 +1,10 @@
 package integration_test
 
 import (
+	"context"
 	"strings"
+
+	"github.com/docker/docker/api/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -48,13 +51,13 @@ var _ = Describe("deplab", func() {
 		})
 
 		It("returns an image with a tag if the tag flag is provided", func() {
-			By("executing it")
-			inputImage := "ubuntu:bionic"
-			tag := "testtag"
-			_, _, _, repoTags := runDeplabAgainstImage(inputImage, "--tag", tag)
+			outputImage, _, _, repoTags := runDeplabAgainstImage("ubuntu:bionic", "--tag", "testtag")
 
 			Expect(repoTags).ToNot(BeEmpty())
-			Expect(repoTags).To(ContainElement(ContainSubstring(tag)))
+			Expect(repoTags).To(ContainElement(ContainSubstring("testtag")))
+
+			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 })
