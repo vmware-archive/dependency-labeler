@@ -219,6 +219,11 @@ To build for release, please run the following:
 go build -o deplab ./cmd/deplab
 ```
 
+To build the Concourse task image, please run the following:
+```bash
+docker build . -f Dockerfile.task
+```
+
 ## Support
 
 This tool is currently maintained by the Pivotal NavCon team;
