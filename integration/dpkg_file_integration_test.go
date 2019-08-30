@@ -9,74 +9,57 @@ import (
 	"github.com/docker/docker/api/types"
 
 	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 )
 
+func existingFile() string {
+	dpkgDestination, _ := ioutil.TempFile("", "dpkg-file.dpkg")
+	return dpkgDestination.Name()
+}
+
+func nonExistingFile() string {
+	tempDir, _ := ioutil.TempDir("", "deplab-integration-dpkg-file")
+	return path.Join(tempDir, "dpkg-list.dpkg")
+}
+
+func cleanupFile(dpkgDestinationPath string) {
+	err := os.Remove(dpkgDestinationPath)
+	Expect(err).ToNot(HaveOccurred())
+}
+
 var _ = Describe("deplab", func() {
 	var (
-		inputImage          string
-		outputImage         string
-		dpkgDestinationPath string
+		outputImage string
 	)
 
 	Context("when called with --dpkg-file", func() {
-		Describe("and dpkg can be written", func() {
-			JustBeforeEach(func() {
-				inputImage = "pivotalnavcon/ubuntu-additional-sources"
-				outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--dpkg-file", dpkgDestinationPath)
-			})
+		DescribeTable("and dpkg can be written", func(dpkgDestinationPath string) {
+			defer cleanupFile(dpkgDestinationPath)
 
-			Context("when the file exists", func() {
-				BeforeEach(func() {
-					dpkgDestination, err := ioutil.TempFile("", "dpkg-file.dpkg")
-					Expect(err).ToNot(HaveOccurred())
+			inputImage := "pivotalnavcon/ubuntu-additional-sources"
+			outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--dpkg-file", dpkgDestinationPath)
 
-					dpkgDestinationPath = dpkgDestination.Name()
-				})
+			dpkgFileBytes, err := ioutil.ReadFile(dpkgDestinationPath)
 
-				It("overwrites the dpkg-file with the dpkg metadata content in dpkg -l format", func() {
-					dpkgFileBytes, err := ioutil.ReadFile(dpkgDestinationPath)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(string(dpkgFileBytes)).To(ContainSubstring(
-						"SHASUM",
-					))
-					Expect(string(dpkgFileBytes)).To(ContainSubstring(
-						"Desired=Unknown/Install/Remove/Purge/Hold",
-					))
-					Expect(string(dpkgFileBytes)).To(ContainSubstring(
-						"ii  zlib1g              1:1.2.11.dfsg-0ubuntu2   amd64",
-					))
-				})
-			})
-
-			Context("when the file does not exist", func() {
-				BeforeEach(func() {
-					tempDir, err := ioutil.TempDir("", "deplab-integration-dpkg-file")
-					Expect(err).ToNot(HaveOccurred())
-					dpkgDestinationPath = path.Join(tempDir, "dpkg-list.dpkg")
-				})
-
-				It("writes the dpkg-file with the dpkg metadata content in dpkg -l format", func() {
-					dpkgFileBytes, err := ioutil.ReadFile(dpkgDestinationPath)
-					Expect(err).ToNot(HaveOccurred())
-					Expect(string(dpkgFileBytes)).To(ContainSubstring(
-						"Desired=Unknown/Install/Remove/Purge/Hold",
-					))
-					Expect(string(dpkgFileBytes)).To(ContainSubstring(
-						"ii  zlib1g              1:1.2.11.dfsg-0ubuntu2   amd64",
-					))
-				})
-			})
-
-			AfterEach(func() {
-				err := os.Remove(dpkgDestinationPath)
-				Expect(err).ToNot(HaveOccurred())
-			})
-		})
+			Expect(err).To(HaveOccurred())
+			Expect(string(dpkgFileBytes)).To(ContainSubstring(
+				"deplab SHASUM",
+			))
+			Expect(string(dpkgFileBytes)).To(ContainSubstring(
+				"Desired=Unknown/Install/Remove/Purge/Hold",
+			))
+			Expect(string(dpkgFileBytes)).To(ContainSubstring(
+				"ii  zlib1g              1:1.2.11.dfsg-0ubuntu2   amd64",
+			))
+		},
+			Entry("when the file exists", existingFile()),
+			Entry("when the file does not exists", nonExistingFile()),
+		)
 
 		Describe("and metadata can't be written", func() {
 			It("writes the image metadata, returns the sha and throws an error about the file missing", func() {
-				inputImage = "pivotalnavcon/ubuntu-additional-sources"
+				inputImage := "pivotalnavcon/ubuntu-additional-sources"
 				stdOut, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--dpkg-file", "a-path-that-does-not-exist/foo.dpkg"}, 1)
 				outputImage, _, _, _ = parseOutputAndValidate(stdOut)
 				Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("a-path-that-does-not-exist/foo.dpkg"))

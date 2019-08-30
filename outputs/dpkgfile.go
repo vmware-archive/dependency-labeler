@@ -28,7 +28,7 @@ func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string) {
 	}
 	pkgs := dep.Source.Metadata.(metadata.DebianPackageListSourceMetadata).Packages
 
-	tHeader := []string{"||", "Name", "Version", "Architecture", "Description"}
+	tHeader := []string{"||/", "Name", "Version", "Architecture", "Description"}
 	tRows := make([][]string, 0)
 	tMaxLen := []int{3, 4, 7, 12, 11}
 
@@ -52,7 +52,7 @@ func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string) {
 		log.Fatalf("version in dpkg list was not a string")
 	}
 
-	pRows := "Rootfs SHASUM: " + sha + "\n\n"
+	pRows := "deplab SHASUM: " + sha + "\n\n"
 	pRows += header
 	unpaddedFmtString := fmt.Sprintf("%%-%ds%%-%ds%%-%ds%%-%ds%%-%ds\n", tMaxLen[0]+1, tMaxLen[1]+1, tMaxLen[2]+1, tMaxLen[3]+1, tMaxLen[4]+1)
 	fmtString := fmt.Sprintf("%%-%ds %%-%ds %%-%ds %%-%ds %%-%ds\n", tMaxLen[0], tMaxLen[1], tMaxLen[2], tMaxLen[3], tMaxLen[4])
