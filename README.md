@@ -42,6 +42,11 @@ Alternatively, deplab can be used with an image stored locally in tar format.
 This returns the sha256 of the new image with added metadata.
 Currently this will add the label `io.pivotal.metadata` along with the necessary metadata.
 
+### Usage in Concourse
+
+Please see [CONCOURSE.md](CONCOURSE.md) for information about using Deplab as a task in your
+Concourse pipeline.
+
 ## Optional Arguments
 
 ### Metadata file
