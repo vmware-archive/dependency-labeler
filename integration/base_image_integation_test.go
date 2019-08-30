@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+
 	"github.com/docker/docker/api/types"
 	"github.com/pivotal/deplab/metadata"
 

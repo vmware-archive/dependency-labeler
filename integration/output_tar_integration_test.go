@@ -2,13 +2,13 @@ package integration_test
 
 import (
 	"archive/tar"
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -42,7 +42,7 @@ var _ = Describe("deplab", func() {
 				inputImage = "pivotalnavcon/ubuntu-additional-sources"
 				outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath)
 
-				md := getMetadataFromImageTarball(tarDestinationPath, outputFilesDestination)
+				md := getMetadataFromImageTarball(tarDestinationPath)
 
 				Expect(md.Base.Name).To(Equal("Ubuntu"))
 				Expect(md.Base.VersionCodename).To(Equal("bionic"))
@@ -63,7 +63,7 @@ var _ = Describe("deplab", func() {
 				})
 
 				It("writes the image as a tar", func() {
-					manifest := getManifestFromImageTarball(tarDestinationPath, outputFilesDestination)
+					manifest := getManifestFromImageTarball(tarDestinationPath)
 					Expect(manifest[0]["RepoTags"].([]interface{})[0].(string)).To(Equal("foo:bar"))
 				})
 			})
@@ -90,15 +90,11 @@ var _ = Describe("deplab", func() {
 	})
 })
 
-func getMetadataFromImageTarball(tarDestinationPath string, outputFilesDestination string) metadata.Metadata {
-	manifest := getManifestFromImageTarball(tarDestinationPath, outputFilesDestination)
-
-	configFilePath := manifest[0]["Config"].(string)
-	configFile, err := os.Open(filepath.Join(outputFilesDestination, configFilePath))
-	Expect(err).ToNot(HaveOccurred())
+func getMetadataFromImageTarball(tarDestinationPath string) metadata.Metadata {
+	_, configBuffer := getManifestAndConfigFromImageTarball(tarDestinationPath)
 
 	config := make(map[string]interface{})
-	err = json.NewDecoder(configFile).Decode(&config)
+	err := json.NewDecoder(configBuffer).Decode(&config)
 	Expect(err).ToNot(HaveOccurred())
 	mdString := config["config"].(map[string]interface{})["Labels"].(map[string]interface{})["io.pivotal.metadata"].(string)
 
@@ -110,12 +106,20 @@ func getMetadataFromImageTarball(tarDestinationPath string, outputFilesDestinati
 	return md
 }
 
-func getManifestFromImageTarball(tarDestinationPath string, outputFilesDestination string) []map[string]interface{} {
+func getManifestFromImageTarball(tarDestinationPath string) []map[string]interface{} {
+	manifest, _ := getManifestAndConfigFromImageTarball(tarDestinationPath)
+	return manifest
+}
+
+func getManifestAndConfigFromImageTarball(tarDestinationPath string) ([]map[string]interface{}, *bytes.Buffer) {
 	tarDestinationFile, err := os.Open(tarDestinationPath)
 	Expect(err).ToNot(HaveOccurred())
 	defer tarDestinationFile.Close()
 
 	tr := tar.NewReader(tarDestinationFile)
+
+	manifestBuffer := bytes.Buffer{}
+	configBuffer := bytes.Buffer{}
 
 	for {
 		hdr, err := tr.Next()
@@ -125,21 +129,21 @@ func getManifestFromImageTarball(tarDestinationPath string, outputFilesDestinati
 		if err != nil {
 			Expect(err).ToNot(HaveOccurred())
 		}
+
 		if strings.Contains(hdr.Name, ".json") {
-			f, err := os.OpenFile(filepath.Join(outputFilesDestination, hdr.Name), os.O_RDWR|os.O_CREATE, 0644)
-			Expect(err).ToNot(HaveOccurred())
-			io.Copy(f, tr)
-			f.Close()
-			continue
+			if hdr.Name == "manifest.json" {
+				_, err := io.Copy(&manifestBuffer, tr)
+				Expect(err).ToNot(HaveOccurred())
+			} else {
+				_, err := io.Copy(&configBuffer, tr)
+				Expect(err).ToNot(HaveOccurred())
+			}
 		}
 	}
 
-	manifestFile, err := os.Open(filepath.Join(outputFilesDestination, "manifest.json"))
-	Expect(err).ToNot(HaveOccurred())
-
 	manifest := make([]map[string]interface{}, 0)
-	err = json.NewDecoder(manifestFile).Decode(&manifest)
+	err = json.NewDecoder(&manifestBuffer).Decode(&manifest)
 	Expect(err).ToNot(HaveOccurred())
 
-	return manifest
+	return manifest, &configBuffer
 }
