@@ -20,13 +20,13 @@ var (
 )
 
 func init() {
-	rootCmd.Flags().StringVarP(&gitPath, "git", "g", "", "Path to directory under git revision control")
-	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "Image for the metadata to be added to")
-	rootCmd.Flags().StringVarP(&inputImageTar, "image-tar", "p", "", "Path to tarball of input image")
-	rootCmd.Flags().StringVarP(&outputImageTar, "output-tar", "o", "", "Path to write a tarball of the image to")
-	rootCmd.Flags().StringVarP(&metadataFilePath, "metadata-file", "m", "", "Write metadata to this file")
-	rootCmd.Flags().StringVarP(&dpkgFilePath, "dpkg-file", "d", "", "Write dpkg list metadata in (modified) `dpkg -l` format to this file")
-	rootCmd.Flags().StringVarP(&tag, "tag", "t", "", "Tags the output image")
+	rootCmd.Flags().StringVarP(&gitPath, "git", "g", "", "`path` to a directory under git revision control")
+	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "image which will be analysed by deplab. Cannot be used with --image-tar flag")
+	rootCmd.Flags().StringVarP(&inputImageTar, "image-tar", "p", "", "`path` to tarball of input image. Cannot be used with --image flag")
+	rootCmd.Flags().StringVarP(&outputImageTar, "output-tar", "o", "", "`path` to write a tarball of the image to")
+	rootCmd.Flags().StringVarP(&metadataFilePath, "metadata-file", "m", "", "write metadata to this file at the given `path`")
+	rootCmd.Flags().StringVarP(&dpkgFilePath, "dpkg-file", "d", "", "write dpkg list metadata in (modified) 'dpkg -l' format to a file at this `path`")
+	rootCmd.Flags().StringVarP(&tag, "tag", "t", "", "tags the output image")
 
 	_ = rootCmd.MarkFlagRequired("git")
 }
