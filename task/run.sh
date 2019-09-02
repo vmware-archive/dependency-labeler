@@ -20,7 +20,9 @@ main() {
 
     /deplab --image-tar ${IMAGE_TAR} \
      --git ${GIT_REPO} \
-     --output-tar ${OUTPUT_DIR}/image.tar
+     --output-tar ${OUTPUT_DIR}/image.tar \
+     --metadata-file ${OUTPUT_DIR}/image-metadata.json \
+     --dpkg-file ${OUTPUT_DIR}/image-dpkg-list.txt
 }
 
 main

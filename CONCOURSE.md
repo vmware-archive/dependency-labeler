@@ -62,6 +62,8 @@ The output will contain the following files:
 * `image.tar`: the OCI image tarball. This tarball can be uploaded to a
   registry using the [Registry Image
   resource](https://github.com/concourse/registry-image-resource#out-push-an-image-up-to-the-registry-under-the-given-tags).
+* `image-metadata.json`: the metadata in json format which has already been added to the OCI image tarball as a label.
+* `image-dpkg-list.txt`: the debian package list portion of the metadata in `dpkg -l` format with additional headers
 
 ### `run`
 
