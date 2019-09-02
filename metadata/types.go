@@ -2,7 +2,14 @@ package metadata
 
 type Metadata struct {
 	Base         Base         `json:"base"`
+	Provenance   Provenance   `json:"provenance"`
 	Dependencies []Dependency `json:"dependencies"`
+}
+
+type Provenance struct {
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	URL     string `json:"url"'`
 }
 
 type Base struct {

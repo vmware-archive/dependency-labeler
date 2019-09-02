@@ -13,7 +13,6 @@ var (
 	inputImageTar    string
 	outputImageTar   string
 	gitPath          string
-	deplabVersion    string
 	metadataFilePath string
 	dpkgFilePath     string
 	tag              string
@@ -37,7 +36,7 @@ var rootCmd = &cobra.Command{
 	Long: `Dependency labeler adds information about a container image to that image's config. 
 	The information can be found in a "io.pivotal.metadata" label on the output image. 
 	Complete documentation is available at http://github.com/pivotal/deplab`,
-	Version: deplabVersion,
+	Version: deplab.GetVersion(),
 
 	PreRun: preRun,
 
@@ -71,9 +70,6 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func main() {
-	if deplabVersion == "" {
-		rootCmd.Version = "0.0.0-dev"
-	}
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

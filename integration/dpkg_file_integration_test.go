@@ -30,6 +30,9 @@ var _ = Describe("deplab", func() {
 				"deplab SHASUM",
 			))
 			Expect(string(dpkgFileBytes)).To(ContainSubstring(
+				"deplab version: 0.0.0-dev",
+			))
+			Expect(string(dpkgFileBytes)).To(ContainSubstring(
 				"Desired=Unknown/Install/Remove/Purge/Hold",
 			))
 			Expect(string(dpkgFileBytes)).To(ContainSubstring(
