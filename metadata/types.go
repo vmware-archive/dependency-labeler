@@ -2,7 +2,7 @@ package metadata
 
 type Metadata struct {
 	Base         Base         `json:"base"`
-	Provenance   Provenance   `json:"provenance"`
+	Provenance   []Provenance `json:"provenance"`
 	Dependencies []Dependency `json:"dependencies"`
 }
 

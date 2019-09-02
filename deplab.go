@@ -41,11 +41,11 @@ func Run(inputImageTar, inputImage, gitPath, tag, outputImageTar, metadataFilePa
 
 	md.Base = providers.BuildOSMetadata(inputImage)
 
-	md.Provenance = metadata.Provenance{
+	md.Provenance = []metadata.Provenance{{
 		Name:    "deplab",
 		Version: GetVersion(),
 		URL:     "https://github.com/pivotal/deplab",
-	}
+	}}
 
 	resp, err := docker.CreateNewImage(inputImage, md, tag)
 	if err != nil {
