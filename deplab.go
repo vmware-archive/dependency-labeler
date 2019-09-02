@@ -3,7 +3,7 @@ package deplab
 import (
 	"bytes"
 	"fmt"
-	"github.com/pivotal/deplab/builder"
+	"github.com/pivotal/deplab/docker"
 	"github.com/pivotal/deplab/metadata"
 	"github.com/pivotal/deplab/outputs"
 	"github.com/pivotal/deplab/providers"
@@ -35,12 +35,12 @@ func Run(inputImageTar, inputImage, gitPath, tag, outputImageTar, metadataFilePa
 
 	md.Base = providers.BuildOSMetadata(inputImage)
 
-	resp, err := builder.CreateNewImage(inputImage, md, tag)
+	resp, err := docker.CreateNewImage(inputImage, md, tag)
 	if err != nil {
 		log.Fatalf("could not create new image: %s\n", err)
 	}
 
-	newID, err := builder.GetIDOfNewImage(resp)
+	newID, err := docker.GetIDOfNewImage(resp)
 	if err != nil {
 		log.Fatalf("could not get ID of the new image: %s\n", err)
 	}

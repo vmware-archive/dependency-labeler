@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/pivotal/deplab/docker"
 	"io"
 	"io/ioutil"
 	"log"
@@ -85,104 +86,26 @@ func getAptSources(imageName string) ([]string, error) {
 	return sources, nil
 }
 
-func getStatus(containerId string) (io.Reader, error) {
-	t, err := getTar(containerId, "/var/lib/dpkg/status")
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving tar from: %s", err)
-	}
-
-	if t == nil {
-		return nil, nil
-	}
-
-	_, err = t.Next()
-	if err != nil {
-		return nil, fmt.Errorf("error reading status: %s", err)
-	}
-
-	return t, nil
-}
-
-func getStatusD(containerId string) (*tar.Reader, error) {
-	t, err := getTar(containerId, "/var/lib/dpkg/status.d")
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving tar from: %s", err)
-	}
-
-	return t, nil
-}
-
-func getTar(containerId string, path string) (*tar.Reader, error) {
-	c := exec.Command("docker", "cp", "-L", fmt.Sprintf("%s:%s", strings.TrimSpace(string(containerId)), path), "-")
-	var cOut bytes.Buffer
-	c.Stdout = &cOut
-
-	err := c.Start()
-	if err != nil {
-		return nil, fmt.Errorf("error starting docker cp command: %s", err)
-	}
-
-	err = c.Wait()
-	if err != nil {
-		return nil, nil
-	}
-
-	return tar.NewReader(&cOut), nil
-}
-
 func getDebianPackages(imageName string) ([]metadata.Package, error) {
-	createContainerCmd := exec.Command("docker", "create", imageName, "foo")
-	containerId, err := createContainerCmd.Output()
-	if err != nil {
-		if e, ok := err.(*exec.ExitError); ok {
-			return []metadata.Package{}, fmt.Errorf("failed to create container: %s %s", e.Stderr, e)
-		}
-		return []metadata.Package{}, fmt.Errorf("failed to create container: %s", err)
-	}
-
 	var packages []metadata.Package
-	status, err := getStatus(string(containerId))
+
+	statusPackages, err := listPackagesFromStatus(imageName)
+
 	if err != nil {
 		return []metadata.Package{}, err
 	}
 
-	if status != nil {
-		packages = parseStatDB(status)
-	}
+	packages = append(packages, statusPackages...)
 
-	statusD, err := getStatusD(string(containerId))
+	statusDPackages, err := listPackagesFromStatusD(imageName)
+
 	if err != nil {
 		return []metadata.Package{}, err
 	}
 
-	if statusD != nil {
-		packages = append(packages, parseStatDBEntries(statusD)...)
-	}
+	packages = append(packages, statusDPackages...)
 
 	return packages, nil
-}
-
-func parseStatDBEntries(t *tar.Reader) (packages []metadata.Package) {
-	for {
-		h, err := t.Next()
-		if err == io.EOF {
-			break // End of archive
-		}
-
-		if h.Typeflag == tar.TypeDir {
-			continue
-		}
-
-		all, err := ioutil.ReadAll(t)
-		if err != nil {
-			continue
-		}
-		packageEntry, err := ParseStatDBEntry(string(all))
-		if err == nil {
-			packages = append(packages, packageEntry)
-		}
-	}
-	return packages
 }
 
 func ParseStatDBEntry(content string) (metadata.Package, error) {
@@ -236,10 +159,56 @@ func ParseStatDBEntry(content string) (metadata.Package, error) {
 	return pkg, nil
 }
 
-func parseStatDB(r io.Reader) []metadata.Package {
-	packages := make([]metadata.Package, 0)
+func listPackagesFromStatusD(imageName string) (packages []metadata.Package, err error) {
+	path := "/var/lib/dpkg/status.d"
+	t, err := docker.ReadFromImage(imageName, path)
 
-	statDBString, err := ioutil.ReadAll(r)
+	if err != nil {
+		return packages, fmt.Errorf("error retrieving %s %s", path, err)
+	}
+
+	for {
+		h, err := t.Next()
+		if err == io.EOF {
+			break // End of archive
+		}
+		if err != nil {
+			return packages, err
+		}
+
+		if h.Typeflag == tar.TypeDir {
+			continue
+		}
+
+		all, err := ioutil.ReadAll(t)
+		if err != nil {
+			continue
+		}
+		packageEntry, err := ParseStatDBEntry(string(all))
+		if err == nil {
+			packages = append(packages, packageEntry)
+		}
+	}
+	return packages, nil
+}
+
+func listPackagesFromStatus(imageName string) (packages []metadata.Package, err error) {
+	path := "/var/lib/dpkg/status"
+	t, err := docker.ReadFromImage(imageName, path)
+
+	if err != nil {
+		return packages, fmt.Errorf("error retrieving %s %s", path, err)
+	}
+
+	_, err = t.Next()
+	if err != nil {
+		if err == io.EOF {
+			return packages, nil
+		}
+		return packages, fmt.Errorf("error reading status: %s", err)
+	}
+
+	statDBString, err := ioutil.ReadAll(t)
 	if err != nil {
 		log.Fatalf("error read statDBString: %s", err)
 	}
@@ -252,7 +221,7 @@ func parseStatDB(r io.Reader) []metadata.Package {
 		}
 	}
 
-	return packages
+	return packages, nil
 }
 
 func getUpstreamVersion(input string) string {
