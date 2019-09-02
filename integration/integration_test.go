@@ -17,7 +17,7 @@ var _ = Describe("deplab", func() {
 			inputImage := "scratch"
 			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", "does-not-matter"}, 1)
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-			Expect(errorOutput).To(ContainSubstring("'scratch' is a reserved name."))
+			Expect(errorOutput).To(ContainSubstring("'scratch' is a reserved name"))
 		})
 
 		It("throws an error if an invalid image sent to docker engine", func() {

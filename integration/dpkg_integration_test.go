@@ -122,6 +122,24 @@ var _ = Describe("deplab dpkg", func() {
 			Expect(sources).To(BeEmpty())
 		})
 	})
+
+	Context("with Pivotal Tiny", func() {
+		BeforeEach(func() {
+			inputImage = "pivotalnavcon/tiny"
+			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
+		})
+
+		It("returns a dpkg list", func() {
+			Expect(metadataLabelString).ToNot(BeEmpty())
+
+			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
+			dpkgMetadata := dependencyMetadata.(map[string]interface{})
+			By("listing debian package dependencies in the image")
+			Expect(metadataLabel.Dependencies[0].Type).To(Equal("debian_package_list"))
+
+			Expect(len(dpkgMetadata["packages"].([]interface{}))).To(Equal(6))
+		})
+	})
 })
 
 func filterDpkgDependency(dependencies []metadata.Dependency) (metadata.Dependency, bool) {
