@@ -2,24 +2,25 @@ package main
 
 import (
 	"fmt"
-	"github.com/pivotal/deplab"
-	"github.com/spf13/cobra"
 	"log"
 	"os"
+
+	"github.com/pivotal/deplab"
+	"github.com/spf13/cobra"
 )
 
 var (
 	inputImage       string
 	inputImageTar    string
 	outputImageTar   string
-	gitPath          string
+	gitPaths         []string
 	metadataFilePath string
 	dpkgFilePath     string
 	tag              string
 )
 
 func init() {
-	rootCmd.Flags().StringVarP(&gitPath, "git", "g", "", "`path` to a directory under git revision control")
+	rootCmd.Flags().StringArrayVarP(&gitPaths, "git", "g", []string{}, "`path` to a directory under git revision control")
 	rootCmd.Flags().StringVarP(&inputImage, "image", "i", "", "image which will be analysed by deplab. Cannot be used with --image-tar flag")
 	rootCmd.Flags().StringVarP(&inputImageTar, "image-tar", "p", "", "`path` to tarball of input image. Cannot be used with --image flag")
 	rootCmd.Flags().StringVarP(&outputImageTar, "output-tar", "o", "", "`path` to write a tarball of the image to")
@@ -66,7 +67,7 @@ func preRun(cmd *cobra.Command, args []string) {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	deplab.Run(inputImageTar, inputImage, gitPath, tag, outputImageTar, metadataFilePath, dpkgFilePath)
+	deplab.Run(inputImageTar, inputImage, gitPaths, tag, outputImageTar, metadataFilePath, dpkgFilePath)
 }
 
 func main() {

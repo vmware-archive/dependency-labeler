@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+
 	"github.com/pivotal/deplab/metadata"
 
 	"github.com/docker/docker/api/types"
@@ -13,16 +14,17 @@ import (
 var _ = Describe("deplab git", func() {
 	var outputImage string
 
-	Context("when I supply a git repo as an argument", func() {
+	Context("when I supply git repo(s) as argument(s)", func() {
 		var (
-			metadataLabel     metadata.Metadata
-			gitDependency     metadata.Dependency
-			gitSourceMetadata map[string]interface{}
+			metadataLabel       metadata.Metadata
+			gitDependency       metadata.Dependency
+			gitSourceMetadata   map[string]interface{}
+			additionalArguments []string
 		)
 
-		BeforeEach(func() {
+		JustBeforeEach(func() {
 			inputImage := "ubuntu:bionic"
-			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage)
+			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage, additionalArguments...)
 			gitDependency = filterGitDependency(metadataLabel.Dependencies)
 			gitSourceMetadata = gitDependency.Source.Metadata.(map[string]interface{})
 		})
@@ -31,23 +33,45 @@ var _ = Describe("deplab git", func() {
 			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
 			Expect(err).ToNot(HaveOccurred())
 		})
+		Context("when I supply only one --git argument", func() {
+			BeforeEach(func() {
+				additionalArguments = []string{}
+			})
 
-		It("adds a gitDependency", func() {
-			Expect(gitDependency.Type).ToNot(BeEmpty())
+			It("adds a gitDependency", func() {
+				Expect(gitDependency.Type).ToNot(BeEmpty())
 
-			By("adding the git commit of HEAD to a git dependency")
-			Expect(gitDependency.Type).To(Equal("package"))
-			Expect(gitDependency.Source.Version["commit"]).To(Equal(commitHash))
+				By("adding the git commit of HEAD to a git dependency")
+				Expect(gitDependency.Type).To(Equal("package"))
+				Expect(gitDependency.Source.Version["commit"]).To(Equal(commitHash))
 
-			By("adding the git remote to a git dependency")
-			Expect(gitSourceMetadata["url"].(string)).To(Equal("https://example.com/example.git"))
+				By("adding the git remote to a git dependency")
+				Expect(gitSourceMetadata["url"].(string)).To(Equal("https://example.com/example.git"))
 
-			By("adding refs for the current HEAD")
-			Expect(len(gitSourceMetadata["refs"].([]interface{}))).To(Equal(1))
-			Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).To(Equal("bar"))
+				By("adding refs for the current HEAD")
+				Expect(len(gitSourceMetadata["refs"].([]interface{}))).To(Equal(1))
+				Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).To(Equal("bar"))
 
-			By("not adding refs that are not the current HEAD")
-			Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).ToNot(Equal("foo"))
+				By("not adding refs that are not the current HEAD")
+				Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).ToNot(Equal("foo"))
+			})
+		})
+
+		Context("when I supply multiple git repositories as separate or comma separated arguments", func() {
+			BeforeEach(func() {
+				additionalArguments = []string{"--git", pathToGitRepo}
+			})
+
+			It("adds multiple gitDependency entries", func() {
+				i := 0
+				for _, dep := range metadataLabel.Dependencies {
+					if dep.Source.Type == "git" {
+						i++
+					}
+				}
+
+				Expect(i).To(Equal(2))
+			})
 		})
 	})
 
@@ -57,7 +81,7 @@ var _ = Describe("deplab git", func() {
 			inputImage := "ubuntu:bionic"
 			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", "/dev/null"}, 1)
 
-			Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("cannot open git repository"))
+			Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("cannot open git repository \"/dev/null\""))
 		})
 	})
 

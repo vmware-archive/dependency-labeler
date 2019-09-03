@@ -3,13 +3,14 @@ package deplab
 import (
 	"bytes"
 	"fmt"
+	"log"
+	"os/exec"
+	"strings"
+
 	"github.com/pivotal/deplab/docker"
 	"github.com/pivotal/deplab/metadata"
 	"github.com/pivotal/deplab/outputs"
 	"github.com/pivotal/deplab/providers"
-	"log"
-	"os/exec"
-	"strings"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 
 const UnknownDeplabVersion = "0.0.0-dev"
 
-func Run(inputImageTar, inputImage, gitPath, tag, outputImageTar, metadataFilePath, dpkgFilePath string) {
+func Run(inputImageTar string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string) {
 	if inputImageTar != "" {
 		stdout, stderr, err := runCommand("docker", "load", "-i", inputImageTar)
 		if err != nil {
@@ -33,7 +34,7 @@ func Run(inputImageTar, inputImage, gitPath, tag, outputImageTar, metadataFilePa
 		}
 		inputImage = imageTag
 	}
-	dependencies, err := generateDependencies(inputImage, gitPath)
+	dependencies, err := generateDependencies(inputImage, gitPaths)
 	if err != nil {
 		log.Fatalf("error generating dependencies: %s", err)
 	}
@@ -84,7 +85,7 @@ func GetVersion() string {
 	return DeplabVersion
 }
 
-func generateDependencies(imageName, pathToGit string) ([]metadata.Dependency, error) {
+func generateDependencies(imageName string, pathsToGit []string) ([]metadata.Dependency, error) {
 	var dependencies []metadata.Dependency
 
 	dpkgList, err := providers.BuildDebianDependencyMetadata(imageName)
@@ -95,11 +96,14 @@ func generateDependencies(imageName, pathToGit string) ([]metadata.Dependency, e
 		dependencies = append(dependencies, dpkgList)
 	}
 
-	gitMetadata, err := providers.BuildGitDependencyMetadata(pathToGit)
-	if err != nil {
-		log.Fatalf("git metadata: %s", err)
+	for _, gitPath := range pathsToGit {
+		gitMetadata, err := providers.BuildGitDependencyMetadata(gitPath)
+
+		if err != nil {
+			log.Fatalf("git metadata: %s", err)
+		}
+		dependencies = append(dependencies, gitMetadata)
 	}
-	dependencies = append(dependencies, gitMetadata)
 
 	return dependencies, nil
 }

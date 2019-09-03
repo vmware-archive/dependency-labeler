@@ -11,7 +11,7 @@ import (
 func BuildGitDependencyMetadata(pathToGit string) (metadata.Dependency, error) {
 	repo, err := git.PlainOpen(pathToGit)
 	if err != nil {
-		return metadata.Dependency{}, fmt.Errorf("cannot open git repository: %s\n", err)
+		return metadata.Dependency{}, fmt.Errorf("cannot open git repository \"%s\": %s\n", pathToGit, err)
 	}
 
 	ref, err := repo.Head()
