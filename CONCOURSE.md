@@ -27,18 +27,18 @@ Next, all of the following required parameters must be specified:
 
 * `$OUTPUT_DIR`: the path to write the image to.
 
-* `$GIT_REPO`: The path to the git repo from which the git metadata will be generated. This should be
+* `$GIT_REPOS`: The path to the git repo from which the git metadata will be generated. This should be
 the source code of the application in the labelled image, and passed from an image build step to ensure
-the correct commit SHA is provided.
-
+the correct commit SHA is provided. This can be a space separated list to allow for multiple git repositories.
+ß
 ### `inputs`
 
-There are two required inputs - a source for the image tarball and the git repo:
+There are two required inputs - a source for the image tarball and a space separated list of git repos:
 
 ```yaml
 params:
   IMAGE_TAR: image/image.tar
-  GIT_REPO: git-deplab/
+  GIT_REPOS: git-deplab/
 
 inputs:
 - name: image
@@ -89,7 +89,7 @@ run:
 
       params:
         IMAGE_TAR: image/image.tar
-        GIT_REPO: git-deplab
+        GIT_REPOS: git-deplab
         OUTPUT_DIR: labelled-image
 
       inputs:

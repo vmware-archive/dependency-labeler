@@ -14,15 +14,20 @@ check_env_var_exists() {
 main() {
     check_env_var_exists "IMAGE_TAR" "${IMAGE_TAR}"
     check_env_var_exists "OUTPUT_DIR" "${OUTPUT_DIR}"
-    check_env_var_exists "GIT_REPO" "${GIT_REPO}"
+    check_env_var_exists "GIT_REPOS" "${GIT_REPOS}"
 
     start_docker 3 3 "" ""
 
+    args=""
+    for repo in ${GIT_REPOS}; do
+      args+="--git ${repo} "
+    done
+
     /deplab --image-tar ${IMAGE_TAR} \
-     --git ${GIT_REPO} \
      --output-tar ${OUTPUT_DIR}/image.tar \
      --metadata-file ${OUTPUT_DIR}/image-metadata.json \
-     --dpkg-file ${OUTPUT_DIR}/image-dpkg-list.txt
+     --dpkg-file ${OUTPUT_DIR}/image-dpkg-list.txt \
+     ${args[@]}
 }
 
 main
