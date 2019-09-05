@@ -28,6 +28,48 @@ docker inspect $(./deplab --image <image-name> --git <path to git repo>) \
   | jq .
 ```
 
+### Multiple git repositories
+
+You can specify as many git repositories as required by passing more than one
+git flag into the command.
+```bash
+./deplab --image <image name> --git <path to git repo> --git <path to another git repo>
+```
+
+The output will look like:
+```json
+{
+  "dependencies": [
+    {
+      "type": "package",
+      "source": {
+        "type": "git",
+        "version": {
+          "commit":  "d2c3ccdffd3c5a014891e40a3ed8ba020d00eefd"
+         },
+        "metadata": {
+          "url": "https://github.com/pivotal/deplab.git",
+          "refs": ["0.5.0"]
+        }
+      }
+    },
+    {
+      "type": "package",
+      "source": {
+        "type": "git",
+        "version": {
+          "commit":  "d2a3ccdffd3c5a014891e40a3ed8ba020d00eefd"
+         },
+        "metadata": {
+          "url": "https://github.com/pivotal/anotherdeplab.git",
+          "refs": ["0.3.0"]
+        }
+      }
+    }
+  ]
+}
+```
+
 ### Usage with tarball
 
 Alternatively, deplab can be used with an image stored locally in tar format.
@@ -185,6 +227,46 @@ If the `--git` flag is provided with a valid path to a git repository, a git dep
   ]
 }
 ```
+
+You may add multiple git repositories by adding additional git flags:
+```bash
+./deplab --image <image name> --git <path to git repo> --git <path to another git repo>
+```
+
+The output will look like:
+```json
+{
+  "dependencies": [
+    {
+      "type": "package",
+      "source": {
+        "type": "git",
+        "version": {
+          "commit":  "d2c3ccdffd3c5a014891e40a3ed8ba020d00eefd"
+         },
+        "metadata": {
+          "url": "https://github.com/pivotal/deplab.git",
+          "refs": ["0.5.0"]
+        }
+      }
+    },
+    {
+      "type": "package",
+      "source": {
+        "type": "git",
+        "version": {
+          "commit":  "d2a3ccdffd3c5a014891e40a3ed8ba020d00eefd"
+         },
+        "metadata": {
+          "url": "https://github.com/pivotal/anotherdeplab.git",
+          "refs": ["0.3.0"]
+        }
+      }
+    }
+  ]
+}
+```
+
 
 ##### base
 The base image metadata is generated with the following format
