@@ -288,6 +288,20 @@ This relies on the `/etc/os-release` file being in the docker container, and `ca
 }
 ```
 
+#### provenance
+The provenance metadata is generated in the following format
+```json
+  "provenance": [
+    {
+      "name": "deplab",
+      "version": "0.0.0-dev",
+      "url": "https://github.com/pivotal/deplab"
+    }
+  ]
+```
+
+It is a list of tools which have added information to the image.
+
 ## Testing
 Testing requires `go` to be installed.  Please clone this git repository.  Tests can be run with:
 ```bash
