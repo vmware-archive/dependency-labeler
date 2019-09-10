@@ -59,8 +59,8 @@ func Digest(sourceMetadata metadata.DebianPackageListSourceMetadata) string {
 func getAptSources(imageName string) ([]string, error) {
 	stdout := &bytes.Buffer{}
 
-	grep := exec.Command("docker", "run", "--rm", imageName,
-		"grep",
+	grep := exec.Command("docker", "run", "--rm",
+		"--entrypoint", "grep", imageName,
 		"^[^#]",
 		"/etc/apt/sources.list",
 		"/etc/apt/sources.list.d",

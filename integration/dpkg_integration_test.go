@@ -123,6 +123,25 @@ var _ = Describe("deplab dpkg", func() {
 		})
 	})
 
+	Context("with an ubuntu:bionic based image with a non-shell entrypoint", func(){
+		BeforeEach(func(){
+			inputImage = "pivotalnavcon/entrypoint-return-stdout"
+			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
+		})
+
+		It("should return the apt source list", func(){
+			Expect(metadataLabelString).ToNot(BeEmpty())
+			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
+			dpkgMetadata := dependencyMetadata.(map[string]interface{})
+
+			sources, ok := dpkgMetadata["apt_sources"].([]interface{})
+
+			Expect(ok).To(BeTrue())
+			Expect(sources).ToNot(BeEmpty())
+			Expect(sources[0].(string)).To(ContainSubstring("deb http://archive.ubuntu.com/ubuntu/ bionic main restricted"))
+		})
+	})
+
 	Context("with Pivotal Tiny", func() {
 		BeforeEach(func() {
 			inputImage = "pivotalnavcon/tiny"
