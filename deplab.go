@@ -28,11 +28,11 @@ func Run(inputImageTar string, inputImage string, gitPaths []string, tag string,
 
 		imageTag := ""
 		if strings.Contains(stdout.String(), "image ID") {
-			imageTag = strings.Trim(stdout.String(), "Loaded image ID: \n")
+			imageTag = strings.TrimPrefix(stdout.String(), "Loaded image ID:")
 		} else {
-			imageTag = strings.Trim(stdout.String(), "Loaded image: \n")
+			imageTag = strings.TrimPrefix(stdout.String(), "Loaded image:")
 		}
-		inputImage = imageTag
+		inputImage = strings.TrimSpace(imageTag)
 	}
 	dependencies, err := generateDependencies(inputImage, gitPaths)
 	if err != nil {
