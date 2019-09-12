@@ -21,29 +21,13 @@ image is built from [`Dockerfile.task`](Dockerfile.task).)
 
 ### `params`
 
-Next, all of the following required parameters must be specified:
-
-* `IMAGE_TAR`: the path to the image to be labeled. The image must be in tarball format.
-
-* `OUTPUT_DIR`: the path to write the image to.
-
-* `GIT_REPOS`: The path to the git repo from which the git metadata will be generated. This should be
-the source code of the application in the labelled image, and passed from an image build step to ensure
-the correct commit SHA is provided. This can be a space separated list to allow for multiple git repositories.
-
-#### optional parameters
-* `DPKG_FILE`: the file name for the dpkg file produced by deplab. This is saved to the output directory specified 
-in `OUTPUT_DIR`. If `DPKG_FILE` is not provided the default is `image-dpkg-list.txt`.
+There are no params, instead the run.args should be used to pass in deplab flags
 
 ### `inputs`
 
-There are two required inputs - a source for the image tarball and a space separated list of git repos:
+There are two required inputs - a source for the image tarball (referenced in the `--image-tar` flag) and one (or more) git repositories from where the image was built (referenced in the `--git` flags):
 
 ```yaml
-params:
-  IMAGE_TAR: image/image.tar
-  GIT_REPOS: git-deplab/
-
 inputs:
 - name: image
 - name: git-deplab
@@ -51,31 +35,27 @@ inputs:
 
 ### `outputs`
 
-A single output may be configured:
+An output should be configured for the deplab files which need to be saved (i.e. the `--output-tar`, `--metadata-file`, and the `--dpkg-file` flags):
 
 ```yaml
-params:
-  OUTPUT_DIR: labelled-image
-
 outputs:
 - name: labelled-image
 ```
 
-The output will contain the following files:
-
-* `image.tar`: the OCI image tarball. This tarball can be uploaded to a
-  registry using the [Registry Image
-  resource](https://github.com/concourse/registry-image-resource#out-push-an-image-up-to-the-registry-under-the-given-tags).
-* `image-metadata.json`: the metadata in json format which has already been added to the OCI image tarball as a label.
-* `DPKG_FILE`: the debian package list portion of the metadata in `dpkg -l` format with additional headers
-
 ### `run`
 
-Your task should run the `build` executable:
+Your task should run the `deplab` executable, and provide the [command line args expected by deplab](README.md):
 
 ```yaml
 run:
   path: deplab
+  args:
+  - --image-tar
+  - image/image.tar
+  - --git
+  - git-deplab
+  - --output-tar
+  - labelled-image/image.tar
 ```
 
 ## example
@@ -91,11 +71,6 @@ run:
         source:
           repository: pivotalnavcon/deplab-task
 
-      params:
-        IMAGE_TAR: image/image.tar
-        GIT_REPOS: git-deplab
-        OUTPUT_DIR: labelled-image
-
       inputs:
       - name: git-deplab
       - name: image
@@ -105,4 +80,11 @@ run:
 
       run:
         path: deplab
+        args:
+        - --image-tar
+        - image/image.tar
+        - --git
+        - git-deplab
+        - --output-tar
+        - labelled-image/image.tar
 ```
