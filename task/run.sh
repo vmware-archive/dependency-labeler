@@ -16,9 +16,7 @@ main() {
     check_env_var_exists "OUTPUT_DIR" "${OUTPUT_DIR}"
     check_env_var_exists "GIT_REPOS" "${GIT_REPOS}"
 
-    if [[ -z "${DPKG_FILE}" ]]; then
-      DPKG_FILE="image-dpkg-list.txt"
-    fi
+    local dpkg_file_name=${DPKG_FILE:-"image-dpkg-list.txt"}
 
     start_docker 3 3 "" ""
 
@@ -30,7 +28,7 @@ main() {
     /deplab --image-tar ${IMAGE_TAR} \
      --output-tar ${OUTPUT_DIR}/image.tar \
      --metadata-file ${OUTPUT_DIR}/image-metadata.json \
-     --dpkg-file ${OUTPUT_DIR}/${DPKG_FILE} \
+     --dpkg-file ${OUTPUT_DIR}/${dpkg_file_name} \
      ${args[@]}
 }
 
