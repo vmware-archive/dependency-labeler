@@ -8,16 +8,12 @@ Docker is required to be installed and available on your path, test this by runn
 API version 1.39 or higher is required.
 
 ## Usage
-Download the latest `deplab` binary from the releases page.
+Download the latest `deplab` binary from the [releases page](https://github.com/pivotal/deplab/releases).
 To run the tool run the following command:
 ```bash
-./deplab --image <image name> --git <path to git repo>
+./deplab [flags]
 ```
-
-* `<image name>` is the name of the image that you want to add the metadata to.
-* `<path to git repo>` is a path to a directory under git version control.
-
-This returns the sha256 of the new image with added metadata.
+This returns the sha256 or the provided tag of the new image with added metadata.
 Currently this will add the label `io.pivotal.metadata` along with the necessary metadata.
 
 To visualise the metadata this command can be run
@@ -28,86 +24,67 @@ docker inspect $(./deplab --image <image-name> --git <path to git repo>) \
   | jq .
 ```
 
-### Multiple git repositories
+## Flags
+
+| short flag  | long flag  | value type | description | remarks |
+|---|---|---|---|---|
+|  `-g` | `--git` | path |  [path to a directory under git revision control](#git) | Required. Can be provided multiple times. | 
+| `-i` |  `--image` | string | [image which will be analysed by deplab](#image) | Optional. Cannot be used with `--image-tar` flag | 
+| `-p` |  `--image-tar` |  path | [path to tarball of input image](#image-tarball) | Optional, but required for Concourse. Cannot be used with `--image` flag | 
+| `-t` | `--tag` | string | [tags the output image](#tag) | Optional | 
+| `-d` | `--dpkg-file` | path | [write dpkg list metadata in (modified) '`dpkg -l`' format to a file at this path](#dpkg-file)| Optional |
+| `-m` | `--metadata-file` | path | [write metadata to this file at the given path](#metadata-file) | Optional | 
+| `-o` | `--output-tar` | path | [path to write a tarball of the image to](#tar) | Optional, but required for Concourse | 
+| `-h` | `--help` |  | help for deplab |  | 
+|  | `--version` |  |  version for deplab |  | 
+
+### Inputs
+
+#### Git
 
 You can specify as many git repositories as required by passing more than one
 git flag into the command.
-```bash
-./deplab --image <image name> --git <path to git repo> --git <path to another git repo>
-```
 
-The output will look like:
-```json
-{
-  "dependencies": [
-    {
-      "type": "package",
-      "source": {
-        "type": "git",
-        "version": {
-          "commit":  "d2c3ccdffd3c5a014891e40a3ed8ba020d00eefd"
-         },
-        "metadata": {
-          "url": "https://github.com/pivotal/deplab.git",
-          "refs": ["0.5.0"]
-        }
-      }
-    },
-    {
-      "type": "package",
-      "source": {
-        "type": "git",
-        "version": {
-          "commit":  "d2a3ccdffd3c5a014891e40a3ed8ba020d00eefd"
-         },
-        "metadata": {
-          "url": "https://github.com/pivotal/anotherdeplab.git",
-          "refs": ["0.3.0"]
-        }
-      }
-    }
-  ]
-}
-```
+#### Image
 
-### Usage with tarball
+deplab accept as input an image stored in the local registry (tags, sha, or image id are all valid options).
+One and only one of `--image` or `--image-tar` have to be used when invoking deplab.
 
-Alternatively, deplab can be used with an image stored locally in tar format.
+#### Image tarball
 
-```bash
-./deplab --image-tar <path to image.tar> --git <path to git repo>
-```
+deplab accept as input an image stored in tar format (e.g. the output of `docker save ...` or of a concourse task).
+One and only one of `--image` or `--image-tar` have to be used when invoking deplab.
 
-* `<path to image.tar>` is the path to the tarball.
-* `<path to git repo>` is, as above, a path to a directory under git version control (it can be specified multiple times).
+### Outputs
+
+#### Default
 
 This returns the sha256 of the new image with added metadata.
 Currently this will add the label `io.pivotal.metadata` along with the necessary metadata.
 
-### Usage in Concourse
+#### Tag
 
-Please see [CONCOURSE.md](CONCOURSE.md) for information about using Deplab as a task in your
-Concourse pipeline.
+Optionally image can be tagged in the local registry using the provided tag. Tag need to be a valid docker tag.
 
-## Optional Arguments
+#### Tar
 
-### Metadata file
-Deplab can output the metadata to a file providing the path with the argument `--metadata-file` or `-m` 
+Optionally deplab can output the image in tar format.
 
-```bash
-./deplab -i <image name> -g <path to git repo> --metadata-file <metadata file>
-```
+If the file path cannot be created deplab will process the image and store it in Docker, but will also return an error for the writing of the tar. 
+
+If a file exists at the given path, the file will be overwritten.
+
+#### Metadata file
+
+Optionally deplab can output the metadata to a file providing the path with the argument `--metadata-file` or `-m` 
 
 If the file path cannot be created, deplab will return the newly labelled image, and return an error for the writing of the metadata file. 
 
 If a file exists at the given path, the file will be overwritten.
 
-### dpkg file
-Deplab can output the debian package list portion of the metadata to a file with the argument `--dpkg-file` or `-d`
+#### dpkg file
 
-```bash
-./deplab -i <image name> -g <path to git repo> --dpkg-file <dpkg file>
-```
+Optionally deplab can output the debian package list portion of the metadata to a file with the argument `--dpkg-file` or `-d`
 
 If the file path cannot be created, deplab will return the newly labelled image, and return an error for the writing of the dpkg file. 
 
@@ -115,31 +92,68 @@ If a file exists at the given path, the file will be overwritten.
 
 This file is approximately similar to the file which will be output by running `dpkg -l`, with the addition of an extra header which provides an ID for this list.
 
-### Output as image tarball
 
-Deplab can output the image in tar format.
+## Examples
 
-```bash
-./deplab -i <image name> -g <path to git repo> --output-tar ./path/to/image.tar
+### Basic usage
+
+```
+deplab --image <image-reference> \
+  --git <path-to-repo> 
 ```
 
-If the file path cannot be created deplab will process the image and store it in Docker, but will also return an error for the writing of the tar. 
+### Multiple git inputs
 
-If a file exists at the given path, the file will be overwritten.
-
-### Tag
-Deplab can add a tag to the output image
-
-```bash
-./deplab -i <image name> -g <path to git repo> --tag <tag name>
 ```
-The SHA256 will be returned as normal.
-
-You can inspect the tag has been added to the image:
-```bash
-docker inspect $(./deplab --image <image-name> --git <path to git repo> --tag <tag name>) \
- | jq '.[0].RepoTags'
+deplab --image <image-reference> \
+  --git <path-to-repo> \
+  --git <path-to-another-repo>
 ```
+
+
+### Input image as tar
+
+```
+deplab --image-tar <path-to-image-tar> \
+  --git <path-to-repo> 
+```
+
+### Output image as tar
+
+```
+deplab --image <image-reference> \
+  --git <path-to-repo> \
+  --output-tar <path-to-image-output> 
+```
+
+### Tag output image
+
+```
+deplab --image <image-reference> \
+  --git <path-to-repo> \
+  --tag <tag> 
+```
+
+### dpkg list file
+
+```
+deplab --image <image-reference> \
+  --git <path-to-repo> \
+  --dpkg-file <path-to-dpkg-file-output> 
+```
+
+### metadata file
+
+```
+deplab --image <image-reference> \
+  --git <path-to-repo> \
+  --metadata-file <path-to-metadata-file-output> 
+```
+
+### Usage in Concourse
+
+Please see [CONCOURSE.md](CONCOURSE.md) for information about using Deplab as a task in your
+Concourse pipeline.
  
 ## Data
 
@@ -173,8 +187,6 @@ The debian package list is generated with the following format.
 }
 ```
 
-
-
 Example of a package item in field `packages` 
 
 ```json
@@ -196,11 +208,6 @@ Example of `apt_sources` content
 [
   "deb http://archive.ubuntu.com/ubuntu/ bionic main restricted",
   "deb http://archive.ubuntu.com/ubuntu/ bionic-updates main restricted",
-  "deb http://archive.ubuntu.com/ubuntu/ bionic universe",
-  "deb http://archive.ubuntu.com/ubuntu/ bionic-updates universe",
-  "deb http://archive.ubuntu.com/ubuntu/ bionic multiverse",
-  "deb http://archive.ubuntu.com/ubuntu/ bionic-updates multiverse",
-  "deb http://archive.ubuntu.com/ubuntu/ bionic-backports main restricted universe multiverse",
   "deb http://security.ubuntu.com/ubuntu/ bionic-security main restricted",
   "deb http://security.ubuntu.com/ubuntu/ bionic-security universe",
   "deb http://security.ubuntu.com/ubuntu/ bionic-security multiverse"
@@ -208,16 +215,20 @@ Example of `apt_sources` content
 ```
 
 ##### git dependency
+
+For each `--git` flag provided a git dependency will be present in the metadata
+
 If the `--git` flag is provided with a valid path to a git repository, a git dependency will be added:
 ```json
 {
   "dependencies": [
+    {...},
     {
       "type": "package",
       "source": {
         "type": "git",
         "version": {
-          "commit":  "d2c3ccdffd3c5a014891e40a3ed8ba020d00eefd"
+          "commit":  "d2c[...]efd"
          },
         "metadata": {
           "url": "https://github.com/pivotal/deplab.git",
@@ -229,47 +240,7 @@ If the `--git` flag is provided with a valid path to a git repository, a git dep
 }
 ```
 
-You may add multiple git repositories by adding additional git flags:
-```bash
-./deplab --image <image name> --git <path to git repo> --git <path to another git repo>
-```
-
-The output will look like:
-```json
-{
-  "dependencies": [
-    {
-      "type": "package",
-      "source": {
-        "type": "git",
-        "version": {
-          "commit":  "d2c3ccdffd3c5a014891e40a3ed8ba020d00eefd"
-         },
-        "metadata": {
-          "url": "https://github.com/pivotal/deplab.git",
-          "refs": ["0.5.0"]
-        }
-      }
-    },
-    {
-      "type": "package",
-      "source": {
-        "type": "git",
-        "version": {
-          "commit":  "d2a3ccdffd3c5a014891e40a3ed8ba020d00eefd"
-         },
-        "metadata": {
-          "url": "https://github.com/pivotal/anotherdeplab.git",
-          "refs": ["0.3.0"]
-        }
-      }
-    }
-  ]
-}
-```
-
-
-##### base
+#### base
 The base image metadata is generated with the following format
 ```json
   "base": {
@@ -279,7 +250,7 @@ The base image metadata is generated with the following format
   }
 ```
 
-This relies on the `/etc/os-release` file being in the docker container, and `cat` being able to read it. If either are not present all the field will be set to `unknown`.
+This relies on the `/etc/os-release` file being in the docker container. If `/etc/os-release` is not present all the field will be set to `unknown`.
 
 ```json
 {
@@ -290,7 +261,7 @@ This relies on the `/etc/os-release` file being in the docker container, and `ca
 ```
 
 #### provenance
-The provenance metadata is generated in the following format
+Provenance is a list of the tools which have added information to the image. It is generated in the following format
 ```json
   "provenance": [
     {
@@ -301,7 +272,6 @@ The provenance metadata is generated in the following format
   ]
 ```
 
-It is a list of tools which have added information to the image.
 
 ## Testing
 Testing requires `go` to be installed.  Please clone this git repository.  Tests can be run with:
