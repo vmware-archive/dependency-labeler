@@ -24,14 +24,20 @@ var _ = Describe("deplab base image", func() {
 
 	Context("with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
-			inputImage = "ubuntu:bionic"
+			inputImage = "ubuntu:bionic-20190718"
 			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage)
 		})
 
 		It("adds the base image metadata to the label", func() {
-			Expect(metadataLabel.Base.Name).To(Equal("Ubuntu"))
-			Expect(metadataLabel.Base.VersionCodename).To(Equal("bionic"))
-			Expect(metadataLabel.Base.VersionID).To(Equal("18.04"))
+			Expect(metadataLabel.Base).To(
+				SatisfyAll(
+					HaveKeyWithValue("name", "Ubuntu"),
+					HaveKeyWithValue("version", "18.04.2 LTS (Bionic Beaver)"),
+					HaveKeyWithValue("version_id", "18.04"),
+					HaveKeyWithValue("id_like", "debian"),
+					HaveKeyWithValue("version_codename", "bionic"),
+					HaveKeyWithValue("pretty_name", "Ubuntu 18.04.2 LTS"),
+				))
 		})
 	})
 
@@ -42,9 +48,11 @@ var _ = Describe("deplab base image", func() {
 		})
 
 		It("adds the base image metadata to the label", func() {
-			Expect(metadataLabel.Base.Name).To(Equal("Alpine Linux"))
-			Expect(metadataLabel.Base.VersionCodename).To(Equal(""))
-			Expect(metadataLabel.Base.VersionID).To(Equal("3.10.1"))
+			Expect(metadataLabel.Base).To(
+				SatisfyAll(
+					HaveKeyWithValue("name", "Alpine Linux"),
+					HaveKeyWithValue("version_id", "3.10.1"),
+				))
 		})
 	})
 
@@ -55,22 +63,29 @@ var _ = Describe("deplab base image", func() {
 		})
 
 		It("set all fields of base to unknown", func() {
-			Expect(metadataLabel.Base.Name).To(Equal("unknown"))
-			Expect(metadataLabel.Base.VersionCodename).To(Equal("unknown"))
-			Expect(metadataLabel.Base.VersionID).To(Equal("unknown"))
+			Expect(metadataLabel.Base).To(
+				SatisfyAll(
+					HaveKeyWithValue("name", "unknown"),
+					HaveKeyWithValue("version_codename", "unknown"),
+					HaveKeyWithValue("version_id", "unknown"),
+				))
 		})
 	})
 
-	Context("with an image that doesn't have cat but has an os-release", func() {
+	XContext("with an image that doesn't have cat but has an os-release", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/tiny"
+			inputImage = "cloudfoundry/run:tiny"
 			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage)
 		})
 
 		It("adds the base image metadata to the label", func() {
-			Expect(metadataLabel.Base.Name).To(Equal("Pivotal Tiny"))
-			Expect(metadataLabel.Base.VersionCodename).To(Equal("dev"))
-			Expect(metadataLabel.Base.VersionID).To(Equal("dev"))
+			Expect(metadataLabel.Base).To(
+				SatisfyAll(
+					HaveKeyWithValue("name", "Pivotal Tiny"),
+					HaveKeyWithValue("version_codename", "dev"),
+					HaveKeyWithValue("version_id", "dev"),
+					HaveKeyWithValue("pretty_name", "Pivotal Tiny"),
+				))
 		})
 	})
 })

@@ -106,7 +106,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an image with dpkg, but no grep", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/ubuntu-no-grep"
+			inputImage = "pivotalnavcon/ubuntu-no-grep-no-cat"
 			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
 		})
 
@@ -123,13 +123,13 @@ var _ = Describe("deplab dpkg", func() {
 		})
 	})
 
-	Context("with an ubuntu:bionic based image with a non-shell entrypoint", func(){
-		BeforeEach(func(){
+	Context("with an ubuntu:bionic based image with a non-shell entrypoint", func() {
+		BeforeEach(func() {
 			inputImage = "pivotalnavcon/entrypoint-return-stdout"
 			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
 		})
 
-		It("should return the apt source list", func(){
+		It("should return the apt source list", func() {
 			Expect(metadataLabelString).ToNot(BeEmpty())
 			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})

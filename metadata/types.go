@@ -12,11 +12,7 @@ type Provenance struct {
 	URL     string `json:"url"'`
 }
 
-type Base struct {
-	Name            string `json:"name"`
-	VersionID       string `json:"version_id"`
-	VersionCodename string `json:"version_codename"`
-}
+type Base map[string]string
 
 type Dependency struct {
 	Type   string `json:"type"`
@@ -53,7 +49,7 @@ type PackageSource struct {
 }
 
 var UnknownBase = Base{
-	Name:            "unknown",
-	VersionCodename: "unknown",
-	VersionID:       "unknown",
+	"name":             "unknown",
+	"version_codename": "unknown",
+	"version_id":       "unknown",
 }

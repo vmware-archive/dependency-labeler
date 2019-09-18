@@ -64,9 +64,10 @@ func BuildOSMetadata(imageName string) metadata.Base {
 		return metadata.UnknownBase
 	}
 
-	return metadata.Base{
-		Name:            envMap["NAME"],
-		VersionCodename: envMap["VERSION_CODENAME"],
-		VersionID:       envMap["VERSION_ID"],
+	mdbase := metadata.Base{}
+	for k, v := range envMap {
+		mdbase[strings.ToLower(k)] = v
 	}
+
+	return mdbase
 }

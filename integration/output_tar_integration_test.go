@@ -44,8 +44,11 @@ var _ = Describe("deplab", func() {
 
 				md := getMetadataFromImageTarball(tarDestinationPath)
 
-				Expect(md.Base.Name).To(Equal("Ubuntu"))
-				Expect(md.Base.VersionCodename).To(Equal("bionic"))
+				Expect(md.Base).To(
+					SatisfyAll(
+						HaveKeyWithValue("name", "Ubuntu"),
+						HaveKeyWithValue("version_codename", "bionic"),
+					))
 			},
 				Entry("when the file exists", existingFileName()),
 				Entry("when the file does not exists", nonExistingFileName()),

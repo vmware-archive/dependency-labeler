@@ -1,0 +1,4 @@
+FROM ubuntu:bionic-20190718
+
+RUN rm /bin/grep \
+  && rm /bin/cat

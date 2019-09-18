@@ -3,9 +3,12 @@
 set -eu -o pipefail
 set -x
 
-for dockerfile in $(ls integration/assets) ; do
-    image_name=pivotalnavcon/ubuntu-${dockerfile/Dockerfile./}
+for dockerfile in integration/assets/Dockerfile* ; do
+    (cd integration/assets
+      filename=$(basename $dockerfile)
+      image_name=pivotalnavcon/ubuntu-${filename/Dockerfile./}
 
-    docker build . -f integration/assets/$dockerfile -t ${image_name}
-    docker push ${image_name}
+      docker build . -f $filename -t ${image_name}
+      docker push ${image_name}
+    )
 done
