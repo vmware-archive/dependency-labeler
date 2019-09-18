@@ -246,9 +246,12 @@ The base image metadata is generated with the following format
   "base": {
     "name": "Ubuntu",
     "version_id": "18.04",
-    "version_codename": "bionic"
+    "version_codename": "bionic",
+    ...
   }
 ```
+
+it includes all the content of `/etc/os-release` present on the image (keys are lower-cased).
 
 This relies on the `/etc/os-release` file being in the docker container. If `/etc/os-release` is not present all the field will be set to `unknown`.
 
