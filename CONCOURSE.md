@@ -88,3 +88,24 @@ run:
         - --output-tar
         - labelled-image/image.tar
 ```
+
+
+## example using interpolated values
+ 
+Sometime you may need to interpolate some of your values.  In the example below we are using the version as a 
+customisable run time variable.
+
+```yaml
+run:
+  path: /bin/bash
+  args:
+    - -cex
+    - |
+      version="$(cat version-navcon-test-app/version)"
+      deplab \
+        --image-tar image/image.tar \
+        --git git-navcon-test-app \
+        --output-tar "annotated-image/image-$version.tar" \
+        --dpkg-file annotated-image/navcon-test-app-dpkg-list.txt \
+        --tag "$version"
+```
