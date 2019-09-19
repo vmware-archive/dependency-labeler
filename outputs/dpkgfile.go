@@ -2,11 +2,13 @@ package outputs
 
 import (
 	"fmt"
-	"github.com/pivotal/deplab/metadata"
+	"io"
 	"log"
 	"os"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/pivotal/deplab/metadata"
 )
 
 func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion string) {
@@ -52,30 +54,44 @@ func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion stri
 		log.Fatalf("version in dpkg list was not a string")
 	}
 
-	pRows := "deplab SHASUM: " + sha + "\n"
-	pRows += "deplab version: " + deplabVersion + "\n\n"
-	pRows += header
 	unpaddedFmtString := fmt.Sprintf("%%-%ds%%-%ds%%-%ds%%-%ds%%-%ds\n", tMaxLen[0]+1, tMaxLen[1]+1, tMaxLen[2]+1, tMaxLen[3]+1, tMaxLen[4]+1)
 	fmtString := fmt.Sprintf("%%-%ds %%-%ds %%-%ds %%-%ds %%-%ds\n", tMaxLen[0], tMaxLen[1], tMaxLen[2], tMaxLen[3], tMaxLen[4])
 
-	pRows += fmt.Sprintf(fmtString, tHeader[0], tHeader[1], tHeader[2], tHeader[3], tHeader[4])
-	pRows += fmt.Sprintf(unpaddedFmtString,
-		"+++-",
-		fmt.Sprintf("%s-", strings.Repeat("=", tMaxLen[1])),
-		fmt.Sprintf("%s-", strings.Repeat("=", tMaxLen[2])),
-		fmt.Sprintf("%s-", strings.Repeat("=", tMaxLen[3])),
-		fmt.Sprintf("%s", strings.Repeat("=", tMaxLen[4])),
-	)
+	df := dpkgFile{w: f}
+
+	df.
+		printf("deplab SHASUM: %s\n", sha).
+		printf("deplab version: %s\n\n", deplabVersion).
+		printf(header).
+		printf(fmtString, tHeader[0], tHeader[1], tHeader[2], tHeader[3], tHeader[4]).
+		printf(unpaddedFmtString,
+			"+++-",
+			fmt.Sprintf("%s-", strings.Repeat("=", tMaxLen[1])),
+			fmt.Sprintf("%s-", strings.Repeat("=", tMaxLen[2])),
+			fmt.Sprintf("%s-", strings.Repeat("=", tMaxLen[3])),
+			fmt.Sprintf("%s", strings.Repeat("=", tMaxLen[4])),
+		)
 
 	for _, v := range tRows {
-		pRows += fmt.Sprintf(fmtString, v[0], v[1], v[2], v[3], v[4])
+		df.printf(fmtString, v[0], v[1], v[2], v[3], v[4])
 	}
 
-	contents := []byte(pRows)
-	_, err = f.Write(contents)
-	if err != nil {
+	if df.err != nil {
 		log.Fatalf("Could not write to file: %s\n", dpkgFilePath)
 	}
+}
+
+type dpkgFile struct {
+	err error
+	w   io.Writer
+}
+
+func (df *dpkgFile) printf(format string, a ...interface{}) *dpkgFile {
+	if df.err == nil {
+		_, err := fmt.Fprintf(df.w, format, a...)
+		df.err = err
+	}
+	return df
 }
 
 func findDpkgListInMetadata(md metadata.Metadata) (metadata.Dependency, error) {
