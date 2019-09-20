@@ -58,7 +58,7 @@ func TestDeplab(t *testing.T) {
 		gexec.CleanupBuildArtifacts()
 	})
 
-	RunSpecs(t, "Deplab Suite")
+	RunSpecs(t, "deplab Suite")
 }
 
 func runDepLab(args []string, expErrCode int) (stdOut *bytes.Reader, stdErr *bytes.Reader) {

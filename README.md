@@ -1,7 +1,7 @@
 # deplab
 
 ## Introduction
-Deplab adds metadata about a container image's dependencies as a label to the container image.
+deplab adds metadata about a container image's dependencies as a label to the container image.
 
 ## Dependencies
 Docker is required to be installed and available on your path, test this by running `docker version`.
@@ -152,7 +152,7 @@ deplab --image <image-reference> \
 
 ### Usage in Concourse
 
-Please see [CONCOURSE.md](CONCOURSE.md) for information about using Deplab as a task in your
+Please see [CONCOURSE.md](CONCOURSE.md) for information about using deplab as a task in your
 Concourse pipeline.
  
 ## Data
