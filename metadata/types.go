@@ -9,7 +9,7 @@ type Metadata struct {
 type Provenance struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
-	URL     string `json:"url"'`
+	URL     string `json:"url"`
 }
 
 type Base map[string]string
