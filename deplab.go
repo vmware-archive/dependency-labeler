@@ -20,6 +20,7 @@ var (
 const UnknownDeplabVersion = "0.0.0-dev"
 
 func Run(inputImageTar string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string) {
+	originImage := inputImage
 	if inputImageTar != "" {
 		stdout, stderr, err := runCommand("docker", "load", "-i", inputImageTar)
 		if err != nil {
@@ -32,15 +33,15 @@ func Run(inputImageTar string, inputImage string, gitPaths []string, tag string,
 		} else {
 			imageTag = strings.TrimPrefix(stdout.String(), "Loaded image:")
 		}
-		inputImage = strings.TrimSpace(imageTag)
+		originImage = strings.TrimSpace(imageTag)
 	}
-	dependencies, err := generateDependencies(inputImage, gitPaths)
+	dependencies, err := generateDependencies(originImage, gitPaths)
 	if err != nil {
 		log.Fatalf("error generating dependencies: %s", err)
 	}
 	md := metadata.Metadata{Dependencies: dependencies}
 
-	md.Base = providers.BuildOSMetadata(inputImage)
+	md.Base = providers.BuildOSMetadata(originImage)
 
 	md.Provenance = []metadata.Provenance{{
 		Name:    "deplab",
@@ -48,7 +49,7 @@ func Run(inputImageTar string, inputImage string, gitPaths []string, tag string,
 		URL:     "https://github.com/pivotal/deplab",
 	}}
 
-	resp, err := docker.CreateNewImage(inputImage, md, tag)
+	resp, err := docker.CreateNewImage(originImage, md, tag)
 	if err != nil {
 		log.Fatalf("could not create new image: %s\n", err)
 	}
