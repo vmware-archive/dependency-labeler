@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/pivotal/deplab"
@@ -39,31 +38,28 @@ var rootCmd = &cobra.Command{
 	Complete documentation is available at http://github.com/pivotal/deplab`,
 	Version: deplab.GetVersion(),
 
-	PreRun: preRun,
+	PreRunE: preRunE,
 
 	Run: run,
 }
 
-func preRun(cmd *cobra.Command, args []string) {
+func preRunE(cmd *cobra.Command, args []string) error {
 	flagset := cmd.Flags()
 	img, err := flagset.GetString("image")
 	if err != nil {
-		log.Fatalf("error processing flag: %s", err)
+		return fmt.Errorf("error processing flag: %s", err)
 	}
 	imgTar, err := flagset.GetString("image-tar")
 	if err != nil {
-		log.Fatalf("error processing flag: %s", err)
+		return fmt.Errorf("error processing flag: %s", err)
 	}
 
 	if img == "" && imgTar == "" {
-		log.Println("ERROR: requires one of --image or --image-tar")
-		cmd.Usage()
-		os.Exit(1)
+		return fmt.Errorf("ERROR: requires one of --image or --image-tar")
 	} else if img != "" && imgTar != "" {
-		log.Println("ERROR: cannot accept both --image and --image-tar")
-		cmd.Usage()
-		os.Exit(1)
+		return fmt.Errorf("ERROR: cannot accept both --image and --image-tar")
 	}
+	return nil
 }
 
 func run(cmd *cobra.Command, args []string) {
