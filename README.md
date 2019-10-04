@@ -28,9 +28,10 @@ docker inspect $(./deplab --image <image-name> --git <path to git repo>) \
 
 | short flag  | long flag  | value type | description | remarks |
 |---|---|---|---|---|
-|  `-g` | `--git` | path |  [path to a directory under git revision control](#git) | Required. Can be provided multiple times. | 
-| `-i` |  `--image` | string | [image which will be analysed by deplab](#image) | Optional. Cannot be used with `--image-tar` flag | 
-| `-p` |  `--image-tar` |  path | [path to tarball of input image](#image-tarball) | Optional, but required for Concourse. Cannot be used with `--image` flag | 
+| `-g` | `--git` | path |  [path to a directory under git revision control](#git) | Required. Can be provided multiple times. | 
+| `-i` | `--image` | string | [image which will be analysed by deplab](#image) | Optional. Cannot be used with `--image-tar` flag | 
+| `-p` | `--image-tar` |  path | [path to tarball of input image](#image-tarball) | Optional, but required for Concourse. Cannot be used with `--image` flag | 
+| `-b` | `--blob` | url |  [url to the source of a dependency](#blob) | Optional. Can be provided multiple times. | 
 | `-t` | `--tag` | string | [tags the output image](#tag) | Optional | 
 | `-d` | `--dpkg-file` | path | [write dpkg list metadata in (modified) '`dpkg -l`' format to a file at this path](#dpkg-file)| Optional |
 | `-m` | `--metadata-file` | path | [write metadata to this file at the given path](#metadata-file) | Optional | 
@@ -54,6 +55,11 @@ One and only one of `--image` or `--image-tar` have to be used when invoking dep
 
 deplab accept as input an image stored in tar format (e.g. the output of `docker save ...` or of a concourse task).
 One and only one of `--image` or `--image-tar` have to be used when invoking deplab.
+
+#### Blob
+
+Blob is to allow any arbitrary url which points to a dependency source. You can specify as many blob urls as required by passing more than one
+blob flag into the command.
 
 ### Outputs
 
@@ -110,7 +116,6 @@ deplab --image <image-reference> \
   --git <path-to-another-repo>
 ```
 
-
 ### Input image as tar
 
 ```
@@ -124,6 +129,16 @@ deplab --image-tar <path-to-image-tar> \
 deplab --image <image-reference> \
   --git <path-to-repo> \
   --output-tar <path-to-image-output> 
+```
+
+
+### Multiple blob inputs
+
+```
+deplab --image <image-reference> \
+  --git <path-to-repo> \
+  --blob <url to blob> \
+  --blob <url to blob>
 ```
 
 ### Tag output image
@@ -215,10 +230,35 @@ Example of `apt_sources` content
 ```
 
 ##### git dependency
+   
+   For each `--git` flag provided a git dependency will be present in the metadata
+   
+   If the `--git` flag is provided with a valid path to a git repository, a git dependency will be added:
+   ```json
+   {
+     "dependencies": [
+       {...},
+       {
+         "type": "package",
+         "source": {
+           "type": "git",
+           "version": {
+             "commit":  "d2c[...]efd"
+            },
+           "metadata": {
+             "url": "https://github.com/pivotal/deplab.git",
+             "refs": ["0.5.0"]
+           }
+         }
+       }
+     ]
+   }
+   ```
 
-For each `--git` flag provided a git dependency will be present in the metadata
+##### blob
 
-If the `--git` flag is provided with a valid path to a git repository, a git dependency will be added:
+For each `--blob` flag provided a blob object will be present in the metadata
+
 ```json
 {
   "dependencies": [
@@ -226,13 +266,9 @@ If the `--git` flag is provided with a valid path to a git repository, a git dep
     {
       "type": "package",
       "source": {
-        "type": "git",
-        "version": {
-          "commit":  "d2c[...]efd"
-         },
+        "type": "blob",
         "metadata": {
-          "url": "https://github.com/pivotal/deplab.git",
-          "refs": ["0.5.0"]
+          "url": "http://archive.ubuntu.com/ubuntu/pool/main/c/ca-certificates/ca-certificates_20180409.tar.xz"
         }
       }
     }

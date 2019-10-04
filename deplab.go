@@ -19,7 +19,7 @@ var (
 
 const UnknownDeplabVersion = "0.0.0-dev"
 
-func Run(inputImageTar string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string) {
+func Run(inputImageTar string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string, blobUrls []string) {
 	originImage := inputImage
 	if inputImageTar != "" {
 		stdout, stderr, err := runCommand("docker", "load", "-i", inputImageTar)
@@ -35,7 +35,7 @@ func Run(inputImageTar string, inputImage string, gitPaths []string, tag string,
 		}
 		originImage = strings.TrimSpace(imageTag)
 	}
-	dependencies, err := generateDependencies(originImage, gitPaths)
+	dependencies, err := generateDependencies(originImage, gitPaths, blobUrls)
 	if err != nil {
 		log.Fatalf("error generating dependencies: %s", err)
 	}
@@ -86,7 +86,7 @@ func GetVersion() string {
 	return DeplabVersion
 }
 
-func generateDependencies(imageName string, pathsToGit []string) ([]metadata.Dependency, error) {
+func generateDependencies(imageName string, pathsToGit []string, blobUrls []string) ([]metadata.Dependency, error) {
 	var dependencies []metadata.Dependency
 
 	dpkgList, err := providers.BuildDebianDependencyMetadata(imageName)
@@ -106,6 +106,14 @@ func generateDependencies(imageName string, pathsToGit []string) ([]metadata.Dep
 		dependencies = append(dependencies, gitMetadata)
 	}
 
+	for _, blobUrl := range blobUrls {
+		blobMetadata, err := providers.BuildBlobDependencyMetadata(blobUrl)
+
+		if err != nil {
+			log.Fatalf("blob metadata: %s", err)
+		}
+		dependencies = append(dependencies, blobMetadata)
+	}
 	return dependencies, nil
 }
 

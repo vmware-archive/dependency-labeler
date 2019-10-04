@@ -57,7 +57,7 @@ var _ = Describe("deplab git", func() {
 			})
 		})
 
-		Context("when I supply multiple git repositories as separate or comma separated arguments", func() {
+		Context("when I supply multiple git repositories as separate arguments", func() {
 			BeforeEach(func() {
 				additionalArguments = []string{"--git", pathToGitRepo}
 			})

@@ -35,6 +35,10 @@ type GitSourceMetadata struct {
 	Refs []string `json:"refs"`
 }
 
+type BlobSourceMetadata struct {
+	URL  string   `json:"url"`
+}
+
 type Package struct {
 	Package      string        `json:"package"`
 	Version      string        `json:"version"`

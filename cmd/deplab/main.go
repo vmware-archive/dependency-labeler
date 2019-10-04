@@ -16,6 +16,7 @@ var (
 	metadataFilePath string
 	dpkgFilePath     string
 	tag              string
+	blobUrls []string
 )
 
 func init() {
@@ -26,6 +27,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&metadataFilePath, "metadata-file", "m", "", "write metadata to this file at the given `path`")
 	rootCmd.Flags().StringVarP(&dpkgFilePath, "dpkg-file", "d", "", "write dpkg list metadata in (modified) 'dpkg -l' format to a file at this `path`")
 	rootCmd.Flags().StringVarP(&tag, "tag", "t", "", "tags the output image")
+	rootCmd.Flags().StringArrayVarP(&blobUrls, "blob", "b", []string{}, "`url` to the source of an added dependency")
 
 	_ = rootCmd.MarkFlagRequired("git")
 }
@@ -63,7 +65,7 @@ func preRunE(cmd *cobra.Command, args []string) error {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	deplab.Run(inputImageTar, inputImage, gitPaths, tag, outputImageTar, metadataFilePath, dpkgFilePath)
+	deplab.Run(inputImageTar, inputImage, gitPaths, tag, outputImageTar, metadataFilePath, dpkgFilePath, blobUrls)
 }
 
 func main() {
