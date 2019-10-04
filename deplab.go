@@ -19,7 +19,7 @@ var (
 
 const UnknownDeplabVersion = "0.0.0-dev"
 
-func Run(inputImageTar string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string, blobUrls []string) {
+func Run(inputImageTar string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string, blobUrls []string, artefactFiles []string) {
 	originImage := inputImage
 	if inputImageTar != "" {
 		stdout, stderr, err := runCommand("docker", "load", "-i", inputImageTar)
@@ -35,6 +35,15 @@ func Run(inputImageTar string, inputImage string, gitPaths []string, tag string,
 		}
 		originImage = strings.TrimSpace(imageTag)
 	}
+
+	for _, artefactFile := range artefactFiles {
+		blobsUrlsFromArtefactFile, err := providers.ExtractBlobUrlsFromArtefactFile(artefactFile)
+		if err != nil {
+			log.Fatalf("could not parse artefact file: %s", artefactFile)
+		}
+		blobUrls = append(blobUrls, blobsUrlsFromArtefactFile...)
+	}
+
 	dependencies, err := generateDependencies(originImage, gitPaths, blobUrls)
 	if err != nil {
 		log.Fatalf("error generating dependencies: %s", err)
