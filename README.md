@@ -32,6 +32,7 @@ docker inspect $(./deplab --image <image-name> --git <path to git repo>) \
 | `-i` | `--image` | string | [image which will be analysed by deplab](#image) | Optional. Cannot be used with `--image-tar` flag | 
 | `-p` | `--image-tar` |  path | [path to tarball of input image](#image-tarball) | Optional, but required for Concourse. Cannot be used with `--image` flag | 
 | `-b` | `--blob` | url |  [url to the source of a dependency](#blob) | Optional. Can be provided multiple times. | 
+| `-a` | `--artefacts-file` | path |  [path to file containing yaml describing blobs](#artefacts-file) | Optional. Can be provided multiple times. | 
 | `-t` | `--tag` | string | [tags the output image](#tag) | Optional | 
 | `-d` | `--dpkg-file` | path | [write dpkg list metadata in (modified) '`dpkg -l`' format to a file at this path](#dpkg-file)| Optional |
 | `-m` | `--metadata-file` | path | [write metadata to this file at the given path](#metadata-file) | Optional | 
@@ -60,6 +61,17 @@ One and only one of `--image` or `--image-tar` have to be used when invoking dep
 
 Blob is to allow any arbitrary url which points to a dependency source. You can specify as many blob urls as required by passing more than one
 blob flag into the command.
+
+#### Artefacts file
+
+Artefacts file allows blobs to be specified within a yaml file.  You can specify as many blobs as required within a file, and as many artefacts files as required by passing more than one artefacts-file flag into the command.
+
+Supported format of the yaml file:
+```yaml
+blobs:
+- url: <url to blob>
+- url: <url to blob>
+```
 
 ### Outputs
 
@@ -139,6 +151,15 @@ deplab --image <image-reference> \
   --git <path-to-repo> \
   --blob <url to blob> \
   --blob <url to blob>
+```
+
+### Multiple artefacts-file inputs
+
+```
+deplab --image <image-reference> \
+  --git <path-to-repo> \
+  --artefacts-file <path to file> \
+  --artefacts-file <path to file>
 ```
 
 ### Tag output image

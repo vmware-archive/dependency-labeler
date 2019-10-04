@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/deplab/metadata"
 	"path/filepath"
+	"strings"
 )
 
 var _ = Describe("deplab blob", func(){
@@ -72,7 +73,7 @@ var _ = Describe("deplab blob", func(){
 
 		Context("when I supply an artefacts file with no blobs", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-empty.yml"))
+				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-empty-blobs.yml"))
 				Expect(err).ToNot(HaveOccurred())
 				additionalArguments = []string{"--artefacts-file", inputArtefactsPath}
 			})
@@ -107,6 +108,30 @@ var _ = Describe("deplab blob", func(){
 				}
 
 				Expect(i).To(Equal(3))
+			})
+		})
+
+		Context("when I supply erroneous paths as artefacts file", func(){
+			It("exits with an error", func() {
+				By("executing it")
+				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
+				Expect(err).ToNot(HaveOccurred())
+				_, stdErr := runDepLab([]string{"--artefacts-file", "erroneous_path.yml", "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+				Expect(errorOutput).To(ContainSubstring("could not parse artefact file: erroneous_path.yml"))
+			})
+		})
+
+		Context("when I supply empty file as artefacts file", func(){
+			It("exits with an error", func() {
+				By("executing it")
+				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
+				Expect(err).ToNot(HaveOccurred())
+				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-empty.yml"))
+				Expect(err).ToNot(HaveOccurred())
+				_, stdErr := runDepLab([]string{"--artefacts-file", inputArtefactsPath, "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+				Expect(errorOutput).To(ContainSubstring("could not parse artefact file"))
 			})
 		})
 	})
