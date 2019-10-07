@@ -17,16 +17,14 @@ var _ = Describe("deplab git", func() {
 	Context("when I supply git repo(s) as argument(s)", func() {
 		var (
 			metadataLabel       metadata.Metadata
-			gitDependency       metadata.Dependency
-			gitSourceMetadata   map[string]interface{}
+			gitDependencies     []metadata.Dependency
 			additionalArguments []string
 		)
 
 		JustBeforeEach(func() {
 			inputImage := "ubuntu:bionic"
 			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage, additionalArguments...)
-			gitDependency = filterGitDependency(metadataLabel.Dependencies)
-			gitSourceMetadata = gitDependency.Source.Metadata.(map[string]interface{})
+			gitDependencies = selectGitDependencies(metadataLabel.Dependencies)
 		})
 
 		AfterEach(func() {
@@ -38,12 +36,20 @@ var _ = Describe("deplab git", func() {
 				additionalArguments = []string{}
 			})
 
-			It("adds a gitDependency", func() {
+			It("adds a git dependency", func() {
+				Expect(len(gitDependencies)).To(Equal(1))
+
+				gitDependency := gitDependencies[0]
 				Expect(gitDependency.Type).ToNot(BeEmpty())
 
 				By("adding the git commit of HEAD to a git dependency")
 				Expect(gitDependency.Type).To(Equal("package"))
+				Expect(gitDependency.Source).To(Not(BeNil()))
 				Expect(gitDependency.Source.Version["commit"]).To(Equal(commitHash))
+
+				By("providing a dependency metadata object")
+				Expect(gitDependency.Source.Metadata).To(Not(BeNil()))
+				gitSourceMetadata := gitDependency.Source.Metadata.(map[string]interface{})
 
 				By("adding the git remote to a git dependency")
 				Expect(gitSourceMetadata["url"].(string)).To(Equal("https://example.com/example.git"))
@@ -62,15 +68,8 @@ var _ = Describe("deplab git", func() {
 				additionalArguments = []string{"--git", pathToGitRepo}
 			})
 
-			It("adds multiple gitDependency entries", func() {
-				i := 0
-				for _, dep := range metadataLabel.Dependencies {
-					if dep.Source.Type == "git" {
-						i++
-					}
-				}
-
-				Expect(i).To(Equal(2))
+			It("adds multiple gitDependencies entries", func() {
+				Expect(len(gitDependencies)).To(Equal(2))
 			})
 		})
 	})
@@ -96,11 +95,12 @@ var _ = Describe("deplab git", func() {
 	})
 })
 
-func filterGitDependency(dependencies []metadata.Dependency) metadata.Dependency {
+func selectGitDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
+	var gitDependencies []metadata.Dependency
 	for _, dependency := range dependencies {
 		if dependency.Source.Type == "git" {
-			return dependency
+			gitDependencies = append(gitDependencies, dependency)
 		}
 	}
-	return metadata.Dependency{}
+	return gitDependencies
 }

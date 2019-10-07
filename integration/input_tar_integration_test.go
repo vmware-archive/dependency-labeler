@@ -16,7 +16,8 @@ var _ = Describe("deplab", func() {
 			Expect(err).ToNot(HaveOccurred())
 			_, _, metadataLabel, _ := runDeplabAgainstTar(inputTarPath)
 
-			gitDependency := filterGitDependency(metadataLabel.Dependencies)
+			gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
+			gitDependency := gitDependencies[0]
 
 			Expect(gitDependency.Type).ToNot(BeEmpty())
 
@@ -43,7 +44,8 @@ var _ = Describe("deplab", func() {
 			Expect(err).ToNot(HaveOccurred())
 			_, _, metadataLabel, _ := runDeplabAgainstTar(inputTarPath)
 
-			gitDependency := filterGitDependency(metadataLabel.Dependencies)
+			gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
+			gitDependency := gitDependencies[0]
 
 			Expect(gitDependency.Type).ToNot(BeEmpty())
 
