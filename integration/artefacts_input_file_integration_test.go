@@ -10,15 +10,13 @@ import (
 	"strings"
 )
 
-var _ = Describe("deplab blob", func(){
+var _ = Describe("deplab artefacts", func(){
 
 	Context("when I supply an artefacts file as an argument", func() {
 		var (
 			metadataLabel       metadata.Metadata
 			additionalArguments []string
 			outputImage         string
-			blobDependency metadata.Dependency
-			blobSourceMetadata   map[string]interface{}
 		)
 
 		JustBeforeEach(func() {
@@ -39,10 +37,11 @@ var _ = Describe("deplab blob", func(){
 			})
 
 			It("adds a blob dependency", func() {
-				blobDependency = filterBlobDependency(metadataLabel.Dependencies)
-				Expect(blobDependency).NotTo(BeNil())
+				blobDependencies := selectBlobDependencies(metadataLabel.Dependencies)
+				Expect(len(blobDependencies)).To(Equal(1))
+				blobDependency := blobDependencies[0]
 				Expect(blobDependency.Source.Metadata).NotTo(BeNil())
-				blobSourceMetadata = blobDependency.Source.Metadata.(map[string]interface{})
+				blobSourceMetadata := blobDependency.Source.Metadata.(map[string]interface{})
 				Expect(blobDependency.Type).ToNot(BeEmpty())
 
 				By("adding the blob url to the blob dependency")
@@ -60,14 +59,7 @@ var _ = Describe("deplab blob", func(){
 			})
 
 			It("adds multiple blobDependency entries", func() {
-				i := 0
-				for _, dep := range metadataLabel.Dependencies {
-					if dep.Source.Type == "blob" {
-						i++
-					}
-				}
 
-				Expect(i).To(Equal(2))
 			})
 		})
 
@@ -79,14 +71,53 @@ var _ = Describe("deplab blob", func(){
 			})
 
 			It("adds zero blobDependency entries", func() {
-				i := 0
-				for _, dep := range metadataLabel.Dependencies {
-					if dep.Source.Type == "blob" {
-						i++
-					}
-				}
+				blobDependencies := selectBlobDependencies(metadataLabel.Dependencies)
+				Expect(len(blobDependencies)).To(Equal(0))
+			})
+		})
 
-				Expect(i).To(Equal(0))
+		Context("when I supply an artefacts file with only one vcs", func() {
+			BeforeEach(func() {
+				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-single-vcs.yml"))
+				Expect(err).ToNot(HaveOccurred())
+				additionalArguments = []string{"--artefacts-file", inputArtefactsPath}
+			})
+
+			It("adds a git dependency", func() {
+				gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
+				Expect(len(gitDependencies)).To(Equal(2))
+				vcsGitDependencies := selectVcsGitDependencies(gitDependencies)
+				Expect(len(vcsGitDependencies)).To(Equal(1))
+
+				gitDependency := vcsGitDependencies[0]
+				gitSourceMetadata := gitDependency.Source.Metadata.(map[string]interface{})
+				Expect(gitDependency.Type).ToNot(BeEmpty())
+
+				By("adding the git commit of HEAD to a git dependency")
+				Expect(gitDependency.Type).To(Equal("package"))
+				Expect(gitDependency.Source.Version["commit"]).To(Equal("abc123"))
+
+				By("adding the git remote to a git dependency")
+				Expect(gitSourceMetadata["url"].(string)).To(Equal("git@github.com:pivotal/deplab.git"))
+
+				By("adding refs for the current HEAD")
+				Expect(len(gitSourceMetadata["refs"].([]interface{}))).To(Equal(1))
+				Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).To(Equal("v0.44.0"))
+			})
+		})
+
+		Context("when I supply an artefacts file with both multiple vcs and multiple blobs", func() {
+			BeforeEach(func() {
+				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-multiple-blobs-multiple-vcs.yml"))
+				Expect(err).ToNot(HaveOccurred())
+				additionalArguments = []string{"--artefacts-file", inputArtefactsPath}
+			})
+
+			It("adds git dependencies and blobs", func(){
+				gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
+				Expect(len(gitDependencies)).To(Equal(3))
+				vcsGitDependencies := selectVcsGitDependencies(gitDependencies)
+				Expect(len(vcsGitDependencies)).To(Equal(2))
 			})
 		})
 
@@ -135,4 +166,18 @@ var _ = Describe("deplab blob", func(){
 			})
 		})
 	})
+
+
 })
+
+func selectVcsGitDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
+	var gitDependencies []metadata.Dependency
+	for _, dependency := range dependencies {
+		Expect(dependency.Source.Metadata).To(Not(BeNil()))
+		gitSourceMetadata := dependency.Source.Metadata.(map[string]interface{})
+		if dependency.Source.Type == "git" && gitSourceMetadata["url"].(string) != "https://example.com/example.git" {
+			gitDependencies = append(gitDependencies, dependency)
+		}
+	}
+	return gitDependencies
+}

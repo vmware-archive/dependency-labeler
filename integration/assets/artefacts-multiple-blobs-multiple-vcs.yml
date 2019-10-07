@@ -1,0 +1,12 @@
+vcs:
+  - protocol: git
+    version: abc123
+    url: git@github.com:pivotal/deplab.git
+    refs: v0.44.0
+  - protocol: git
+    version: def456
+    url: git@github.com:cloudfoundry/stacks.git
+    refs: v0.100.0
+blobs:
+  - url: http://archive.ubuntu.com/ubuntu/pool/main/c/ca-certificates/ca-certificates_20180409.tar.xz
+  - url: http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/openssl_1.1.1.orig.tar.gz

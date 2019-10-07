@@ -15,15 +15,11 @@ var _ = Describe("deplab blob", func(){
 			metadataLabel       metadata.Metadata
 			additionalArguments []string
 			outputImage         string
-			blobDependency metadata.Dependency
-			blobSourceMetadata   map[string]interface{}
 		)
 
 		JustBeforeEach(func() {
 			inputImage := "ubuntu:bionic"
 			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage, additionalArguments...)
-			blobDependency = filterBlobDependency(metadataLabel.Dependencies)
-			blobSourceMetadata = blobDependency.Source.Metadata.(map[string]interface{})
 		})
 
 		AfterEach(func() {
@@ -37,11 +33,16 @@ var _ = Describe("deplab blob", func(){
 			})
 
 			It("adds a blob dependency", func() {
-				Expect(blobDependency.Type).ToNot(BeEmpty())
+				blobDependencies := selectBlobDependencies(metadataLabel.Dependencies)
+				Expect(len(blobDependencies)).To(Equal(1))
+				blobDependency := blobDependencies[0]
 
 				By("adding the blob url to the blob dependency")
+				Expect(blobDependency.Type).ToNot(BeEmpty())
 				Expect(blobDependency.Type).To(Equal("package"))
 				Expect(blobDependency.Source.Type).To(Equal("blob"))
+
+				blobSourceMetadata := blobDependency.Source.Metadata.(map[string]interface{})
 				Expect(blobSourceMetadata["url"]).To(Equal("url_to_a_blob.com"))
 			})
 		})
@@ -52,25 +53,20 @@ var _ = Describe("deplab blob", func(){
 			})
 
 			It("adds multiple blobDependency entries", func() {
-				i := 0
-				for _, dep := range metadataLabel.Dependencies {
-					if dep.Source.Type == "blob" {
-						i++
-					}
-				}
-
-				Expect(i).To(Equal(2))
+				blobDependencies := selectBlobDependencies(metadataLabel.Dependencies)
+				Expect(len(blobDependencies)).To(Equal(2))
 			})
 		})
 	})
 })
 
 
-func filterBlobDependency(dependencies []metadata.Dependency) metadata.Dependency {
+func selectBlobDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
+	var blobs []metadata.Dependency
 	for _, dependency := range dependencies {
 		if dependency.Source.Type == "blob" {
-			return dependency
+			blobs = append(blobs, dependency)
 		}
 	}
-	return metadata.Dependency{}
+	return blobs
 }
