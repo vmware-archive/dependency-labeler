@@ -87,6 +87,11 @@ func getAptSources(imageName string) ([]string, error) {
 		}
 	}
 
+	collator := collate.New(language.BritishEnglish)
+	sort.Slice(sources, func(i, j int) bool{
+		return collator.CompareString(sources[i], sources[j]) < 0
+	})
+
 	return sources, nil
 }
 

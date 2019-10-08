@@ -39,7 +39,7 @@ var _ = Describe("deplab dpkg", func() {
 			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})
 
-			By("listing the dpkg sources")
+			By("listing the dpkg sources, sorted alphabetically")
 			sources, ok := dpkgMetadata["apt_sources"].([]interface{})
 			Expect(ok).To(BeTrue())
 			Expect(len(sources)).To(BeNumerically(">", 0))
@@ -56,6 +56,7 @@ var _ = Describe("deplab dpkg", func() {
 				"deb http://security.ubuntu.com/ubuntu/ bionic-security multiverse",
 				"deb http://example.com/ubuntu getdeb example",
 			))
+			Expect(AreSourcesSorted(sources)).To(BeTrue())
 
 			By("listing debian package dependencies in the image, sorted by name")
 			Expect(metadataLabel.Dependencies[0].Type).To(Equal(providers.DebianPackageListSourceType))
@@ -184,5 +185,12 @@ func ArePackagesSorted(pkgs []interface{}) bool {
 		lhs := pkgs[p].(map[string]interface{})
 		rhs := pkgs[q].(map[string]interface{})
 		return collator.CompareString(lhs["package"].(string), rhs["package"].(string)) <= 0
+	})
+}
+
+func AreSourcesSorted(sources []interface{}) bool {
+	collator := collate.New(language.BritishEnglish)
+	return sort.SliceIsSorted(sources, func(p, q int) bool {
+		return collator.CompareString(sources[p].(string), sources[q].(string)) <= 0
 	})
 }

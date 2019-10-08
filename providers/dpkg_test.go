@@ -56,6 +56,49 @@ var _ = Describe("Providers/Dpkg", func() {
 			Expect(out2).To(Equal(out1))
 		})
 
+		It("generates a different digest for 2 different input instances with the same content in different order", func() {
+			input1 := metadata.DebianPackageListSourceMetadata{
+				AptSources: []string{"deb example.com bionic main universe"},
+				Packages: []metadata.Package{
+					{
+						Package: "foo",
+						Source: metadata.PackageSource{
+							Version: "4.2",
+						},
+					},
+					{
+						Package: "bar",
+						Source: metadata.PackageSource{
+							Version: "1.0",
+						},
+					},
+				},
+			}
+			input2 := metadata.DebianPackageListSourceMetadata{
+				AptSources: []string{"deb example.com bionic main universe"},
+				Packages: []metadata.Package{
+					{
+						Package: "bar",
+						Source: metadata.PackageSource{
+							Version: "1.0",
+						},
+					},
+					{
+						Package: "foo",
+						Source: metadata.PackageSource{
+							Version: "4.2",
+						},
+					},
+				},
+			}
+
+			out1 := providers.Digest(input1)
+			out2 := providers.Digest(input2)
+
+			Expect(&input1 != &input2).To(BeTrue())
+			Expect(out2).ToNot(Equal(out1))
+		})
+
 		It("generates different digest for 2 different inputs", func() {
 			input1 := metadata.DebianPackageListSourceMetadata{
 				AptSources: []string{"deb example.com bionic main universe"},
