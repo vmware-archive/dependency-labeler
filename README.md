@@ -31,8 +31,8 @@ docker inspect $(./deplab --image <image-name> --git <path to git repo>) \
 | `-g` | `--git` | path |  [path to a directory under git revision control](#git) | Required. Can be provided multiple times. | 
 | `-i` | `--image` | string | [image which will be analysed by deplab](#image) | Optional. Cannot be used with `--image-tar` flag | 
 | `-p` | `--image-tar` |  path | [path to tarball of input image](#image-tarball) | Optional, but required for Concourse. Cannot be used with `--image` flag | 
-| `-b` | `--blob` | url |  [url to the source of a dependency](#blob) | Optional. Can be provided multiple times. | 
-| `-a` | `--artefacts-file` | path |  [path to file containing yaml describing blobs](#artefacts-file) | Optional. Can be provided multiple times. | 
+| `-u` | `--additional-source-url` | url |  [url to the source of a dependency](#additional-source-url) | Optional. Can be provided multiple times. | 
+| `-a` | `--additional-sources-file` | path |  [path to file containing yaml describing additional sources](#additional-sources-file) | Optional. Can be provided multiple times. | 
 | `-t` | `--tag` | string | [tags the output image](#tag) | Optional | 
 | `-d` | `--dpkg-file` | path | [write dpkg list metadata in (modified) '`dpkg -l`' format to a file at this path](#dpkg-file)| Optional |
 | `-m` | `--metadata-file` | path | [write metadata to this file at the given path](#metadata-file) | Optional | 
@@ -57,20 +57,27 @@ One and only one of `--image` or `--image-tar` have to be used when invoking dep
 deplab accept as input an image stored in tar format (e.g. the output of `docker save ...` or of a concourse task).
 One and only one of `--image` or `--image-tar` have to be used when invoking deplab.
 
-#### Blob
+#### Additional sources
+Your image may have additional dependencies installed. These are dependencies which cannot be interpreted by dpkg or have been specified using the `--git` flag.
+For OSL purposes you need to provide the source of these dependencies. The flags below allow you to specify the sources for these dependencies.
 
-Blob is to allow any arbitrary url which points to a dependency source. You can specify as many blob urls as required by passing more than one
-blob flag into the command.
+##### Additional source url
 
-#### Artefacts file
+Additional source url allows you to specify a url which points to an archived source of a dependency. You can specify as many source urls as required using additional `--additional-source-url` flags.
 
-Artefacts file allows blobs to be specified within a yaml file.  You can specify as many blobs as required within a file, and as many artefacts files as required by passing more than one artefacts-file flag into the command.
+##### Additional sources file
+
+Additional sources file allows you to specify sources for additional dependencies as source archives or version control systems. You can specify as many of each type as required within a file, and as many additional sources files as required by passing more than one `--additional-sources-file` flags.
 
 Supported format of the yaml file:
 ```yaml
-blobs:
-- url: <url to blob>
-- url: <url to blob>
+archives:
+- url: <url to source archive>
+- url: <url to source archive>
+vcs:
+- type: git
+  commit: <commit sha>
+  url: <git repository url>
 ```
 
 ### Outputs
@@ -144,22 +151,22 @@ deplab --image <image-reference> \
 ```
 
 
-### Multiple blob inputs
+### Multiple additional source url inputs
 
 ```
 deplab --image <image-reference> \
   --git <path-to-repo> \
-  --blob <url to blob> \
-  --blob <url to blob>
+  --additional-source-url <url to archive> \
+  --additional-source-url <url to archive>
 ```
 
-### Multiple artefacts-file inputs
+### Multiple additional-sources-file inputs
 
 ```
 deplab --image <image-reference> \
   --git <path-to-repo> \
-  --artefacts-file <path to file> \
-  --artefacts-file <path to file>
+  --additional-sources-file <path to file> \
+  --additional-sources-file <path to file>
 ```
 
 ### Tag output image
@@ -276,9 +283,9 @@ Example of `apt_sources` content
    }
    ```
 
-##### blob
+##### additional source url
 
-For each `--blob` flag provided a blob object will be present in the metadata
+For each `--additional-source-url` flag provided an archive object will be present in the metadata
 
 ```json
 {
@@ -287,7 +294,7 @@ For each `--blob` flag provided a blob object will be present in the metadata
     {
       "type": "package",
       "source": {
-        "type": "blob",
+        "type": "archive",
         "metadata": {
           "url": "http://archive.ubuntu.com/ubuntu/pool/main/c/ca-certificates/ca-certificates_20180409.tar.xz"
         }

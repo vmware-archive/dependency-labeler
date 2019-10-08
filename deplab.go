@@ -37,8 +37,8 @@ func Run(inputImageTar string, inputImage string, gitPaths []string, tag string,
 		originImage = strings.TrimSpace(imageTag)
 	}
 
-	gitDependencies, artefactBlobUrls := preprocess(gitPaths, additionalSourceFilePaths)
-	additionalSourceUrls = append(additionalSourceUrls, artefactBlobUrls...)
+	gitDependencies, archiveUrls := preprocess(gitPaths, additionalSourceFilePaths)
+	additionalSourceUrls = append(additionalSourceUrls, archiveUrls...)
 
 	dependencies, err := generateDependencies(originImage, gitDependencies, additionalSourceUrls)
 	if err != nil {
@@ -91,16 +91,16 @@ func GetVersion() string {
 	return DeplabVersion
 }
 
-func preprocess(gitPaths, artefactFiles []string) ([]metadata.Dependency, []string){
+func preprocess(gitPaths, additionalSourcesFiles []string) ([]metadata.Dependency, []string){
 	var archiveUrls []string
 	var gitDependencies []metadata.Dependency
-	for _, artefactFile := range artefactFiles {
-		archiveUrlsFromArtefactFile, gitVcsFromArtefactFile, err := preprocessors.ParseAdditionalSourcesFile(artefactFile)
+	for _, additionalSourcesFile := range additionalSourcesFiles {
+		archiveUrlsFromAdditionalSourcesFile, gitVcsFromAdditionalSourcesFile, err := preprocessors.ParseAdditionalSourcesFile(additionalSourcesFile)
 		if err != nil {
-			log.Fatalf("could not parse artefact file: %s", artefactFile)
+			log.Fatalf("could not parse additional sources file: %s", additionalSourcesFile)
 		}
-		archiveUrls = append(archiveUrls, archiveUrlsFromArtefactFile...)
-		gitDependencies = append(gitDependencies, gitVcsFromArtefactFile...)
+		archiveUrls = append(archiveUrls, archiveUrlsFromAdditionalSourcesFile...)
+		gitDependencies = append(gitDependencies, gitVcsFromAdditionalSourcesFile...)
 	}
 
 	for _, gitPath := range gitPaths {

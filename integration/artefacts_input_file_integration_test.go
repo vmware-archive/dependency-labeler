@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/deplab/metadata"
+	"github.com/pivotal/deplab/preprocessors"
 	"github.com/pivotal/deplab/providers"
 	"path/filepath"
 	"strings"
@@ -32,9 +33,9 @@ var _ = Describe("deplab additional sources file", func(){
 
 		Context("when I supply an additional sources file with only one source archive", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "sources-file-single-archive.yml"))
+				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-single-archive.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath}
+				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
 			})
 
 			It("adds a archive dependency", func() {
@@ -54,9 +55,9 @@ var _ = Describe("deplab additional sources file", func(){
 
 		Context("when I supply an additional sources file with multiple source archive urls", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives.yml"))
+				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath}
+				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
 			})
 
 			It("adds multiple archive url entries", func() {
@@ -67,9 +68,9 @@ var _ = Describe("deplab additional sources file", func(){
 
 		Context("when I supply an additional sources file with no source archive urls", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "sources-file-empty-archives.yml"))
+				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-empty-archives.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath}
+				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
 			})
 
 			It("adds zero archive entries", func() {
@@ -80,9 +81,9 @@ var _ = Describe("deplab additional sources file", func(){
 
 		Context("when I supply an additional sources file with only one vcs", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "sources-file-single-vcs.yml"))
+				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-single-vcs.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath}
+				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
 			})
 
 			It("adds a git dependency", func() {
@@ -104,11 +105,11 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("when I supply an artefacts file with both multiple vcs and multiple archives", func() {
+		Context("when I supply an additional sources file with both multiple vcs and multiple archives", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives-multiple-vcs.yml"))
+				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives-multiple-vcs.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath}
+				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
 			})
 
 			It("adds git dependencies and archives", func(){
@@ -119,13 +120,13 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("when I supply multiple artefacts files", func() {
+		Context("when I supply multiple additional sources files", func() {
 			BeforeEach(func() {
-				inputArtefactsPath1, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives.yml"))
+				inputAdditionalSourcesPath1, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				inputArtefactsPath2, err := filepath.Abs(filepath.Join("assets", "sources-file-single-archive.yml"))
+				inputAdditionalSourcesPath2, err := filepath.Abs(filepath.Join("assets", "sources-file-single-archive.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath1, "--additional-sources-file", inputArtefactsPath2}
+				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath1, "--additional-sources-file", inputAdditionalSourcesPath2}
 			})
 
 			It("adds multiple archiveDependency entries", func() {
@@ -134,27 +135,27 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("when I supply erroneous paths as artefacts file", func(){
+		Context("when I supply erroneous paths as an additional sources file", func(){
 			It("exits with an error", func() {
 				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
 				Expect(err).ToNot(HaveOccurred())
 				_, stdErr := runDepLab([]string{"--additional-sources-file", "erroneous_path.yml", "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-				Expect(errorOutput).To(ContainSubstring("could not parse artefact file: erroneous_path.yml"))
+				Expect(errorOutput).To(ContainSubstring("could not parse additional sources file: erroneous_path.yml"))
 			})
 		})
 
-		Context("when I supply empty file as artefacts file", func(){
+		Context("when I supply empty file as additional sources file", func(){
 			It("exits with an error", func() {
 				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
 				Expect(err).ToNot(HaveOccurred())
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "empty-file.yml"))
+				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "empty-file.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				_, stdErr := runDepLab([]string{"--additional-sources-file", inputArtefactsPath, "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+				_, stdErr := runDepLab([]string{"--additional-sources-file", inputAdditionalSourcesPath, "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-				Expect(errorOutput).To(ContainSubstring("could not parse artefact file"))
+				Expect(errorOutput).To(ContainSubstring("could not parse additional sources file"))
 			})
 		})
 	})
@@ -167,7 +168,7 @@ func selectVcsGitDependencies(dependencies []metadata.Dependency) []metadata.Dep
 	for _, dependency := range dependencies {
 		Expect(dependency.Source.Metadata).To(Not(BeNil()))
 		gitSourceMetadata := dependency.Source.Metadata.(map[string]interface{})
-		if dependency.Source.Type == "git" && gitSourceMetadata["url"].(string) != "https://example.com/example.git" {
+		if dependency.Source.Type == preprocessors.GitSourceType && gitSourceMetadata["url"].(string) != "https://example.com/example.git" {
 			gitDependencies = append(gitDependencies, dependency)
 		}
 	}

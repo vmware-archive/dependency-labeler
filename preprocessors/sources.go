@@ -53,7 +53,7 @@ func createGitDependency(vcs AdditionalSourceVcs) metadata.Dependency {
 	return metadata.Dependency{
 		Type: "package",
 		Source: metadata.Source{
-			Type: "git",
+			Type: GitSourceType,
 			Version: map[string]interface{}{
 				"commit": vcs.Version,
 			},

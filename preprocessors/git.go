@@ -8,6 +8,7 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
+const GitSourceType = "git"
 func BuildGitDependencyMetadata(pathToGit string) (metadata.Dependency, error) {
 	repo, err := git.PlainOpen(pathToGit)
 	if err != nil {
@@ -41,7 +42,7 @@ func BuildGitDependencyMetadata(pathToGit string) (metadata.Dependency, error) {
 	return metadata.Dependency{
 		Type: "package",
 		Source: metadata.Source{
-			Type: "git",
+			Type: GitSourceType,
 			Version: map[string]interface{}{
 				"commit": ref.Hash().String(),
 			},

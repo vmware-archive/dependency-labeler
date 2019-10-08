@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"context"
+	"github.com/pivotal/deplab/preprocessors"
 
 	"github.com/pivotal/deplab/metadata"
 
@@ -98,7 +99,7 @@ var _ = Describe("deplab git", func() {
 func selectGitDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
 	var gitDependencies []metadata.Dependency
 	for _, dependency := range dependencies {
-		if dependency.Source.Type == "git" {
+		if dependency.Source.Type == preprocessors.GitSourceType {
 			gitDependencies = append(gitDependencies, dependency)
 		}
 	}
