@@ -14,7 +14,7 @@ import (
 
 var _ = Describe("deplab additional sources file", func(){
 
-	Context("when I supply an additional sources file as an argument", func() {
+	Context("when I supply additional sources file(s) as an argument", func() {
 		var (
 			metadataLabel       metadata.Metadata
 			additionalArguments []string
@@ -31,7 +31,7 @@ var _ = Describe("deplab additional sources file", func(){
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		Context("when I supply an additional sources file with only one source archive", func() {
+		Context("and it only has one source archive", func() {
 			BeforeEach(func() {
 				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-single-archive.yml"))
 				Expect(err).ToNot(HaveOccurred())
@@ -53,7 +53,7 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("when I supply an additional sources file with multiple source archive urls", func() {
+		Context("with multiple source archive urls", func() {
 			BeforeEach(func() {
 				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives.yml"))
 				Expect(err).ToNot(HaveOccurred())
@@ -66,7 +66,7 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("when I supply an additional sources file with no source archive urls", func() {
+		Context("with no source archive urls", func() {
 			BeforeEach(func() {
 				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-empty-archives.yml"))
 				Expect(err).ToNot(HaveOccurred())
@@ -79,7 +79,7 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("when I supply an additional sources file with only one vcs", func() {
+		Context("with only one vcs", func() {
 			BeforeEach(func() {
 				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-single-vcs.yml"))
 				Expect(err).ToNot(HaveOccurred())
@@ -105,7 +105,7 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("when I supply an additional sources file with both multiple vcs and multiple archives", func() {
+		Context("with both multiple vcs and multiple archives", func() {
 			BeforeEach(func() {
 				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives-multiple-vcs.yml"))
 				Expect(err).ToNot(HaveOccurred())
@@ -120,7 +120,7 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("when I supply multiple additional sources files", func() {
+		Context("with multiple sources files", func() {
 			BeforeEach(func() {
 				inputAdditionalSourcesPath1, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives.yml"))
 				Expect(err).ToNot(HaveOccurred())
@@ -135,7 +135,7 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("when I supply erroneous paths as an additional sources file", func(){
+		Context("with erroneous paths", func(){
 			It("exits with an error", func() {
 				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
@@ -146,7 +146,7 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("when I supply empty file as additional sources file", func(){
+		Context("with an empty file", func(){
 			It("exits with an error", func() {
 				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
@@ -156,6 +156,19 @@ var _ = Describe("deplab additional sources file", func(){
 				_, stdErr := runDepLab([]string{"--additional-sources-file", inputAdditionalSourcesPath, "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 				Expect(errorOutput).To(ContainSubstring("could not parse additional sources file"))
+			})
+		})
+
+		Context("with a unsupported vcs type", func(){
+			It("exits with an error", func() {
+				By("executing it")
+				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
+				Expect(err).ToNot(HaveOccurred())
+				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-unsupported-vcs.yml"))
+				Expect(err).ToNot(HaveOccurred())
+				_, stdErr := runDepLab([]string{"--additional-sources-file", inputAdditionalSourcesPath, "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+				Expect(errorOutput).To(ContainSubstring("unsupported vcs protocol: hg"))
 			})
 		})
 	})

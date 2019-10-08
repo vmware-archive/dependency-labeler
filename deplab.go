@@ -3,6 +3,7 @@ package deplab
 import (
 	"bytes"
 	"fmt"
+	"github.com/pkg/errors"
 	"log"
 	"os/exec"
 	"strings"
@@ -97,7 +98,7 @@ func preprocess(gitPaths, additionalSourcesFiles []string) ([]metadata.Dependenc
 	for _, additionalSourcesFile := range additionalSourcesFiles {
 		archiveUrlsFromAdditionalSourcesFile, gitVcsFromAdditionalSourcesFile, err := preprocessors.ParseAdditionalSourcesFile(additionalSourcesFile)
 		if err != nil {
-			log.Fatalf("could not parse additional sources file: %s", additionalSourcesFile)
+			log.Fatal(errors.Wrap(err, fmt.Sprintf("could not parse additional sources file: %s", additionalSourcesFile)))
 		}
 		archiveUrls = append(archiveUrls, archiveUrlsFromAdditionalSourcesFile...)
 		gitDependencies = append(gitDependencies, gitVcsFromAdditionalSourcesFile...)

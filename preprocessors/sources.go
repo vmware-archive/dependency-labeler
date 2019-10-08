@@ -1,6 +1,8 @@
 package preprocessors
 
 import (
+	"errors"
+	"fmt"
 	"github.com/pivotal/deplab/metadata"
 	"gopkg.in/yaml.v2"
 	"os"
@@ -41,8 +43,11 @@ func ParseAdditionalSourcesFile(additionalSourcesFilePath string) ([]string, []m
 
 	var gitDependencies []metadata.Dependency
 	for _, vcs := range additionalSources.Vcs{
-		if vcs.Protocol == "git"{
+		switch vcs.Protocol {
+		case GitSourceType:
 			gitDependencies = append(gitDependencies, createGitDependency(vcs))
+		default:
+			return nil, nil, errors.New(fmt.Sprintf("unsupported vcs protocol: %s", vcs.Protocol))
 		}
 	}
 

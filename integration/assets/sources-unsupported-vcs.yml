@@ -1,0 +1,4 @@
+vcs:
+- protocol: hg
+  url: example.org
+  commit: abc123
