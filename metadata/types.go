@@ -35,7 +35,7 @@ type GitSourceMetadata struct {
 	Refs []string `json:"refs"`
 }
 
-type BlobSourceMetadata struct {
+type ArchiveSourceMetadata struct {
 	URL  string   `json:"url"`
 }
 

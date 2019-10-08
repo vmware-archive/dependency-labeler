@@ -6,13 +6,14 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/deplab/metadata"
+	"github.com/pivotal/deplab/providers"
 	"path/filepath"
 	"strings"
 )
 
-var _ = Describe("deplab artefacts", func(){
+var _ = Describe("deplab additional sources file", func(){
 
-	Context("when I supply an artefacts file as an argument", func() {
+	Context("when I supply an additional sources file as an argument", func() {
 		var (
 			metadataLabel       metadata.Metadata
 			additionalArguments []string
@@ -29,65 +30,66 @@ var _ = Describe("deplab artefacts", func(){
 			Expect(err).ToNot(HaveOccurred())
 		})
 
-		Context("when I supply an artefacts file with only one blob", func() {
+		Context("when I supply an additional sources file with only one source archive", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-single-blob.yml"))
+				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "sources-file-single-archive.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--artefacts-file", inputArtefactsPath}
+				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath}
 			})
 
-			It("adds a blob dependency", func() {
-				blobDependencies := selectBlobDependencies(metadataLabel.Dependencies)
-				Expect(len(blobDependencies)).To(Equal(1))
-				blobDependency := blobDependencies[0]
-				Expect(blobDependency.Source.Metadata).NotTo(BeNil())
-				blobSourceMetadata := blobDependency.Source.Metadata.(map[string]interface{})
-				Expect(blobDependency.Type).ToNot(BeEmpty())
+			It("adds a archive dependency", func() {
+				archiveDependencies := selectArchiveDependencies(metadataLabel.Dependencies)
+				Expect(archiveDependencies).To(HaveLen(1))
+				archiveDependency := archiveDependencies[0]
+				Expect(archiveDependency.Source.Metadata).NotTo(BeNil())
+				archiveSourceMetadata := archiveDependency.Source.Metadata.(map[string]interface{})
+				Expect(archiveDependency.Type).ToNot(BeEmpty())
 
-				By("adding the blob url to the blob dependency")
-				Expect(blobDependency.Type).To(Equal("package"))
-				Expect(blobDependency.Source.Type).To(Equal("blob"))
-				Expect(blobSourceMetadata["url"]).To(Equal("http://archive.ubuntu.com/ubuntu/pool/main/c/ca-certificates/ca-certificates_20180409.tar.xz"))
+				By("adding the source archive url to the archive dependency")
+				Expect(archiveDependency.Type).To(Equal("package"))
+				Expect(archiveDependency.Source.Type).To(Equal(providers.ArchiveType))
+				Expect(archiveSourceMetadata["url"]).To(Equal("http://archive.ubuntu.com/ubuntu/pool/main/c/ca-certificates/ca-certificates_20180409.tar.xz"))
 			})
 		})
 
-		Context("when I supply an artefacts file with multiple blobs", func() {
+		Context("when I supply an additional sources file with multiple source archive urls", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-multiple-blobs.yml"))
+				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--artefacts-file", inputArtefactsPath}
+				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath}
 			})
 
-			It("adds multiple blobDependency entries", func() {
-
+			It("adds multiple archive url entries", func() {
+				archiveDependencies := selectArchiveDependencies(metadataLabel.Dependencies)
+				Expect(archiveDependencies).To(HaveLen(2))
 			})
 		})
 
-		Context("when I supply an artefacts file with no blobs", func() {
+		Context("when I supply an additional sources file with no source archive urls", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-empty-blobs.yml"))
+				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "sources-file-empty-archives.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--artefacts-file", inputArtefactsPath}
+				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath}
 			})
 
-			It("adds zero blobDependency entries", func() {
-				blobDependencies := selectBlobDependencies(metadataLabel.Dependencies)
-				Expect(len(blobDependencies)).To(Equal(0))
+			It("adds zero archive entries", func() {
+				archiveDependencies := selectArchiveDependencies(metadataLabel.Dependencies)
+				Expect(archiveDependencies).To(HaveLen(0))
 			})
 		})
 
-		Context("when I supply an artefacts file with only one vcs", func() {
+		Context("when I supply an additional sources file with only one vcs", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-single-vcs.yml"))
+				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "sources-file-single-vcs.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--artefacts-file", inputArtefactsPath}
+				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath}
 			})
 
 			It("adds a git dependency", func() {
 				gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
-				Expect(len(gitDependencies)).To(Equal(2))
+				Expect(gitDependencies).To(HaveLen(2))
 				vcsGitDependencies := selectVcsGitDependencies(gitDependencies)
-				Expect(len(vcsGitDependencies)).To(Equal(1))
+				Expect(vcsGitDependencies).To(HaveLen(1))
 
 				gitDependency := vcsGitDependencies[0]
 				gitSourceMetadata := gitDependency.Source.Metadata.(map[string]interface{})
@@ -99,46 +101,36 @@ var _ = Describe("deplab artefacts", func(){
 
 				By("adding the git remote to a git dependency")
 				Expect(gitSourceMetadata["url"].(string)).To(Equal("git@github.com:pivotal/deplab.git"))
-
-				By("adding refs for the current HEAD")
-				Expect(len(gitSourceMetadata["refs"].([]interface{}))).To(Equal(1))
-				Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).To(Equal("v0.44.0"))
 			})
 		})
 
-		Context("when I supply an artefacts file with both multiple vcs and multiple blobs", func() {
+		Context("when I supply an artefacts file with both multiple vcs and multiple archives", func() {
 			BeforeEach(func() {
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-multiple-blobs-multiple-vcs.yml"))
+				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives-multiple-vcs.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--artefacts-file", inputArtefactsPath}
+				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath}
 			})
 
-			It("adds git dependencies and blobs", func(){
+			It("adds git dependencies and archives", func(){
 				gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
-				Expect(len(gitDependencies)).To(Equal(3))
+				Expect(gitDependencies).To(HaveLen(3))
 				vcsGitDependencies := selectVcsGitDependencies(gitDependencies)
-				Expect(len(vcsGitDependencies)).To(Equal(2))
+				Expect(vcsGitDependencies).To(HaveLen(2))
 			})
 		})
 
 		Context("when I supply multiple artefacts files", func() {
 			BeforeEach(func() {
-				inputArtefactsPath1, err := filepath.Abs(filepath.Join("assets", "artefacts-multiple-blobs.yml"))
+				inputArtefactsPath1, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				inputArtefactsPath2, err := filepath.Abs(filepath.Join("assets", "artefacts-single-blob.yml"))
+				inputArtefactsPath2, err := filepath.Abs(filepath.Join("assets", "sources-file-single-archive.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--artefacts-file", inputArtefactsPath1, "--artefacts-file", inputArtefactsPath2}
+				additionalArguments = []string{"--additional-sources-file", inputArtefactsPath1, "--additional-sources-file", inputArtefactsPath2}
 			})
 
-			It("adds multiple blobDependency entries", func() {
-				i := 0
-				for _, dep := range metadataLabel.Dependencies {
-					if dep.Source.Type == "blob" {
-						i++
-					}
-				}
-
-				Expect(i).To(Equal(3))
+			It("adds multiple archiveDependency entries", func() {
+				archiveDependencies := selectArchiveDependencies(metadataLabel.Dependencies)
+				Expect(archiveDependencies).To(HaveLen(3))
 			})
 		})
 
@@ -147,7 +139,7 @@ var _ = Describe("deplab artefacts", func(){
 				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
 				Expect(err).ToNot(HaveOccurred())
-				_, stdErr := runDepLab([]string{"--artefacts-file", "erroneous_path.yml", "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+				_, stdErr := runDepLab([]string{"--additional-sources-file", "erroneous_path.yml", "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 				Expect(errorOutput).To(ContainSubstring("could not parse artefact file: erroneous_path.yml"))
 			})
@@ -158,9 +150,9 @@ var _ = Describe("deplab artefacts", func(){
 				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
 				Expect(err).ToNot(HaveOccurred())
-				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "artefacts-empty.yml"))
+				inputArtefactsPath, err := filepath.Abs(filepath.Join("assets", "empty-file.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				_, stdErr := runDepLab([]string{"--artefacts-file", inputArtefactsPath, "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+				_, stdErr := runDepLab([]string{"--additional-sources-file", inputArtefactsPath, "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 				Expect(errorOutput).To(ContainSubstring("could not parse artefact file"))
 			})

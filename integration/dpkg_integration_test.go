@@ -57,7 +57,7 @@ var _ = Describe("deplab dpkg", func() {
 			By("listing debian package dependencies in the image")
 			Expect(metadataLabel.Dependencies[0].Type).To(Equal("debian_package_list"))
 
-			Expect(len(dpkgMetadata["packages"].([]interface{}))).To(Equal(89))
+			Expect(dpkgMetadata["packages"].([]interface{})).To(HaveLen(89))
 
 			By("generating an image with the input as the parent")
 			inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
@@ -156,7 +156,7 @@ var _ = Describe("deplab dpkg", func() {
 			By("listing debian package dependencies in the image")
 			Expect(metadataLabel.Dependencies[0].Type).To(Equal("debian_package_list"))
 
-			Expect(len(dpkgMetadata["packages"].([]interface{}))).To(Equal(6))
+			Expect(dpkgMetadata["packages"].([]interface{})).To(HaveLen(6))
 		})
 	})
 })

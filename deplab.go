@@ -20,7 +20,7 @@ var (
 
 const UnknownDeplabVersion = "0.0.0-dev"
 
-func Run(inputImageTar string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string, blobUrls []string, artefactFiles []string) {
+func Run(inputImageTar string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string, additionalSourceUrls []string, additionalSourceFilePaths []string) {
 	originImage := inputImage
 	if inputImageTar != "" {
 		stdout, stderr, err := runCommand("docker", "load", "-i", inputImageTar)
@@ -37,10 +37,10 @@ func Run(inputImageTar string, inputImage string, gitPaths []string, tag string,
 		originImage = strings.TrimSpace(imageTag)
 	}
 
-	gitDependencies, artefactBlobUrls := preprocess(gitPaths, artefactFiles)
-	blobUrls = append(blobUrls, artefactBlobUrls...)
+	gitDependencies, artefactBlobUrls := preprocess(gitPaths, additionalSourceFilePaths)
+	additionalSourceUrls = append(additionalSourceUrls, artefactBlobUrls...)
 
-	dependencies, err := generateDependencies(originImage, gitDependencies, blobUrls)
+	dependencies, err := generateDependencies(originImage, gitDependencies, additionalSourceUrls)
 	if err != nil {
 		log.Fatalf("error generating dependencies: %s", err)
 	}
@@ -92,14 +92,14 @@ func GetVersion() string {
 }
 
 func preprocess(gitPaths, artefactFiles []string) ([]metadata.Dependency, []string){
-	var blobUrls []string
+	var archiveUrls []string
 	var gitDependencies []metadata.Dependency
 	for _, artefactFile := range artefactFiles {
-		blobsUrlsFromArtefactFile, gitVcsFromArtefactFile, err := preprocessors.ParseArtefactFile(artefactFile)
+		archiveUrlsFromArtefactFile, gitVcsFromArtefactFile, err := preprocessors.ParseAdditionalSourcesFile(artefactFile)
 		if err != nil {
 			log.Fatalf("could not parse artefact file: %s", artefactFile)
 		}
-		blobUrls = append(blobUrls, blobsUrlsFromArtefactFile...)
+		archiveUrls = append(archiveUrls, archiveUrlsFromArtefactFile...)
 		gitDependencies = append(gitDependencies, gitVcsFromArtefactFile...)
 	}
 
@@ -112,10 +112,10 @@ func preprocess(gitPaths, artefactFiles []string) ([]metadata.Dependency, []stri
 		gitDependencies = append(gitDependencies, gitMetadata)
 	}
 
-	return gitDependencies, blobUrls
+	return gitDependencies, archiveUrls
 }
 
-func generateDependencies(imageName string, gitDependencies []metadata.Dependency, blobUrls []string) ([]metadata.Dependency, error) {
+func generateDependencies(imageName string, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
 	var dependencies []metadata.Dependency
 
 	dpkgList, err := providers.BuildDebianDependencyMetadata(imageName)
@@ -128,13 +128,13 @@ func generateDependencies(imageName string, gitDependencies []metadata.Dependenc
 
 	dependencies = append(dependencies, gitDependencies...)
 
-	for _, blobUrl := range blobUrls {
-		blobMetadata, err := providers.BuildBlobDependencyMetadata(blobUrl)
+	for _, archiveUrl := range archiveUrls {
+		archiveMetadata, err := providers.BuildArchiveDependencyMetadata(archiveUrl)
 
 		if err != nil {
-			log.Fatalf("blob metadata: %s", err)
+			log.Fatalf("archive metadata: %s", err)
 		}
-		dependencies = append(dependencies, blobMetadata)
+		dependencies = append(dependencies, archiveMetadata)
 	}
 	return dependencies, nil
 }

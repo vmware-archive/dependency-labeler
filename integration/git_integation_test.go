@@ -37,7 +37,7 @@ var _ = Describe("deplab git", func() {
 			})
 
 			It("adds a git dependency", func() {
-				Expect(len(gitDependencies)).To(Equal(1))
+				Expect(gitDependencies).To(HaveLen(1))
 
 				gitDependency := gitDependencies[0]
 				Expect(gitDependency.Type).ToNot(BeEmpty())
@@ -55,7 +55,7 @@ var _ = Describe("deplab git", func() {
 				Expect(gitSourceMetadata["url"].(string)).To(Equal("https://example.com/example.git"))
 
 				By("adding refs for the current HEAD")
-				Expect(len(gitSourceMetadata["refs"].([]interface{}))).To(Equal(1))
+				Expect(gitSourceMetadata["refs"].([]interface{})).To(HaveLen(1))
 				Expect(gitSourceMetadata["refs"].([]interface{})[0].(string)).To(Equal("bar"))
 
 				By("not adding refs that are not the current HEAD")
@@ -69,7 +69,7 @@ var _ = Describe("deplab git", func() {
 			})
 
 			It("adds multiple gitDependencies entries", func() {
-				Expect(len(gitDependencies)).To(Equal(2))
+				Expect(gitDependencies).To(HaveLen(2))
 			})
 		})
 	})
