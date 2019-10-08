@@ -2,6 +2,7 @@ package outputs
 
 import (
 	"fmt"
+	"github.com/pivotal/deplab/providers"
 	"io"
 	"log"
 	"os"
@@ -96,10 +97,10 @@ func (df *dpkgFile) printf(format string, a ...interface{}) *dpkgFile {
 
 func findDpkgListInMetadata(md metadata.Metadata) (metadata.Dependency, error) {
 	for _, v := range md.Dependencies {
-		if v.Type == "debian_package_list" {
+		if v.Type == providers.DebianPackageListSourceType {
 			return v, nil
 		}
 	}
 
-	return metadata.Dependency{}, fmt.Errorf("could not find debian_package_list in metadata")
+	return metadata.Dependency{}, fmt.Errorf("could not find %s in metadata", providers.DebianPackageListSourceType)
 }

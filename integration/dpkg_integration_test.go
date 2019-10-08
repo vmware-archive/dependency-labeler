@@ -2,8 +2,11 @@ package integration_test
 
 import (
 	"context"
-
 	"github.com/pivotal/deplab/metadata"
+	"github.com/pivotal/deplab/providers"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
+	"sort"
 
 	"github.com/docker/docker/api/types"
 
@@ -54,10 +57,12 @@ var _ = Describe("deplab dpkg", func() {
 				"deb http://example.com/ubuntu getdeb example",
 			))
 
-			By("listing debian package dependencies in the image")
-			Expect(metadataLabel.Dependencies[0].Type).To(Equal("debian_package_list"))
+			By("listing debian package dependencies in the image, sorted by name")
+			Expect(metadataLabel.Dependencies[0].Type).To(Equal(providers.DebianPackageListSourceType))
 
-			Expect(dpkgMetadata["packages"].([]interface{})).To(HaveLen(89))
+			pkgs := dpkgMetadata["packages"].([]interface{})
+			Expect(pkgs).To(HaveLen(89))
+			Expect(ArePackagesSorted(pkgs)).To(BeTrue())
 
 			By("generating an image with the input as the parent")
 			inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
@@ -151,21 +156,33 @@ var _ = Describe("deplab dpkg", func() {
 		It("returns a dpkg list", func() {
 			Expect(metadataLabelString).ToNot(BeEmpty())
 
+			By("listing debian package dependencies in the image alphabetically")
+			Expect(metadataLabel.Dependencies[0].Type).To(Equal(providers.DebianPackageListSourceType))
+
 			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})
-			By("listing debian package dependencies in the image")
-			Expect(metadataLabel.Dependencies[0].Type).To(Equal("debian_package_list"))
 
-			Expect(dpkgMetadata["packages"].([]interface{})).To(HaveLen(6))
+			pkgs := dpkgMetadata["packages"].([]interface{})
+			Expect(pkgs).To(HaveLen(6))
+			Expect(ArePackagesSorted(pkgs)).To(BeTrue())
 		})
 	})
 })
 
 func filterDpkgDependency(dependencies []metadata.Dependency) (metadata.Dependency, bool) {
 	for _, dependency := range dependencies {
-		if dependency.Source.Type == "debian_package_list" {
+		if dependency.Source.Type == providers.DebianPackageListSourceType {
 			return dependency, true
 		}
 	}
 	return metadata.Dependency{}, false //should never be reached
+}
+
+func ArePackagesSorted(pkgs []interface{}) bool {
+	collator := collate.New(language.BritishEnglish)
+	return sort.SliceIsSorted(pkgs, func(p, q int) bool {
+		lhs := pkgs[p].(map[string]interface{})
+		rhs := pkgs[q].(map[string]interface{})
+		return collator.CompareString(lhs["package"].(string), rhs["package"].(string)) <= 0
+	})
 }

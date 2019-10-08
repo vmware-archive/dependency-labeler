@@ -9,15 +9,19 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pivotal/deplab/docker"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
 	"io"
 	"io/ioutil"
 	"log"
 	"os/exec"
+	"sort"
 	"strings"
 
 	"github.com/pivotal/deplab/metadata"
 )
 
+const DebianPackageListSourceType = "debian_package_list"
 func BuildDebianDependencyMetadata(imageName string) (metadata.Dependency, error) {
 	packages, err := getDebianPackages(imageName)
 
@@ -32,7 +36,7 @@ func BuildDebianDependencyMetadata(imageName string) (metadata.Dependency, error
 		version := Digest(sourceMetadata)
 
 		dpkgList := metadata.Dependency{
-			Type: "debian_package_list",
+			Type: DebianPackageListSourceType,
 			Source: metadata.Source{
 				Type: "inline",
 				Version: map[string]interface{}{
@@ -104,6 +108,11 @@ func getDebianPackages(imageName string) ([]metadata.Package, error) {
 	}
 
 	packages = append(packages, statusDPackages...)
+
+	collator := collate.New(language.BritishEnglish)
+	sort.Slice(packages, func(i, j int) bool{
+		return collator.CompareString(packages[i].Package, packages[j].Package) < 0
+	})
 
 	return packages, nil
 }
