@@ -33,7 +33,7 @@ var _ = Describe("deplab", func() {
 			inputTarPath := "/path/to/image.tar"
 			_, stdErr := runDepLab([]string{"--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-			Expect(errorOutput).To(ContainSubstring("could not load docker image from tar: open /path/to/image.tar: no such file or directory"))
+			Expect(errorOutput).To(ContainSubstring("could not load docker image from tar at /path/to/image.tar; Err: open /path/to/image.tar: no such file or directory"))
 		})
 	})
 

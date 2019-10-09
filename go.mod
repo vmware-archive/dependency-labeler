@@ -4,12 +4,11 @@ go 1.12
 
 require (
 	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
-	github.com/Microsoft/go-winio v0.4.13 // indirect
 	github.com/docker/distribution v2.7.1+incompatible
-	github.com/docker/docker v0.0.0-00010101000000-000000000000
-	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/docker/docker v1.4.2-0.20180531152204-71cd53e4a197
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/gogo/protobuf v1.2.1 // indirect
+	github.com/google/go-containerregistry v0.0.0-20191008160043-1e84d6375038
 	github.com/gorilla/mux v1.7.3 // indirect
 	github.com/jhoonb/archivex v0.0.0-20180718040744-0488e4ce1681
 	github.com/joho/godotenv v1.3.0
@@ -17,8 +16,6 @@ require (
 
 	github.com/onsi/ginkgo v1.10.2
 	github.com/onsi/gomega v1.7.0
-	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
-	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/spf13/cobra v0.0.5
@@ -27,7 +24,6 @@ require (
 	google.golang.org/grpc v1.22.1 // indirect
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.2.4
-	gotest.tools v2.2.0+incompatible // indirect
 
 )
 

@@ -17,7 +17,7 @@ var _ = Describe("deplab", func() {
 			inputImage := "scratch"
 			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo}, 1)
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-			Expect(errorOutput).To(ContainSubstring("'scratch' is a reserved name"))
+			Expect(errorOutput).To(ContainSubstring("could not pull image from url"))
 		})
 
 		It("throws an error if an invalid image sent to docker engine", func() {
@@ -26,7 +26,7 @@ var _ = Describe("deplab", func() {
 			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo}, 1)
 
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-			Expect(errorOutput).To(ContainSubstring("pull access denied for swkichtlsmhasd, repository does not exist or may require 'docker login'"))
+			Expect(errorOutput).To(ContainSubstring("could not pull image from url"))
 		})
 
 		It("exits with an error if neither image or image-tar flags are set", func() {
@@ -47,7 +47,7 @@ var _ = Describe("deplab", func() {
 			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo}, 1)
 
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-			Expect(errorOutput).To(ContainSubstring("invalid reference format"))
+			Expect(errorOutput).To(ContainSubstring("could not parse reference"))
 		})
 
 		It("returns an image with a tag if the tag flag is provided", func() {
