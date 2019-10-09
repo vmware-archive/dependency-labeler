@@ -1,15 +1,16 @@
 package integration_test
 
 import (
- "context"
+	"context"
+
 	"github.com/docker/docker/api/types"
 	. "github.com/onsi/ginkgo"
-. "github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 	"github.com/pivotal/deplab/metadata"
 	"github.com/pivotal/deplab/providers"
 )
 
-var _ = Describe("deplab additional-source-url", func(){
+var _ = Describe("deplab additional-source-url", func() {
 
 	Context("when I supply additional source url(s) as argument(s)", func() {
 		var (
@@ -30,7 +31,7 @@ var _ = Describe("deplab additional-source-url", func(){
 
 		Context("when I supply only one --additional-source-url argument", func() {
 			BeforeEach(func() {
-				additionalArguments = []string{"--additional-source-url", "url_to_an_archive.com"}
+				additionalArguments = []string{"--additional-source-url", "https://example.com"}
 			})
 
 			It("adds a additional-source-url dependency", func() {
@@ -44,13 +45,13 @@ var _ = Describe("deplab additional-source-url", func(){
 				Expect(archiveDependency.Source.Type).To(Equal(providers.ArchiveType))
 
 				archiveSourceMetadata := archiveDependency.Source.Metadata.(map[string]interface{})
-				Expect(archiveSourceMetadata["url"]).To(Equal("url_to_an_archive.com"))
+				Expect(archiveSourceMetadata["url"]).To(Equal("https://example.com"))
 			})
 		})
 
 		Context("when I supply multiple additional-source-url as separate arguments", func() {
 			BeforeEach(func() {
-				additionalArguments = []string{"--additional-source-url", "url_to_an_archive.com", "--additional-source-url", "second_url_to_an_archive.com"}
+				additionalArguments = []string{"--additional-source-url", "https://example.com", "--additional-source-url", "https://example.com/foobar"}
 			})
 
 			It("adds multiple archive entries", func() {
@@ -60,7 +61,6 @@ var _ = Describe("deplab additional-source-url", func(){
 		})
 	})
 })
-
 
 func selectArchiveDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
 	var archives []metadata.Dependency

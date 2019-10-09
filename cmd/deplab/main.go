@@ -42,18 +42,18 @@ var rootCmd = &cobra.Command{
 	Complete documentation is available at http://github.com/pivotal/deplab`,
 	Version: deplab.GetVersion(),
 
-	PreRunE: preRunE,
+	PreRunE: validateFlags,
 
 	Run: run,
 }
 
-func preRunE(cmd *cobra.Command, args []string) error {
-	flagset := cmd.Flags()
-	img, err := flagset.GetString("image")
+func validateFlags(cmd *cobra.Command, args []string) error {
+	flagSet := cmd.Flags()
+	img, err := flagSet.GetString("image")
 	if err != nil {
 		return fmt.Errorf("error processing flag: %s", err)
 	}
-	imgTar, err := flagset.GetString("image-tar")
+	imgTar, err := flagSet.GetString("image-tar")
 	if err != nil {
 		return fmt.Errorf("error processing flag: %s", err)
 	}
@@ -63,6 +63,7 @@ func preRunE(cmd *cobra.Command, args []string) error {
 	} else if img != "" && imgTar != "" {
 		return fmt.Errorf("ERROR: cannot accept both --image and --image-tar")
 	}
+
 	return nil
 }
 

@@ -3,14 +3,16 @@ package deplab
 import (
 	"bytes"
 	"fmt"
-	"github.com/google/go-containerregistry/pkg/crane"
-	"github.com/google/go-containerregistry/pkg/name"
-	"github.com/pkg/errors"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/google/go-containerregistry/pkg/crane"
+	"github.com/google/go-containerregistry/pkg/name"
+	"github.com/pkg/errors"
 
 	"github.com/pivotal/deplab/docker"
 	"github.com/pivotal/deplab/metadata"
@@ -28,9 +30,9 @@ const UnknownDeplabVersion = "0.0.0-dev"
 func Run(inputImageTarPath string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string, additionalSourceUrls []string, additionalSourceFilePaths []string) {
 
 	var originImageTarPath string
-	if inputImageTarPath != ""{
+	if inputImageTarPath != "" {
 		originImageTarPath = inputImageTarPath
-	}	else {
+	} else {
 
 		// use crane.pull to get tar ball and put it in originImageTarPath.
 		dir, err := ioutil.TempDir("", "deplab-crane-")
@@ -56,7 +58,6 @@ func Run(inputImageTarPath string, inputImage string, gitPaths []string, tag str
 		}
 	}
 
-
 	originImage := inputImage
 	if originImageTarPath != "" {
 		stdout, stderr, err := runCommand("docker", "load", "-i", originImageTarPath)
@@ -75,6 +76,11 @@ func Run(inputImageTarPath string, inputImage string, gitPaths []string, tag str
 
 	gitDependencies, archiveUrls := preprocess(gitPaths, additionalSourceFilePaths)
 	additionalSourceUrls = append(additionalSourceUrls, archiveUrls...)
+
+	err := providers.ValidateURLs(additionalSourceUrls, http.Head)
+	if err != nil {
+		log.Fatalf("error validating additional source url: %s", err)
+	}
 
 	dependencies, err := generateDependencies(originImage, gitDependencies, additionalSourceUrls)
 	if err != nil {
@@ -127,7 +133,7 @@ func GetVersion() string {
 	return DeplabVersion
 }
 
-func preprocess(gitPaths, additionalSourcesFiles []string) ([]metadata.Dependency, []string){
+func preprocess(gitPaths, additionalSourcesFiles []string) ([]metadata.Dependency, []string) {
 	var archiveUrls []string
 	var gitDependencies []metadata.Dependency
 	for _, additionalSourcesFile := range additionalSourcesFiles {

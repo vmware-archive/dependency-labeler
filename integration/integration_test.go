@@ -67,5 +67,31 @@ var _ = Describe("deplab", func() {
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(ContainSubstring("tag foo:testtag/bar is not valid"))
 		})
+
+		It("exits with an error if additional-source-url is not valid", func() {
+			_, stdErr := runDepLab([]string{
+				"--image", "ubuntu:bionic",
+				"--git", pathToGitRepo,
+				"--additional-source-url", "/foo/bar",
+			}, 1)
+
+			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+			Expect(errorOutput).To(SatisfyAll(
+				ContainSubstring("/foo/bar"),
+				ContainSubstring("error validating additional source url")))
+		})
+
+		It("exits with an error if additional-source-url is not reachable ", func() {
+			_, stdErr := runDepLab([]string{
+				"--image", "ubuntu:bionic",
+				"--git", pathToGitRepo,
+				"--additional-source-url", "https://package.some.invalid/cool-package",
+			}, 1)
+
+			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+			Expect(errorOutput).To(SatisfyAll(
+				ContainSubstring("https://package.some.invalid/cool-package"),
+				ContainSubstring("error validating additional source url")))
+		})
 	})
 })
