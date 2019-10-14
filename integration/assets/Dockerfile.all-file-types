@@ -1,0 +1,16 @@
+FROM ubuntu:bionic as builder
+
+RUN mkdir -p /all-files/folder
+
+WORKDIR /all-files
+
+RUN echo 'hello world' > start-file \
+    && ln start-file hard-link-file \
+    && ln -s ./start-file symbolic-link-file \
+    && echo 'foo' > folder/foo \
+    && echo 'bar' > folder/bar
+
+
+FROM scratch
+
+COPY --from=builder /all-files/ /all-files

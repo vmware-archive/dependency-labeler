@@ -13,7 +13,7 @@ var rfs rootfs.RootFS
 var _ = Describe("rootfs", func() {
 	Context("when there is a valid image archive", func() {
 		BeforeEach(func() {
-			inputTarPath, err := filepath.Abs(filepath.Join("..", "integration", "assets", "tiny.tgz"))
+			inputTarPath, err := filepath.Abs("../integration/assets/all-file-types.tgz")
 			Expect(err).ToNot(HaveOccurred())
 
 			rfs, err = rootfs.New(inputTarPath)
@@ -22,43 +22,38 @@ var _ = Describe("rootfs", func() {
 
 		Context("when the path exists", func() {
 			It("retrieves the content of a file", func() {
-				osRelease, err := rfs.GetFileContent("/etc/os-release")
+				aFile, err := rfs.GetFileContent("/all-files/start-file")
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(osRelease).To(
-					SatisfyAll(
-						ContainSubstring(`NAME="Pivotal Tiny`),
-						ContainSubstring(`VERSION_ID="dev"`),
-						ContainSubstring(`VERSION_CODENAME="dev"`),
-					))
+				Expect(aFile).To(ContainSubstring("hello world"))
 
 			})
 
 			It("retrieves the content of all files of a directory", func() {
-				statusFiles, err := rfs.GetDirContents("/var/lib/dpkg/status.d")
+				statusFiles, err := rfs.GetDirContents("/all-files/folder")
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(statusFiles).To(
 					SatisfyAll(
-						HaveLen(6),
+						HaveLen(2),
 						ConsistOf(
-							ContainSubstring("Package: base-files"),
-							ContainSubstring("Package: libc6"),
-							ContainSubstring("Package: libssl1.1"),
-							ContainSubstring("Package: netbase"),
-							ContainSubstring("Package: openssl"),
-							ContainSubstring("Package: tzdata"),
+							ContainSubstring("foo"),
+							ContainSubstring("bar"),
 						)))
 			})
 
 			It("ignores subdirectory in the given directory", func() {
-				statusFiles, err := rfs.GetDirContents("/var/lib/dpkg")
+				statusFiles, err := rfs.GetDirContents("/all-files")
 				Expect(err).ToNot(HaveOccurred())
 
 				Expect(statusFiles).To(
 					SatisfyAll(
-						HaveLen(1),
-						ConsistOf("\n")))
+						HaveLen(3),
+						ConsistOf(
+							ContainSubstring("hello world"),
+							ContainSubstring("hello world"),
+							ContainSubstring("hello world"),
+						)))
 			})
 		})
 
@@ -78,18 +73,18 @@ var _ = Describe("rootfs", func() {
 			It("can no longer retrieve the content", func() {
 				var err error
 
-				_, err = rfs.GetFileContent("/etc/os-release")
+				_, err = rfs.GetFileContent("/all-files/start-file")
 				Expect(err).ToNot(HaveOccurred())
 
-				_, err = rfs.GetDirContents("/var/lib/dpkg/status.d")
+				_, err = rfs.GetDirContents("/all-files/folder")
 				Expect(err).ToNot(HaveOccurred())
 
 				rfs.Cleanup()
 
-				_, err = rfs.GetFileContent("/etc/os-release")
+				_, err = rfs.GetFileContent("/all-files/start-file")
 				Expect(err).To(HaveOccurred())
 
-				_, err = rfs.GetDirContents("/var/lib/dpkg/status.d")
+				_, err = rfs.GetDirContents("/all-files/folder")
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -106,7 +101,7 @@ var _ = Describe("rootfs", func() {
 			_, err = rootfs.New(inputTarPath)
 			Expect(err).To(MatchError(
 				SatisfyAll(
-					ContainSubstring("Could not load image from path"),
+					ContainSubstring("Could not load image from tar"),
 					ContainSubstring("invalid-image-archive.tgz"),
 				)))
 		})

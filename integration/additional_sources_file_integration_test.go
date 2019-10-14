@@ -2,17 +2,18 @@ package integration_test
 
 import (
 	"context"
+	"path/filepath"
+	"strings"
+
 	"github.com/docker/docker/api/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/deplab/metadata"
 	"github.com/pivotal/deplab/preprocessors"
 	"github.com/pivotal/deplab/providers"
-	"path/filepath"
-	"strings"
 )
 
-var _ = Describe("deplab additional sources file", func(){
+var _ = Describe("deplab additional sources file", func() {
 
 	Context("when I supply additional sources file(s) as an argument", func() {
 		var (
@@ -112,7 +113,7 @@ var _ = Describe("deplab additional sources file", func(){
 				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
 			})
 
-			It("adds git dependencies and archives", func(){
+			It("adds git dependencies and archives", func() {
 				gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
 				Expect(gitDependencies).To(HaveLen(3))
 				vcsGitDependencies := selectVcsGitDependencies(gitDependencies)
@@ -135,7 +136,7 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("with erroneous paths", func(){
+		Context("with erroneous paths", func() {
 			It("exits with an error", func() {
 				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
@@ -146,7 +147,7 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("with an empty file", func(){
+		Context("with an empty file", func() {
 			It("exits with an error", func() {
 				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
@@ -159,7 +160,7 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 
-		Context("with a unsupported vcs type", func(){
+		Context("with a unsupported vcs type", func() {
 			It("exits with an error", func() {
 				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
@@ -172,7 +173,6 @@ var _ = Describe("deplab additional sources file", func(){
 			})
 		})
 	})
-
 
 })
 

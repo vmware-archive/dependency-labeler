@@ -1,29 +1,26 @@
 package providers
 
 import (
-	"archive/tar"
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
-	"fmt"
-	"github.com/pivotal/deplab/docker"
-	"golang.org/x/text/collate"
-	"golang.org/x/text/language"
-	"io"
-	"io/ioutil"
-	"log"
 	"os/exec"
 	"sort"
 	"strings"
 
+	"github.com/pivotal/deplab/rootfs"
+	"golang.org/x/text/collate"
+	"golang.org/x/text/language"
+
 	"github.com/pivotal/deplab/metadata"
+	"github.com/pkg/errors"
 )
 
 const DebianPackageListSourceType = "debian_package_list"
-func BuildDebianDependencyMetadata(imageName string) (metadata.Dependency, error) {
-	packages, err := getDebianPackages(imageName)
+
+func BuildDebianDependencyMetadata(imageName string, rfs rootfs.RootFS) (metadata.Dependency, error) {
+	packages, err := getDebianPackages(rfs)
 
 	if len(packages) != 0 {
 		sources, _ := getAptSources(imageName)
@@ -88,17 +85,17 @@ func getAptSources(imageName string) ([]string, error) {
 	}
 
 	collator := collate.New(language.BritishEnglish)
-	sort.Slice(sources, func(i, j int) bool{
+	sort.Slice(sources, func(i, j int) bool {
 		return collator.CompareString(sources[i], sources[j]) < 0
 	})
 
 	return sources, nil
 }
 
-func getDebianPackages(imageName string) ([]metadata.Package, error) {
+func getDebianPackages(rfs rootfs.RootFS) ([]metadata.Package, error) {
 	var packages []metadata.Package
 
-	statusPackages, err := listPackagesFromStatus(imageName)
+	statusPackages, err := listPackagesFromStatus(rfs)
 
 	if err != nil {
 		return []metadata.Package{}, err
@@ -106,7 +103,7 @@ func getDebianPackages(imageName string) ([]metadata.Package, error) {
 
 	packages = append(packages, statusPackages...)
 
-	statusDPackages, err := listPackagesFromStatusD(imageName)
+	statusDPackages, err := listPackagesFromStatusD(rfs)
 
 	if err != nil {
 		return []metadata.Package{}, err
@@ -115,7 +112,7 @@ func getDebianPackages(imageName string) ([]metadata.Package, error) {
 	packages = append(packages, statusDPackages...)
 
 	collator := collate.New(language.BritishEnglish)
-	sort.Slice(packages, func(i, j int) bool{
+	sort.Slice(packages, func(i, j int) bool {
 		return collator.CompareString(packages[i].Package, packages[j].Package) < 0
 	})
 
@@ -173,61 +170,31 @@ func ParseStatDBEntry(content string) (metadata.Package, error) {
 	return pkg, nil
 }
 
-func listPackagesFromStatusD(imageName string) (packages []metadata.Package, err error) {
-	path := "/var/lib/dpkg/status.d"
-	t, err := docker.ReadFromImage(imageName, path)
-
+func listPackagesFromStatusD(rfs rootfs.RootFS) (packages []metadata.Package, err error) {
+	fileList, err := rfs.GetDirContents("/var/lib/dpkg/status.d")
 	if err != nil {
-		return packages, fmt.Errorf("error retrieving %s %s", path, err)
+		// in this case an empty or non-existant directory is not an error
+		fileList = []string{}
 	}
 
-	for {
-		h, err := t.Next()
-		if err == io.EOF {
-			break // End of archive
-		}
-		if err != nil {
-			return packages, err
-		}
-
-		if h.Typeflag == tar.TypeDir {
-			continue
-		}
-
-		all, err := ioutil.ReadAll(t)
-		if err != nil {
-			continue
-		}
-		packageEntry, err := ParseStatDBEntry(string(all))
+	for _, file := range fileList {
+		packageEntry, err := ParseStatDBEntry(file)
 		if err == nil {
 			packages = append(packages, packageEntry)
 		}
 	}
+
 	return packages, nil
 }
 
-func listPackagesFromStatus(imageName string) (packages []metadata.Package, err error) {
-	path := "/var/lib/dpkg/status"
-	t, err := docker.ReadFromImage(imageName, path)
-
+func listPackagesFromStatus(rfs rootfs.RootFS) (packages []metadata.Package, err error) {
+	statDBString, err := rfs.GetFileContent("/var/lib/dpkg/status")
 	if err != nil {
-		return packages, fmt.Errorf("error retrieving %s %s", path, err)
+		// in this case an empty or non-existant file is not an error
+		statDBString = ""
 	}
 
-	_, err = t.Next()
-	if err != nil {
-		if err == io.EOF {
-			return packages, nil
-		}
-		return packages, fmt.Errorf("error reading status: %s", err)
-	}
-
-	statDBString, err := ioutil.ReadAll(t)
-	if err != nil {
-		log.Fatalf("error read statDBString: %s", err)
-	}
-
-	statDBEntries := strings.Split(string(statDBString), "\n\n")
+	statDBEntries := strings.Split(statDBString, "\n\n")
 	for _, entryString := range statDBEntries {
 		entry, err := ParseStatDBEntry(entryString)
 		if err == nil {

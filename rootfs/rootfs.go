@@ -5,8 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/go-containerregistry/pkg/v1/mutate"
+
+	"github.com/docker/docker/pkg/archive"
+
 	"github.com/google/go-containerregistry/pkg/crane"
-	"github.com/mholt/archiver"
 	"github.com/pkg/errors"
 )
 
@@ -49,33 +52,34 @@ func (rfs *RootFS) GetFileContent(path string) (string, error) {
 	return string(fileBytes), nil
 }
 
+func (rfs *RootFS) Location() string {
+	return rfs.rootfsLocation
+}
+
 func New(pathToTar string) (RootFS, error) {
 	var rootfs = ""
 	var err error
 
 	image, err := crane.Load(pathToTar)
 	if err != nil {
-		return RootFS{}, errors.Wrapf(err, "Could not load image from path: %s", pathToTar)
+		return RootFS{}, errors.Wrapf(err, "Could not load image from tar at path: %s", pathToTar)
 	}
 
 	f, err := ioutil.TempFile("", "image")
 	if err != nil {
 		return RootFS{}, errors.Wrap(err, "Could not create temp file.")
 	}
-	err = crane.Export(image, f)
-	if err != nil {
-		return RootFS{}, errors.Wrap(err, "Could not export rootfs.")
-	}
+
+	fs := mutate.Extract(image)
 
 	rootfs, err = ioutil.TempDir("", "deplab-rootfs-")
 	if err != nil {
 		return RootFS{}, errors.Wrap(err, "Could not create rootfs temp directory.")
 	}
 
-	err = archiver.NewTar().Unarchive(f.Name(), rootfs)
-
+	err = archive.Untar(fs, rootfs, &archive.TarOptions{NoLchown: true})
 	if err != nil {
-		return RootFS{}, errors.Wrap(err, "Could not untar to temp directory.")
+		return RootFS{}, errors.Wrapf(err, "Could not untar from tar %s to temp directory %s.", f.Name(), rootfs)
 	}
 
 	return RootFS{rootfsLocation: rootfs}, nil

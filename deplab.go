@@ -10,6 +10,8 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/pivotal/deplab/rootfs"
+
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/pkg/errors"
@@ -82,7 +84,7 @@ func Run(inputImageTarPath string, inputImage string, gitPaths []string, tag str
 		log.Fatalf("error validating additional source url: %s", err)
 	}
 
-	dependencies, err := generateDependencies(originImage, gitDependencies, additionalSourceUrls)
+	dependencies, err := generateDependencies(originImage, originImageTarPath, gitDependencies, additionalSourceUrls)
 	if err != nil {
 		log.Fatalf("error generating dependencies: %s", err)
 	}
@@ -157,12 +159,20 @@ func preprocess(gitPaths, additionalSourcesFiles []string) ([]metadata.Dependenc
 	return gitDependencies, archiveUrls
 }
 
-func generateDependencies(imageName string, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
+func generateDependencies(imageName string, imageTarPath string, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
 	var dependencies []metadata.Dependency
 
-	dpkgList, err := providers.BuildDebianDependencyMetadata(imageName)
+	log.Printf("imageTarPath: %s", imageTarPath)
+	rfs, err := rootfs.New(imageTarPath)
 	if err != nil {
-		log.Fatalf("debian package metadata: %s", err)
+		return dependencies, errors.Wrapf(err, "cannot create rootFS for image at path: %s.", imageTarPath)
+	}
+	defer rfs.Cleanup()
+	log.Printf("rfs.Location: %s", rfs.Location())
+
+	dpkgList, err := providers.BuildDebianDependencyMetadata(imageName, rfs)
+	if err != nil {
+		return dependencies, errors.Wrapf(err, "Could not generate debian package dependencies.")
 	}
 	if dpkgList.Type != "" {
 		dependencies = append(dependencies, dpkgList)
@@ -174,7 +184,7 @@ func generateDependencies(imageName string, gitDependencies []metadata.Dependenc
 		archiveMetadata, err := providers.BuildArchiveDependencyMetadata(archiveUrl)
 
 		if err != nil {
-			log.Fatalf("archive metadata: %s", err)
+			return dependencies, errors.Wrapf(err, "Could not generate archive dependency metadata.")
 		}
 		dependencies = append(dependencies, archiveMetadata)
 	}
