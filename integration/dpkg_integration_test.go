@@ -2,11 +2,12 @@ package integration_test
 
 import (
 	"context"
+	"sort"
+
 	"github.com/pivotal/deplab/metadata"
 	"github.com/pivotal/deplab/providers"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
-	"sort"
 
 	"github.com/docker/docker/api/types"
 
@@ -94,25 +95,6 @@ var _ = Describe("deplab dpkg", func() {
 	Context("with an image with dpkg, but no apt sources", func() {
 		BeforeEach(func() {
 			inputImage = "pivotalnavcon/ubuntu-no-sources"
-			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
-		})
-
-		It("does not return a dpkg list", func() {
-			Expect(metadataLabelString).ToNot(BeEmpty())
-
-			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
-			dpkgMetadata := dependencyMetadata.(map[string]interface{})
-
-			sources, ok := dpkgMetadata["apt_sources"].([]interface{})
-
-			Expect(ok).To(BeTrue())
-			Expect(sources).To(BeEmpty())
-		})
-	})
-
-	Context("with an image with dpkg, but no grep", func() {
-		BeforeEach(func() {
-			inputImage = "pivotalnavcon/ubuntu-no-grep-no-cat"
 			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
 		})
 

@@ -1,11 +1,9 @@
 package providers
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"os/exec"
 	"sort"
 	"strings"
 
@@ -23,7 +21,7 @@ func BuildDebianDependencyMetadata(imageName string, rfs rootfs.RootFS) (metadat
 	packages, err := getDebianPackages(rfs)
 
 	if len(packages) != 0 {
-		sources, _ := getAptSources(imageName)
+		sources, _ := getAptSources(rfs)
 
 		sourceMetadata := metadata.DebianPackageListSourceMetadata{
 			Packages:   packages,
@@ -57,30 +55,26 @@ func Digest(sourceMetadata metadata.DebianPackageListSourceMetadata) string {
 	return version
 }
 
-func getAptSources(imageName string) ([]string, error) {
-	stdout := &bytes.Buffer{}
-
-	grep := exec.Command("docker", "run", "--rm",
-		"--entrypoint", "grep", imageName,
-		"^[^#]",
-		"/etc/apt/sources.list",
-		"/etc/apt/sources.list.d",
-		"--no-filename",
-		"--no-message",
-		"--recursive")
-
-	grep.Stdout = stdout
-
-	_ = grep.Run()
-
-	//this requires an empty slice not a nil slice due to JSON serialization
-	//nil slices serialize as null
-	//empty slice serialize to []
+func getAptSources(rfs rootfs.RootFS) ([]string, error) {
 	sources := []string{}
+	fileListContent, err := rfs.GetDirContents("/etc/apt/sources.list.d")
+	if err != nil {
+		// in this case an empty or non-existant directory is not an error
+		fileListContent = []string{}
+	}
 
-	for _, source := range strings.Split(stdout.String(), "\n") {
-		if strings.TrimSpace(source) != "" {
-			sources = append(sources, source)
+	aFileListContent, err := rfs.GetFileContent("/etc/apt/sources.list")
+	if err == nil {
+		// in this case an empty or non-existant file is not an error
+		fileListContent = append(fileListContent, aFileListContent)
+	}
+
+	for _, fileContent := range fileListContent {
+		for _, content := range strings.Split(fileContent, "\n") {
+			trimmed := strings.TrimSpace(content)
+			if !strings.HasPrefix(trimmed, "#") && len(trimmed) != 0 {
+				sources = append(sources, content)
+			}
 		}
 	}
 

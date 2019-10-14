@@ -52,10 +52,6 @@ func (rfs *RootFS) GetFileContent(path string) (string, error) {
 	return string(fileBytes), nil
 }
 
-func (rfs *RootFS) Location() string {
-	return rfs.rootfsLocation
-}
-
 func New(pathToTar string) (RootFS, error) {
 	var rootfs = ""
 	var err error

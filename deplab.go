@@ -162,13 +162,11 @@ func preprocess(gitPaths, additionalSourcesFiles []string) ([]metadata.Dependenc
 func generateDependencies(imageName string, imageTarPath string, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
 	var dependencies []metadata.Dependency
 
-	log.Printf("imageTarPath: %s", imageTarPath)
 	rfs, err := rootfs.New(imageTarPath)
 	if err != nil {
 		return dependencies, errors.Wrapf(err, "cannot create rootFS for image at path: %s.", imageTarPath)
 	}
 	defer rfs.Cleanup()
-	log.Printf("rfs.Location: %s", rfs.Location())
 
 	dpkgList, err := providers.BuildDebianDependencyMetadata(imageName, rfs)
 	if err != nil {
