@@ -35,7 +35,6 @@ func Run(inputImageTarPath string, inputImage string, gitPaths []string, tag str
 	if inputImageTarPath != "" {
 		originImageTarPath = inputImageTarPath
 	} else {
-
 		// use crane.pull to get tar ball and put it in originImageTarPath.
 		dir, err := ioutil.TempDir("", "deplab-crane-")
 		if err != nil {
@@ -84,13 +83,19 @@ func Run(inputImageTarPath string, inputImage string, gitPaths []string, tag str
 		log.Fatalf("error validating additional source url: %s", err)
 	}
 
-	dependencies, err := generateDependencies(originImage, originImageTarPath, gitDependencies, additionalSourceUrls)
+	rfs, err := rootfs.New(originImageTarPath)
+	if err != nil {
+		log.Fatalf("cannot create rootFS for image at path %s: %s", originImageTarPath, err)
+	}
+	defer rfs.Cleanup()
+
+	dependencies, err := generateDependencies(rfs, gitDependencies, additionalSourceUrls)
 	if err != nil {
 		log.Fatalf("error generating dependencies: %s", err)
 	}
 	md := metadata.Metadata{Dependencies: dependencies}
 
-	md.Base = providers.BuildOSMetadata(originImage)
+	md.Base = providers.BuildOSMetadata(rfs)
 
 	md.Provenance = []metadata.Provenance{{
 		Name:    "deplab",
@@ -159,16 +164,10 @@ func preprocess(gitPaths, additionalSourcesFiles []string) ([]metadata.Dependenc
 	return gitDependencies, archiveUrls
 }
 
-func generateDependencies(imageName string, imageTarPath string, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
+func generateDependencies(rfs rootfs.RootFS, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
 	var dependencies []metadata.Dependency
 
-	rfs, err := rootfs.New(imageTarPath)
-	if err != nil {
-		return dependencies, errors.Wrapf(err, "cannot create rootFS for image at path: %s.", imageTarPath)
-	}
-	defer rfs.Cleanup()
-
-	dpkgList, err := providers.BuildDebianDependencyMetadata(imageName, rfs)
+	dpkgList, err := providers.BuildDebianDependencyMetadata(rfs)
 	if err != nil {
 		return dependencies, errors.Wrapf(err, "Could not generate debian package dependencies.")
 	}

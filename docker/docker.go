@@ -1,14 +1,12 @@
 package docker
 
 import (
-	"archive/tar"
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/docker/distribution/reference"
@@ -99,36 +97,4 @@ func GetIDOfNewImage(resp types.ImageBuildResponse) (string, error) {
 			return line.Aux.ID, nil
 		}
 	}
-}
-
-func ReadFromImage(imageName, path string) (*tar.Reader, error) {
-	createContainerCmd := exec.Command("docker", "create", imageName, "foo")
-	//defer image cleanup
-
-	containerIdBytes, err := createContainerCmd.Output()
-	if err != nil {
-		if e, ok := err.(*exec.ExitError); ok {
-			return nil, fmt.Errorf("failed to create container: %s with error: %s", e.Stderr, err)
-		}
-		return nil, fmt.Errorf("failed to create container: %s", err)
-	}
-
-	containerId := strings.TrimSpace(string(containerIdBytes))
-
-	c := exec.Command("docker", "cp", "-L", fmt.Sprintf("%s:%s", containerId, path), "-")
-	var cOut bytes.Buffer
-	c.Stdout = &cOut
-
-	err = c.Start()
-	if err != nil {
-		return nil, fmt.Errorf("error starting docker cp command to retrieve %s: %s", path, err)
-	}
-
-	err = c.Wait()
-	if err != nil {
-		var buf bytes.Buffer
-		return tar.NewReader(&buf), nil
-	}
-
-	return tar.NewReader(&cOut), nil
 }

@@ -3,25 +3,20 @@ package providers
 import (
 	"strings"
 
-	"github.com/joho/godotenv"
-	"github.com/pivotal/deplab/docker"
+	"github.com/pivotal/deplab/rootfs"
 
+	"github.com/joho/godotenv"
 	"github.com/pivotal/deplab/metadata"
 )
 
-func BuildOSMetadata(imageName string) metadata.Base {
-	t, err := docker.ReadFromImage(imageName, "/etc/os-release")
+func BuildOSMetadata(rfs rootfs.RootFS) metadata.Base {
+	osRelease, err := rfs.GetFileContent("/etc/os-release")
 
 	if err != nil {
 		return metadata.UnknownBase
 	}
 
-	_, err = t.Next()
-	if err != nil {
-		return metadata.UnknownBase
-	}
-
-	envMap, err := godotenv.Parse(t)
+	envMap, err := godotenv.Unmarshal(osRelease)
 	if err != nil {
 		return metadata.UnknownBase
 	}

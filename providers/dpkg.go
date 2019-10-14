@@ -17,7 +17,7 @@ import (
 
 const DebianPackageListSourceType = "debian_package_list"
 
-func BuildDebianDependencyMetadata(imageName string, rfs rootfs.RootFS) (metadata.Dependency, error) {
+func BuildDebianDependencyMetadata(rfs rootfs.RootFS) (metadata.Dependency, error) {
 	packages, err := getDebianPackages(rfs)
 
 	if len(packages) != 0 {
