@@ -11,13 +11,36 @@ import (
 
 var _ = Describe("Providers/Archive", func() {
 	Describe("ValidateURLs", func() {
-		It("Accepts valid url for which head function does not return an error", func() {
+		It("accepts url for which head function returns any 2xx status code", func() {
+			statusCode := 199
+			err := providers.ValidateURLs([]string{
+				"http://example.com",
+				"http://example.com",
+				"http://example.com",
+				"http://example.com",
+			}, func(_ string) (*http.Response, error) {
+				statusCode++
+				return &http.Response{StatusCode: statusCode}, nil
+			})
+			Expect(err).ToNot(HaveOccurred())
+		})
+
+		It("does not accept url for which head function returns a non 2xx status code", func() {
 			err := providers.ValidateURLs([]string{
 				"http://example.com",
 			}, func(_ string) (*http.Response, error) {
-				return nil, nil
+				return &http.Response{StatusCode: 400}, nil
 			})
-			Expect(err).ToNot(HaveOccurred())
+			Expect(err).To(HaveOccurred())
+		})
+
+		It("does not accept url for which head function returns an error", func() {
+			err := providers.ValidateURLs([]string{
+				"http://example.com",
+			}, func(u string) (*http.Response, error) {
+				return nil, fmt.Errorf("some error with %s", u)
+			})
+			Expect(err).To(MatchError(ContainSubstring("http://example.com")))
 		})
 
 		It("returns an error if any of the url is not reachable", func() {
@@ -33,14 +56,10 @@ var _ = Describe("Providers/Archive", func() {
 				if u == "http://example.com/this-is-a-404" {
 					return &http.Response{StatusCode: 404}, nil
 				}
-				return nil, nil
+				return &http.Response{StatusCode: 200}, nil
 			})
 
-			Expect(err).To(MatchError(
-				SatisfyAll(
-					ContainSubstring("some error"),
-					ContainSubstring("http://example.com/foo/bar"),
-				)))
+			Expect(err).To(HaveOccurred())
 		})
 	})
 })

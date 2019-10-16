@@ -1,8 +1,11 @@
 package integration_test
 
 import (
+	"net/http"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/ghttp"
 	"github.com/pivotal/deplab/metadata"
 	"github.com/pivotal/deplab/providers"
 )
@@ -13,6 +16,7 @@ var _ = Describe("deplab additional-source-url", func() {
 		var (
 			metadataLabel       metadata.Metadata
 			additionalArguments []string
+			server              *ghttp.Server
 		)
 
 		JustBeforeEach(func() {
@@ -21,11 +25,20 @@ var _ = Describe("deplab additional-source-url", func() {
 		})
 
 		Context("when I supply only one --additional-source-url argument", func() {
+			var address string
 			BeforeEach(func() {
-				additionalArguments = []string{"--additional-source-url", "https://example.com"}
+				server = startServer(
+					ghttp.RespondWith(http.StatusOK, []byte("")))
+				address = server.URL() + "/foo/bar"
+				additionalArguments = []string{"--additional-source-url", address}
+			})
+
+			AfterEach(func() {
+				server.Close()
 			})
 
 			It("adds a additional-source-url dependency", func() {
+
 				archiveDependencies := selectArchiveDependencies(metadataLabel.Dependencies)
 				Expect(archiveDependencies).To(HaveLen(1))
 				archiveDependency := archiveDependencies[0]
@@ -36,18 +49,29 @@ var _ = Describe("deplab additional-source-url", func() {
 				Expect(archiveDependency.Source.Type).To(Equal(providers.ArchiveType))
 
 				archiveSourceMetadata := archiveDependency.Source.Metadata.(map[string]interface{})
-				Expect(archiveSourceMetadata["url"]).To(Equal("https://example.com"))
+				Expect(archiveSourceMetadata["url"]).To(Equal(address))
 			})
 		})
 
 		Context("when I supply multiple additional-source-url as separate arguments", func() {
 			BeforeEach(func() {
-				additionalArguments = []string{"--additional-source-url", "https://example.com", "--additional-source-url", "https://example.com/foobar"}
+				server = startServer(
+					ghttp.RespondWith(http.StatusOK, []byte("")),
+					ghttp.RespondWith(http.StatusOK, []byte("")),
+				)
+
+				additionalArguments = []string{
+					"--additional-source-url", server.URL() + "/deplab",
+					"--additional-source-url", server.URL() + "/foobar"}
 			})
 
 			It("adds multiple archive entries", func() {
 				archiveDependencies := selectArchiveDependencies(metadataLabel.Dependencies)
 				Expect(archiveDependencies).To(HaveLen(2))
+			})
+
+			AfterEach(func() {
+				server.Close()
 			})
 		})
 	})

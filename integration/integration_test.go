@@ -1,7 +1,10 @@
 package integration_test
 
 import (
+	"net/http"
 	"strings"
+
+	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -78,6 +81,24 @@ var _ = Describe("deplab", func() {
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(SatisfyAll(
 				ContainSubstring("https://package.some.invalid/cool-package"),
+				ContainSubstring("error validating additional source url")))
+		})
+
+		It("exits with an error if additional-source-url is not returning a success status code ", func() {
+			server := startServer(ghttp.RespondWith(http.StatusNotFound, []byte("HTTP status not found code returned")))
+			defer server.Close()
+
+			address := server.URL() + "/cool-package"
+
+			_, stdErr := runDepLab([]string{
+				"--image", "ubuntu:bionic",
+				"--git", pathToGitRepo,
+				"--additional-source-url", address,
+			}, 1)
+
+			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+			Expect(errorOutput).To(SatisfyAll(
+				ContainSubstring(address),
 				ContainSubstring("error validating additional source url")))
 		})
 	})

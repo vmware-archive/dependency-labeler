@@ -1,8 +1,13 @@
 package integration_test
 
 import (
+	"io/ioutil"
+	"net/http"
 	"path/filepath"
 	"strings"
+	"text/template"
+
+	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,20 +20,28 @@ var _ = Describe("deplab additional sources file", func() {
 
 	Context("when I supply additional sources file(s) as an argument", func() {
 		var (
-			metadataLabel       metadata.Metadata
-			additionalArguments []string
+			metadataLabel              metadata.Metadata
+			additionalArguments        []string
+			inputAdditionalSourcesPath string
+			server                     *ghttp.Server
 		)
 
 		JustBeforeEach(func() {
-			inputImage := "ubuntu:bionic"
-			metadataLabel = runDeplabAgainstImage(inputImage, additionalArguments...)
+			metadataLabel = runDeplabAgainstImage("ubuntu:bionic", additionalArguments...)
 		})
 
 		Context("and it only has one source archive", func() {
 			BeforeEach(func() {
-				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-single-archive.yml"))
-				Expect(err).ToNot(HaveOccurred())
+				server = startServer(
+					ghttp.RespondWith(http.StatusOK, []byte("HTTP status not found code returned")))
+
+				inputAdditionalSourcesPath = templateAdditionalSource("sources-file-single-archive.yml", server.URL())
 				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
+			})
+
+			AfterEach(func() {
+				cleanupFile(inputAdditionalSourcesPath)
+				server.Close()
 			})
 
 			It("adds a archive dependency", func() {
@@ -42,20 +55,30 @@ var _ = Describe("deplab additional sources file", func() {
 				By("adding the source archive url to the archive dependency")
 				Expect(archiveDependency.Type).To(Equal("package"))
 				Expect(archiveDependency.Source.Type).To(Equal(providers.ArchiveType))
-				Expect(archiveSourceMetadata["url"]).To(Equal("http://archive.ubuntu.com/ubuntu/pool/main/c/ca-certificates/ca-certificates_20180409.tar.xz"))
+				Expect(archiveSourceMetadata["url"]).To(Equal(server.URL() + "/ubuntu/pool/main/c/ca-certificates/ca-certificates_20180409.tar.xz"))
 			})
 		})
 
 		Context("with multiple source archive urls", func() {
 			BeforeEach(func() {
-				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives.yml"))
-				Expect(err).ToNot(HaveOccurred())
+				server = startServer(
+					ghttp.RespondWith(http.StatusOK, ""),
+					ghttp.RespondWith(http.StatusOK, ""),
+				)
+
+				inputAdditionalSourcesPath = templateAdditionalSource("sources-file-multiple-archives.yml", server.URL())
+
 				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
 			})
 
 			It("adds multiple archive url entries", func() {
 				archiveDependencies := selectArchiveDependencies(metadataLabel.Dependencies)
 				Expect(archiveDependencies).To(HaveLen(2))
+			})
+
+			AfterEach(func() {
+				cleanupFile(inputAdditionalSourcesPath)
+				server.Close()
 			})
 		})
 
@@ -100,8 +123,13 @@ var _ = Describe("deplab additional sources file", func() {
 
 		Context("with both multiple vcs and multiple archives", func() {
 			BeforeEach(func() {
-				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives-multiple-vcs.yml"))
-				Expect(err).ToNot(HaveOccurred())
+				server = startServer(
+					ghttp.RespondWith(http.StatusOK, ""),
+					ghttp.RespondWith(http.StatusOK, ""),
+				)
+
+				inputAdditionalSourcesPath = templateAdditionalSource("sources-file-multiple-archives-multiple-vcs.yml", server.URL())
+
 				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
 			})
 
@@ -111,20 +139,44 @@ var _ = Describe("deplab additional sources file", func() {
 				vcsGitDependencies := selectVcsGitDependencies(gitDependencies)
 				Expect(vcsGitDependencies).To(HaveLen(2))
 			})
+
+			AfterEach(func() {
+				server.Close()
+				cleanupFile(inputAdditionalSourcesPath)
+			})
 		})
 
 		Context("with multiple sources files", func() {
+			var (
+				inputAdditionalSourcesPath1 string
+				inputAdditionalSourcesPath2 string
+			)
+
 			BeforeEach(func() {
-				inputAdditionalSourcesPath1, err := filepath.Abs(filepath.Join("assets", "sources-file-multiple-archives.yml"))
-				Expect(err).ToNot(HaveOccurred())
-				inputAdditionalSourcesPath2, err := filepath.Abs(filepath.Join("assets", "sources-file-single-archive.yml"))
-				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath1, "--additional-sources-file", inputAdditionalSourcesPath2}
+				server = startServer(
+					ghttp.RespondWith(http.StatusOK, ""),
+					ghttp.RespondWith(http.StatusOK, ""),
+					ghttp.RespondWith(http.StatusOK, ""),
+				)
+
+				inputAdditionalSourcesPath1 = templateAdditionalSource("sources-file-multiple-archives.yml", server.URL())
+				inputAdditionalSourcesPath2 = templateAdditionalSource("sources-file-single-archive.yml", server.URL())
+
+				additionalArguments = []string{
+					"--additional-sources-file", inputAdditionalSourcesPath1,
+					"--additional-sources-file", inputAdditionalSourcesPath2,
+				}
 			})
 
 			It("adds multiple archiveDependency entries", func() {
 				archiveDependencies := selectArchiveDependencies(metadataLabel.Dependencies)
 				Expect(archiveDependencies).To(HaveLen(3))
+			})
+
+			AfterEach(func() {
+				server.Close()
+				cleanupFile(inputAdditionalSourcesPath1)
+				cleanupFile(inputAdditionalSourcesPath2)
 			})
 		})
 
@@ -178,4 +230,24 @@ func selectVcsGitDependencies(dependencies []metadata.Dependency) []metadata.Dep
 		}
 	}
 	return gitDependencies
+}
+
+func templateAdditionalSource(path, server string) string {
+	inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", path))
+	Expect(err).ToNot(HaveOccurred())
+
+	t, err := template.ParseFiles(inputAdditionalSourcesPath)
+	Expect(err).ToNot(HaveOccurred())
+
+	f, err := ioutil.TempFile("", "")
+	Expect(err).ToNot(HaveOccurred())
+
+	err = t.Execute(f, struct {
+		Server string
+	}{
+		server,
+	})
+	Expect(err).ToNot(HaveOccurred())
+
+	return f.Name()
 }

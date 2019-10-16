@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/pivotal/deplab/metadata"
@@ -24,8 +25,12 @@ func BuildArchiveDependencyMetadata(archiveUrl string) (metadata.Dependency, err
 
 func ValidateURLs(additionalSourceUrls []string, fn HTTPHeadFn) error {
 	for _, asu := range additionalSourceUrls {
-		if _, err := fn(asu); err != nil {
+		if resp, err := fn(asu); err != nil {
 			return err
+		} else {
+			if resp.StatusCode > 299 {
+				return fmt.Errorf("could not reach %s with a valid status code", asu)
+			}
 		}
 	}
 	return nil

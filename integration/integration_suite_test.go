@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/onsi/gomega/ghttp"
 
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/config"
@@ -165,4 +168,11 @@ func getContentsOfReader(r io.Reader) []byte {
 	Expect(err).NotTo(HaveOccurred())
 
 	return contents
+}
+func startServer(handlers ...http.HandlerFunc) (server *ghttp.Server) {
+	server = ghttp.NewServer()
+	server.AppendHandlers(
+		handlers...,
+	)
+	return server
 }
