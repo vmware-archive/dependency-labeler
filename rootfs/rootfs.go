@@ -5,11 +5,12 @@ import (
 	"os"
 	"path/filepath"
 
+	v1 "github.com/google/go-containerregistry/pkg/v1"
+
 	"github.com/google/go-containerregistry/pkg/v1/mutate"
 
 	"github.com/docker/docker/pkg/archive"
 
-	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/pkg/errors"
 )
 
@@ -52,14 +53,9 @@ func (rfs *RootFS) GetFileContent(path string) (string, error) {
 	return string(fileBytes), nil
 }
 
-func New(pathToTar string) (RootFS, error) {
+func New(image v1.Image) (RootFS, error) {
 	var rootfs = ""
 	var err error
-
-	image, err := crane.Load(pathToTar)
-	if err != nil {
-		return RootFS{}, errors.Wrapf(err, "Could not load image from tar at path: %s", pathToTar)
-	}
 
 	f, err := ioutil.TempFile("", "image")
 	if err != nil {

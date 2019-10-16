@@ -1,10 +1,7 @@
 package integration_test
 
 import (
-	"context"
 	"strings"
-
-	"github.com/docker/docker/api/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -17,7 +14,11 @@ var _ = Describe("deplab", func() {
 			inputImage := "scratch"
 			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo}, 1)
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-			Expect(errorOutput).To(ContainSubstring("could not pull image from url"))
+			Expect(errorOutput).To(
+				SatisfyAll(
+					ContainSubstring("could not load image"),
+					ContainSubstring("scratch"),
+				))
 		})
 
 		It("throws an error if an invalid image sent to docker engine", func() {
@@ -26,7 +27,11 @@ var _ = Describe("deplab", func() {
 			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo}, 1)
 
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-			Expect(errorOutput).To(ContainSubstring("could not pull image from url"))
+			Expect(errorOutput).To(
+				SatisfyAll(
+					ContainSubstring("could not load image"),
+					ContainSubstring("swkichtlsmhasd"),
+				))
 		})
 
 		It("exits with an error if neither image or image-tar flags are set", func() {
@@ -48,24 +53,6 @@ var _ = Describe("deplab", func() {
 
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(ContainSubstring("could not parse reference"))
-		})
-
-		It("returns an image with a tag if the tag flag is provided", func() {
-			outputImage, _, _, repoTags := runDeplabAgainstImage("ubuntu:bionic", "--tag", "testtag")
-
-			Expect(repoTags).ToNot(BeEmpty())
-			Expect(repoTags).To(ContainElement(ContainSubstring("testtag")))
-
-			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
-			Expect(err).ToNot(HaveOccurred())
-		})
-
-		It("exits with an error if the tag passed is not valid", func() {
-
-			_, stdErr := runDepLab([]string{"--image", "ubuntu:bionic", "--git", pathToGitRepo, "--tag", "foo:testtag/bar"}, 1)
-
-			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-			Expect(errorOutput).To(ContainSubstring("tag foo:testtag/bar is not valid"))
 		})
 
 		It("exits with an error if additional-source-url is not valid", func() {

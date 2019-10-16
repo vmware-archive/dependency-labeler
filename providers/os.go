@@ -9,8 +9,8 @@ import (
 	"github.com/pivotal/deplab/metadata"
 )
 
-func BuildOSMetadata(rfs rootfs.RootFS) metadata.Base {
-	osRelease, err := rfs.GetFileContent("/etc/os-release")
+func BuildOSMetadata(dli rootfs.Image) metadata.Base {
+	osRelease, err := dli.GetFileContent("/etc/os-release")
 
 	if err != nil {
 		return metadata.UnknownBase

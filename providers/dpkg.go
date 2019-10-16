@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/pivotal/deplab/rootfs"
+
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
@@ -17,11 +18,11 @@ import (
 
 const DebianPackageListSourceType = "debian_package_list"
 
-func BuildDebianDependencyMetadata(rfs rootfs.RootFS) (metadata.Dependency, error) {
-	packages, err := getDebianPackages(rfs)
+func BuildDebianDependencyMetadata(dli rootfs.Image) (metadata.Dependency, error) {
+	packages, err := getDebianPackages(dli)
 
 	if len(packages) != 0 {
-		sources, _ := getAptSources(rfs)
+		sources, _ := getAptSources(dli)
 
 		sourceMetadata := metadata.DebianPackageListSourceMetadata{
 			Packages:   packages,
@@ -55,15 +56,15 @@ func Digest(sourceMetadata metadata.DebianPackageListSourceMetadata) string {
 	return version
 }
 
-func getAptSources(rfs rootfs.RootFS) ([]string, error) {
+func getAptSources(dli rootfs.Image) ([]string, error) {
 	sources := []string{}
-	fileListContent, err := rfs.GetDirContents("/etc/apt/sources.list.d")
+	fileListContent, err := dli.GetDirContents("/etc/apt/sources.list.d")
 	if err != nil {
 		// in this case an empty or non-existant directory is not an error
 		fileListContent = []string{}
 	}
 
-	aFileListContent, err := rfs.GetFileContent("/etc/apt/sources.list")
+	aFileListContent, err := dli.GetFileContent("/etc/apt/sources.list")
 	if err == nil {
 		// in this case an empty or non-existant file is not an error
 		fileListContent = append(fileListContent, aFileListContent)
@@ -86,10 +87,10 @@ func getAptSources(rfs rootfs.RootFS) ([]string, error) {
 	return sources, nil
 }
 
-func getDebianPackages(rfs rootfs.RootFS) ([]metadata.Package, error) {
+func getDebianPackages(dli rootfs.Image) ([]metadata.Package, error) {
 	var packages []metadata.Package
 
-	statusPackages, err := listPackagesFromStatus(rfs)
+	statusPackages, err := listPackagesFromStatus(dli)
 
 	if err != nil {
 		return []metadata.Package{}, err
@@ -97,7 +98,7 @@ func getDebianPackages(rfs rootfs.RootFS) ([]metadata.Package, error) {
 
 	packages = append(packages, statusPackages...)
 
-	statusDPackages, err := listPackagesFromStatusD(rfs)
+	statusDPackages, err := listPackagesFromStatusD(dli)
 
 	if err != nil {
 		return []metadata.Package{}, err
@@ -164,10 +165,10 @@ func ParseStatDBEntry(content string) (metadata.Package, error) {
 	return pkg, nil
 }
 
-func listPackagesFromStatusD(rfs rootfs.RootFS) (packages []metadata.Package, err error) {
-	fileList, err := rfs.GetDirContents("/var/lib/dpkg/status.d")
+func listPackagesFromStatusD(dli rootfs.Image) (packages []metadata.Package, err error) {
+	fileList, err := dli.GetDirContents("/var/lib/dpkg/status.d")
 	if err != nil {
-		// in this case an empty or non-existant directory is not an error
+		// in this case an empty or non-existent directory is not an error
 		fileList = []string{}
 	}
 
@@ -181,8 +182,8 @@ func listPackagesFromStatusD(rfs rootfs.RootFS) (packages []metadata.Package, er
 	return packages, nil
 }
 
-func listPackagesFromStatus(rfs rootfs.RootFS) (packages []metadata.Package, err error) {
-	statDBString, err := rfs.GetFileContent("/var/lib/dpkg/status")
+func listPackagesFromStatus(dli rootfs.Image) (packages []metadata.Package, err error) {
+	statDBString, err := dli.GetFileContent("/var/lib/dpkg/status")
 	if err != nil {
 		// in this case an empty or non-existant file is not an error
 		statDBString = ""

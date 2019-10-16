@@ -14,3 +14,5 @@ RUN echo 'hello world' > start-file \
 FROM scratch
 
 COPY --from=builder /all-files/ /all-files
+
+LABEL foo="bar"

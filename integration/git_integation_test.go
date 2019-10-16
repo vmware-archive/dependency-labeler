@@ -1,20 +1,15 @@
 package integration_test
 
 import (
-	"context"
 	"github.com/pivotal/deplab/preprocessors"
 
 	"github.com/pivotal/deplab/metadata"
-
-	"github.com/docker/docker/api/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("deplab git", func() {
-	var outputImage string
-
 	Context("when I supply git repo(s) as argument(s)", func() {
 		var (
 			metadataLabel       metadata.Metadata
@@ -24,14 +19,10 @@ var _ = Describe("deplab git", func() {
 
 		JustBeforeEach(func() {
 			inputImage := "ubuntu:bionic"
-			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage, additionalArguments...)
+			metadataLabel = runDeplabAgainstImage(inputImage, additionalArguments...)
 			gitDependencies = selectGitDependencies(metadataLabel.Dependencies)
 		})
 
-		AfterEach(func() {
-			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
-			Expect(err).ToNot(HaveOccurred())
-		})
 		Context("when I supply only one --git argument", func() {
 			BeforeEach(func() {
 				additionalArguments = []string{}

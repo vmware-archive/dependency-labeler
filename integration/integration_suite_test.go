@@ -86,22 +86,39 @@ func runDepLab(args []string, expErrCode int) (stdOut *bytes.Reader, stdErr *byt
 	return stdOut, stdErr
 }
 
-func runDeplabAgainstImage(inputImage string, extraArgs ...string) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {
-	By("executing it")
-	args := []string{"--image", inputImage, "--git", pathToGitRepo}
-	args = append(args, extraArgs...)
-	stdOut, _ := runDepLab(args, 0)
+func runDeplabAgainstImage(inputImage string, extraArgs ...string) (metadataLabel metadata.Metadata) {
+	f, err := ioutil.TempFile("", "")
+	Expect(err).ToNot(HaveOccurred())
 
-	return parseOutputAndValidate(stdOut)
+	defer os.Remove(f.Name())
+
+	By("executing it")
+	args := []string{"--image", inputImage, "--git", pathToGitRepo, "--metadata-file", f.Name()}
+	args = append(args, extraArgs...)
+	_, _ = runDepLab(args, 0)
+
+	metadataLabel = metadata.Metadata{}
+	err = json.NewDecoder(f).Decode(&metadataLabel)
+	Expect(err).ToNot(HaveOccurred())
+
+	return metadataLabel
 }
 
-func runDeplabAgainstTar(inputTarPath string, extraArgs ...string) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {
-	By("executing it")
-	args := []string{"--image-tar", inputTarPath, "--git", pathToGitRepo}
-	args = append(args, extraArgs...)
-	stdOut, _ := runDepLab(args, 0)
+func runDeplabAgainstTar(inputTarPath string, extraArgs ...string) (metadataLabel metadata.Metadata) {
+	f, err := ioutil.TempFile("", "")
+	Expect(err).ToNot(HaveOccurred())
 
-	return parseOutputAndValidate(stdOut)
+	By("executing it")
+	args := []string{"--image-tar", inputTarPath, "--git", pathToGitRepo, "--metadata-file", f.Name()}
+	args = append(args, extraArgs...)
+	_, _ = runDepLab(args, 0)
+
+	decoder := json.NewDecoder(f)
+	metadataLabel = metadata.Metadata{}
+	err = decoder.Decode(&metadataLabel)
+	Expect(err).ToNot(HaveOccurred())
+
+	return metadataLabel
 }
 
 func parseOutputAndValidate(r io.Reader) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {

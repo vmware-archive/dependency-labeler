@@ -1,31 +1,16 @@
 package integration_test
 
 import (
-	"context"
-
 	. "github.com/onsi/ginkgo/extensions/table"
 	types2 "github.com/onsi/gomega/types"
-
-	"github.com/docker/docker/api/types"
-	"github.com/pivotal/deplab/metadata"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("deplab", func() {
-	var (
-		outputImage   string
-		metadataLabel metadata.Metadata
-	)
-
-	AfterEach(func() {
-		_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
-		Expect(err).ToNot(HaveOccurred())
-	})
-
 	DescribeTable("generates base property", func(inputImage string, matchers ...types2.GomegaMatcher) {
-		outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage)
+		metadataLabel := runDeplabAgainstImage(inputImage)
 
 		Expect(metadataLabel.Base).To(SatisfyAll(matchers...))
 	},
@@ -37,7 +22,6 @@ var _ = Describe("deplab", func() {
 			HaveKeyWithValue("version_codename", "bionic"),
 			HaveKeyWithValue("pretty_name", "Ubuntu 18.04.2 LTS"),
 		),
-
 		Entry("a non-ubuntu:bionic image with /etc/os-release", "alpine:3.10.1",
 			HaveKeyWithValue("name", "Alpine Linux"),
 			HaveKeyWithValue("version_id", "3.10.1"),

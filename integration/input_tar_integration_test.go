@@ -14,7 +14,7 @@ var _ = Describe("deplab", func() {
 			By("executing it")
 			inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
 			Expect(err).ToNot(HaveOccurred())
-			_, _, metadataLabel, _ := runDeplabAgainstTar(inputTarPath)
+			metadataLabel := runDeplabAgainstTar(inputTarPath)
 
 			gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
 			gitDependency := gitDependencies[0]
@@ -33,7 +33,11 @@ var _ = Describe("deplab", func() {
 			inputTarPath := "/path/to/image.tar"
 			_, stdErr := runDepLab([]string{"--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-			Expect(errorOutput).To(ContainSubstring("could not load docker image from tar at /path/to/image.tar; Err: open /path/to/image.tar: no such file or directory"))
+			Expect(errorOutput).To(
+				SatisfyAll(
+					ContainSubstring("/path/to/image.tar"),
+					ContainSubstring("could not load image"),
+				))
 		})
 	})
 
@@ -42,7 +46,7 @@ var _ = Describe("deplab", func() {
 			By("executing it")
 			inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny-with-eu.gcr.io-tag.tar"))
 			Expect(err).ToNot(HaveOccurred())
-			_, _, metadataLabel, _ := runDeplabAgainstTar(inputTarPath)
+			metadataLabel := runDeplabAgainstTar(inputTarPath)
 
 			gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
 			gitDependency := gitDependencies[0]

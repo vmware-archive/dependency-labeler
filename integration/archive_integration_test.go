@@ -1,9 +1,6 @@
 package integration_test
 
 import (
-	"context"
-
-	"github.com/docker/docker/api/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/deplab/metadata"
@@ -16,17 +13,11 @@ var _ = Describe("deplab additional-source-url", func() {
 		var (
 			metadataLabel       metadata.Metadata
 			additionalArguments []string
-			outputImage         string
 		)
 
 		JustBeforeEach(func() {
 			inputImage := "ubuntu:bionic"
-			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage, additionalArguments...)
-		})
-
-		AfterEach(func() {
-			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			metadataLabel = runDeplabAgainstImage(inputImage, additionalArguments...)
 		})
 
 		Context("when I supply only one --additional-source-url argument", func() {

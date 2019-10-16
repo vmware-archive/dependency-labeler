@@ -3,20 +3,14 @@ package deplab
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/pivotal/deplab/rootfs"
 
-	"github.com/google/go-containerregistry/pkg/crane"
-	"github.com/google/go-containerregistry/pkg/name"
 	"github.com/pkg/errors"
 
-	"github.com/pivotal/deplab/docker"
 	"github.com/pivotal/deplab/metadata"
 	"github.com/pivotal/deplab/outputs"
 	"github.com/pivotal/deplab/preprocessors"
@@ -30,72 +24,27 @@ var (
 const UnknownDeplabVersion = "0.0.0-dev"
 
 func Run(inputImageTarPath string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string, additionalSourceUrls []string, additionalSourceFilePaths []string) {
-
-	var originImageTarPath string
-	if inputImageTarPath != "" {
-		originImageTarPath = inputImageTarPath
-	} else {
-		// use crane.pull to get tar ball and put it in originImageTarPath.
-		dir, err := ioutil.TempDir("", "deplab-crane-")
-		if err != nil {
-			log.Fatalf("Could not create temp directory. %s", err)
-		}
-		defer os.RemoveAll(dir)
-
-		originImageTarPath = dir + "/image.tgz"
-
-		pulledImage, err := crane.Pull(inputImage)
-		if err != nil {
-			log.Fatalf("could not pull image from url: %s; Err: %s", inputImage, err)
-		}
-		ref, err := name.ParseReference(inputImage)
-		if err != nil {
-			log.Fatalf("Could not parse input image reference: %s. Err: %s", inputImage, err)
-		}
-		imgTag := ref.(name.Tag)
-		err = crane.Save(pulledImage, imgTag.Name(), originImageTarPath)
-		if err != nil {
-			log.Fatalf("could not save image to path: %s; Err: %s", originImageTarPath, err)
-		}
+	dli, err := rootfs.NewDeplabImage(inputImage, inputImageTarPath)
+	if err != nil {
+		log.Fatalf("could not load image: %s", err)
 	}
-
-	originImage := inputImage
-	if originImageTarPath != "" {
-		stdout, stderr, err := runCommand("docker", "load", "-i", originImageTarPath)
-		if err != nil {
-			log.Fatalf("could not load docker image from tar at %s; Err: %s", originImageTarPath, stderr)
-		}
-
-		imageTag := ""
-		if strings.Contains(stdout.String(), "image ID") {
-			imageTag = strings.TrimPrefix(stdout.String(), "Loaded image ID:")
-		} else {
-			imageTag = strings.TrimPrefix(stdout.String(), "Loaded image:")
-		}
-		originImage = strings.TrimSpace(imageTag)
-	}
+	defer dli.Cleanup()
 
 	gitDependencies, archiveUrls := preprocess(gitPaths, additionalSourceFilePaths)
 	additionalSourceUrls = append(additionalSourceUrls, archiveUrls...)
 
-	err := providers.ValidateURLs(additionalSourceUrls, http.Head)
+	err = providers.ValidateURLs(additionalSourceUrls, http.Head)
 	if err != nil {
 		log.Fatalf("error validating additional source url: %s", err)
 	}
 
-	rfs, err := rootfs.New(originImageTarPath)
-	if err != nil {
-		log.Fatalf("cannot create rootFS for image at path %s: %s", originImageTarPath, err)
-	}
-	defer rfs.Cleanup()
-
-	dependencies, err := generateDependencies(rfs, gitDependencies, additionalSourceUrls)
+	dependencies, err := generateDependencies(dli, gitDependencies, additionalSourceUrls)
 	if err != nil {
 		log.Fatalf("error generating dependencies: %s", err)
 	}
 	md := metadata.Metadata{Dependencies: dependencies}
 
-	md.Base = providers.BuildOSMetadata(rfs)
+	md.Base = providers.BuildOSMetadata(dli)
 
 	md.Provenance = []metadata.Provenance{{
 		Name:    "deplab",
@@ -103,33 +52,15 @@ func Run(inputImageTarPath string, inputImage string, gitPaths []string, tag str
 		URL:     "https://github.com/pivotal/deplab",
 	}}
 
-	resp, err := docker.CreateNewImage(originImage, md, tag)
-	if err != nil {
-		log.Fatalf("could not create new image: %s\n", err)
-	}
+	if outputImageTar != "" {
+		err = dli.ExportWithMetadata(md, outputImageTar, tag)
 
-	newID, err := docker.GetIDOfNewImage(resp)
-	if err != nil {
-		log.Fatalf("could not get ID of the new image: %s\n", err)
+		if err != nil {
+			log.Fatalf("error exporting tar to %s: %s", outputImageTar, err)
+		}
 	}
-
-	fmt.Println(newID)
 
 	writeOutputs(md, metadataFilePath, dpkgFilePath)
-
-	if outputImageTar != "" {
-		id := newID
-
-		if tag != "" {
-			id = tag
-		}
-
-		_, stderr, err := runCommand("docker", "save", id, "-o", outputImageTar)
-		if err != nil {
-			log.Fatalf("could not save docker image to tar: %s", stderr)
-		}
-	}
-
 }
 
 func GetVersion() string {
@@ -164,10 +95,10 @@ func preprocess(gitPaths, additionalSourcesFiles []string) ([]metadata.Dependenc
 	return gitDependencies, archiveUrls
 }
 
-func generateDependencies(rfs rootfs.RootFS, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
+func generateDependencies(dli rootfs.Image, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
 	var dependencies []metadata.Dependency
 
-	dpkgList, err := providers.BuildDebianDependencyMetadata(rfs)
+	dpkgList, err := providers.BuildDebianDependencyMetadata(dli)
 	if err != nil {
 		return dependencies, errors.Wrapf(err, "Could not generate debian package dependencies.")
 	}

@@ -2,8 +2,6 @@ package integration_test
 
 import (
 	"archive/tar"
-	"bytes"
-	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -11,10 +9,10 @@ import (
 	"path"
 	"strings"
 
+	"github.com/google/go-containerregistry/pkg/crane"
+
 	. "github.com/onsi/ginkgo/extensions/table"
 	"github.com/pivotal/deplab/metadata"
-
-	"github.com/docker/docker/api/types"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -23,7 +21,6 @@ import (
 var _ = Describe("deplab", func() {
 	var (
 		inputImage             string
-		outputImage            string
 		tarDestinationPath     string
 		outputFilesDestination string
 	)
@@ -36,38 +33,60 @@ var _ = Describe("deplab", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			DescribeTable("without a tag", func(tarDestinationPath string) {
+			DescribeTable("without a tag", func(inputImage, tarDestinationPath string) {
 				defer cleanupFile(tarDestinationPath)
+				metadataFile, err := ioutil.TempFile("", "")
+				Expect(err).ToNot(HaveOccurred())
+				defer cleanupFile(metadataFile.Name())
 
-				inputImage = "pivotalnavcon/ubuntu-additional-sources"
-				outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath)
+				_, _ = runDepLab([]string{
+					"--image", inputImage,
+					"--git", pathToGitRepo,
+					"--metadata-file", metadataFile.Name(),
+					"--output-tar", tarDestinationPath,
+				}, 0)
+
+				metadataFileContent := metadata.Metadata{}
+				err = json.NewDecoder(metadataFile).Decode(&metadataFileContent)
+				Expect(err).ToNot(HaveOccurred())
 
 				md := getMetadataFromImageTarball(tarDestinationPath)
 
-				Expect(md.Base).To(
-					SatisfyAll(
-						HaveKeyWithValue("name", "Ubuntu"),
-						HaveKeyWithValue("version_codename", "bionic"),
-					))
+				Expect(metadataFileContent).To(Equal(md))
 			},
-				Entry("when the file exists", existingFileName()),
-				Entry("when the file does not exists", nonExistingFileName()),
+				Entry("ubuntu based image", "pivotalnavcon/ubuntu-additional-sources", nonExistingFileName()),
+				Entry("alpine based image", "alpine", nonExistingFileName()),
+				Entry("scratch based image", "pivotalnavcon/ubuntu-all-file-types", nonExistingFileName()),
+				Entry("cf tiny image", "cloudfoundry/run:tiny", nonExistingFileName()),
+				Entry("cf tiny image", "cloudfoundry/run:tiny", existingFileName()),
 			)
 
 			Context("when there is a tag", func() {
-				BeforeEach(func() {
-					tempDir, err := ioutil.TempDir("", "deplab-integration-output-tar-file-")
+				It("writes the image as a tar", func() {
+					tempDir, err := ioutil.TempDir(outputFilesDestination, "deplab-integration-output-tar-file-")
 					Expect(err).ToNot(HaveOccurred())
 					tarDestinationPath = path.Join(tempDir, "image.tar")
 
 					Expect(err).ToNot(HaveOccurred())
 					inputImage = "pivotalnavcon/ubuntu-additional-sources"
-					outputImage, _, _, _ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath, "--tag", "foo:bar")
+					_ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath, "--tag", "foo:bar")
+
+					manifest := getManifestFromImageTarball(tarDestinationPath)
+					Expect(manifest["RepoTags"]).To(ConsistOf("foo:bar"))
 				})
 
-				It("writes the image as a tar", func() {
-					manifest := getManifestFromImageTarball(tarDestinationPath)
-					Expect(manifest[0]["RepoTags"].([]interface{})[0].(string)).To(Equal("foo:bar"))
+				It("exits with an error if the tag passed is not valid", func() {
+					_, stdErr := runDepLab([]string{"--image", "ubuntu:bionic",
+						"--git", pathToGitRepo,
+						"--tag", "foo:testtag/bar",
+						"--output-tar", existingFileName(),
+					}, 1)
+
+					errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+					Expect(errorOutput).To(SatisfyAll(
+						ContainSubstring("foo:testtag/bar"),
+						ContainSubstring("error exporting tar"),
+					))
 				})
 			})
 
@@ -80,25 +99,27 @@ var _ = Describe("deplab", func() {
 		Describe("and file can't be written", func() {
 			It("writes the image metadata, returns the sha and throws an error about the file location", func() {
 				inputImage = "pivotalnavcon/ubuntu-additional-sources"
-				stdOut, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--output-tar", "a-path-that-does-not-exist/image.tar"}, 1)
-				outputImage, _, _, _ = parseOutputAndValidate(stdOut)
-				Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("directory \"a-path-that-does-not-exist\" does not exist"))
-			})
-		})
+				_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--output-tar", "a-path-that-does-not-exist/image.tar"}, 1)
 
-		AfterEach(func() {
-			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
-			Expect(err).ToNot(HaveOccurred())
+				Expect(string(getContentsOfReader(stdErr))).To(
+					SatisfyAll(
+						ContainSubstring("a-path-that-does-not-exist"),
+						ContainSubstring("could not export to"),
+					))
+			})
 		})
 	})
 })
 
 func getMetadataFromImageTarball(tarDestinationPath string) metadata.Metadata {
-	_, configBuffer := getManifestAndConfigFromImageTarball(tarDestinationPath)
-
-	config := make(map[string]interface{})
-	err := json.NewDecoder(configBuffer).Decode(&config)
+	image, _ := crane.Load(tarDestinationPath)
+	rawConfig, err := image.RawConfigFile()
 	Expect(err).ToNot(HaveOccurred())
+
+	config := make(map[string]interface{}, 0)
+	err = json.Unmarshal(rawConfig, &config)
+	Expect(err).ToNot(HaveOccurred())
+
 	mdString := config["config"].(map[string]interface{})["Labels"].(map[string]interface{})["io.pivotal.metadata"].(string)
 
 	md := metadata.Metadata{}
@@ -109,20 +130,13 @@ func getMetadataFromImageTarball(tarDestinationPath string) metadata.Metadata {
 	return md
 }
 
-func getManifestFromImageTarball(tarDestinationPath string) []map[string]interface{} {
-	manifest, _ := getManifestAndConfigFromImageTarball(tarDestinationPath)
-	return manifest
-}
-
-func getManifestAndConfigFromImageTarball(tarDestinationPath string) ([]map[string]interface{}, *bytes.Buffer) {
+func getManifestFromImageTarball(tarDestinationPath string) map[string]interface{} {
 	tarDestinationFile, err := os.Open(tarDestinationPath)
 	Expect(err).ToNot(HaveOccurred())
 	defer tarDestinationFile.Close()
 
 	tr := tar.NewReader(tarDestinationFile)
-
-	manifestBuffer := bytes.Buffer{}
-	configBuffer := bytes.Buffer{}
+	manifest := make([]map[string]interface{}, 1)
 
 	for {
 		hdr, err := tr.Next()
@@ -135,18 +149,12 @@ func getManifestAndConfigFromImageTarball(tarDestinationPath string) ([]map[stri
 
 		if strings.Contains(hdr.Name, ".json") {
 			if hdr.Name == "manifest.json" {
-				_, err := io.Copy(&manifestBuffer, tr)
+				err = json.NewDecoder(tr).Decode(&manifest)
 				Expect(err).ToNot(HaveOccurred())
-			} else {
-				_, err := io.Copy(&configBuffer, tr)
-				Expect(err).ToNot(HaveOccurred())
+				break
 			}
 		}
 	}
 
-	manifest := make([]map[string]interface{}, 0)
-	err = json.NewDecoder(&manifestBuffer).Decode(&manifest)
-	Expect(err).ToNot(HaveOccurred())
-
-	return manifest, &configBuffer
+	return manifest[0]
 }

@@ -1,11 +1,9 @@
 package integration_test
 
 import (
-	"context"
 	"path/filepath"
 	"strings"
 
-	"github.com/docker/docker/api/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/deplab/metadata"
@@ -19,17 +17,11 @@ var _ = Describe("deplab additional sources file", func() {
 		var (
 			metadataLabel       metadata.Metadata
 			additionalArguments []string
-			outputImage         string
 		)
 
 		JustBeforeEach(func() {
 			inputImage := "ubuntu:bionic"
-			outputImage, _, metadataLabel, _ = runDeplabAgainstImage(inputImage, additionalArguments...)
-		})
-
-		AfterEach(func() {
-			_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
-			Expect(err).ToNot(HaveOccurred())
+			metadataLabel = runDeplabAgainstImage(inputImage, additionalArguments...)
 		})
 
 		Context("and it only has one source archive", func() {

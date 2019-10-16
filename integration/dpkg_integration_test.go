@@ -1,7 +1,6 @@
 package integration_test
 
 import (
-	"context"
 	"sort"
 
 	"github.com/pivotal/deplab/metadata"
@@ -9,34 +8,23 @@ import (
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
-	"github.com/docker/docker/api/types"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("deplab dpkg", func() {
 	var (
-		inputImage          string
-		outputImage         string
-		metadataLabelString string
-		metadataLabel       metadata.Metadata
+		inputImage    string
+		metadataLabel metadata.Metadata
 	)
-
-	AfterEach(func() {
-		_, err := dockerCli.ImageRemove(context.TODO(), outputImage, types.ImageRemoveOptions{})
-		Expect(err).ToNot(HaveOccurred())
-	})
 
 	Context("with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
 			inputImage = "pivotalnavcon/ubuntu-additional-sources"
-			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
+			metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
 		It("applies a metadata label", func() {
-			Expect(metadataLabelString).ToNot(BeEmpty())
-
 			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})
 
@@ -66,24 +54,15 @@ var _ = Describe("deplab dpkg", func() {
 			Expect(pkgs).To(HaveLen(89))
 			Expect(ArePackagesSorted(pkgs)).To(BeTrue())
 
-			By("generating an image with the input as the parent")
-			inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
-			Expect(err).ToNot(HaveOccurred())
-
 			By("generating a sha256 digest of the metadata content as version")
 			Expect(metadataLabel.Dependencies[0].Source.Version["sha256"]).To(MatchRegexp(`^[0-9a-f]{64}$`))
-
-			inspectInput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), inputImage)
-			Expect(err).ToNot(HaveOccurred())
-
-			Expect(inspectOutput.Parent).To(Equal(inspectInput.ID))
 		})
 	})
 
 	Context("with an image without dpkg", func() {
 		BeforeEach(func() {
 			inputImage = "alpine:latest"
-			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
+			metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
 		It("does not return a dpkg list", func() {
@@ -95,12 +74,10 @@ var _ = Describe("deplab dpkg", func() {
 	Context("with an image with dpkg, but no apt sources", func() {
 		BeforeEach(func() {
 			inputImage = "pivotalnavcon/ubuntu-no-sources"
-			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
+			metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
 		It("does not return a dpkg list", func() {
-			Expect(metadataLabelString).ToNot(BeEmpty())
-
 			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})
 
@@ -114,11 +91,10 @@ var _ = Describe("deplab dpkg", func() {
 	Context("with an ubuntu:bionic based image with a non-shell entrypoint", func() {
 		BeforeEach(func() {
 			inputImage = "pivotalnavcon/entrypoint-return-stdout"
-			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
+			metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
 		It("should return the apt source list", func() {
-			Expect(metadataLabelString).ToNot(BeEmpty())
 			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})
 
@@ -133,12 +109,10 @@ var _ = Describe("deplab dpkg", func() {
 	Context("with Pivotal Tiny", func() {
 		BeforeEach(func() {
 			inputImage = "pivotalnavcon/tiny"
-			outputImage, metadataLabelString, metadataLabel, _ = runDeplabAgainstImage(inputImage)
+			metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
 		It("returns a dpkg list", func() {
-			Expect(metadataLabelString).ToNot(BeEmpty())
-
 			By("listing debian package dependencies in the image alphabetically")
 			Expect(metadataLabel.Dependencies[0].Type).To(Equal(providers.DebianPackageListSourceType))
 
