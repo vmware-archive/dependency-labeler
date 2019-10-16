@@ -179,13 +179,21 @@ var _ = Describe("deplab additional sources file", func() {
 				cleanupFile(inputAdditionalSourcesPath2)
 			})
 		})
+	})
+
+	Context("when I supply invalid additional sources file(s) as an argument", func() {
 
 		Context("with erroneous paths", func() {
 			It("exits with an error", func() {
-				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
 				Expect(err).ToNot(HaveOccurred())
-				_, stdErr := runDepLab([]string{"--additional-sources-file", "erroneous_path.yml", "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+
+				_, stdErr := runDepLab([]string{
+					"--additional-sources-file", "erroneous_path.yml",
+					"--image-tar", inputTarPath,
+					"--git", pathToGitRepo,
+				}, 1)
+
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 				Expect(errorOutput).To(ContainSubstring("could not parse additional sources file: erroneous_path.yml"))
 			})
@@ -193,7 +201,6 @@ var _ = Describe("deplab additional sources file", func() {
 
 		Context("with an empty file", func() {
 			It("exits with an error", func() {
-				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
 				Expect(err).ToNot(HaveOccurred())
 				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "empty-file.yml"))
@@ -206,7 +213,6 @@ var _ = Describe("deplab additional sources file", func() {
 
 		Context("with a unsupported vcs type", func() {
 			It("exits with an error", func() {
-				By("executing it")
 				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
 				Expect(err).ToNot(HaveOccurred())
 				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-unsupported-vcs.yml"))
@@ -217,7 +223,6 @@ var _ = Describe("deplab additional sources file", func() {
 			})
 		})
 	})
-
 })
 
 func selectVcsGitDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
