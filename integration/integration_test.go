@@ -21,7 +21,7 @@ var _ = Describe("deplab", func() {
 				))
 		})
 
-		It("throws an error if an invalid image sent to docker engine", func() {
+		It("throws an error if trying to pull an invalid image", func() {
 			By("executing it")
 			inputImage := "swkichtlsmhasd" // random string unlikely for an image ever to exist
 			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo}, 1)

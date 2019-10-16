@@ -2,14 +2,12 @@ package integration_test
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -23,13 +21,10 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-
-	docker "github.com/docker/docker/client"
 )
 
 var (
 	pathToBin                 string
-	dockerCli                 *docker.Client
 	commitHash, pathToGitRepo string
 )
 
@@ -42,11 +37,6 @@ func TestDeplab(t *testing.T) {
 		)
 
 		commitHash, pathToGitRepo = makeFakeGitRepo()
-
-		dockerCli, err = docker.NewClientWithOpts(docker.WithVersion("1.39"), docker.FromEnv)
-		if err != nil {
-			panic(err)
-		}
 
 		pathToBin, err = gexec.Build("github.com/pivotal/deplab/cmd/deplab")
 		Expect(err).ToNot(HaveOccurred())
@@ -119,25 +109,6 @@ func runDeplabAgainstTar(inputTarPath string, extraArgs ...string) (metadataLabe
 	Expect(err).ToNot(HaveOccurred())
 
 	return metadataLabel
-}
-
-func parseOutputAndValidate(r io.Reader) (outputImage string, metadataLabelString string, metadataLabel metadata.Metadata, repoTags []string) {
-	By("checking if it returns an image sha")
-	outputImage = strings.TrimSpace(string(getContentsOfReader(r)))
-	Expect(outputImage).To(MatchRegexp("^sha256:[a-f0-9]+$"))
-
-	By("checking if the label exists")
-	inspectOutput, _, err := dockerCli.ImageInspectWithRaw(context.TODO(), outputImage)
-	Expect(err).ToNot(HaveOccurred())
-
-	metadataLabelString = inspectOutput.Config.Labels["io.pivotal.metadata"]
-	metadataLabel = metadata.Metadata{}
-	err = json.Unmarshal([]byte(metadataLabelString), &metadataLabel)
-	Expect(err).ToNot(HaveOccurred())
-
-	repoTags = inspectOutput.RepoTags
-
-	return outputImage, metadataLabelString, metadataLabel, repoTags
 }
 
 func makeFakeGitRepo() (string, string) {

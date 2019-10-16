@@ -1,11 +1,9 @@
 package deplab
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"net/http"
-	"os/exec"
 
 	"github.com/pivotal/deplab/rootfs"
 
@@ -127,21 +125,4 @@ func writeOutputs(md metadata.Metadata, metadataFilePath, dpkgFilePath string) {
 	if dpkgFilePath != "" {
 		outputs.WriteDpkgFile(md, dpkgFilePath, GetVersion())
 	}
-}
-
-func runCommand(cmd string, args ...string) (*bytes.Buffer, *bytes.Buffer, error) {
-	dockerLoad := exec.Command(cmd, args...)
-
-	stdout := &bytes.Buffer{}
-	stderr := &bytes.Buffer{}
-
-	dockerLoad.Stdout = stdout
-	dockerLoad.Stderr = stderr
-
-	err := dockerLoad.Run()
-	if err != nil {
-		return stdout, stderr, err
-	}
-
-	return stdout, stderr, nil
 }
