@@ -3,24 +3,25 @@
 ## Introduction
 deplab adds metadata about a container image's dependencies as a label to the container image.
 
-## Dependencies
-Docker is required to be installed and available on your path, test this by running `docker version`.
-API version 1.39 or higher is required.
-
 ## Usage
 Download the latest `deplab` binary from the [releases page](https://github.com/pivotal/deplab/releases).
 To run the tool run the following command:
 ```bash
 ./deplab [flags]
 ```
-This returns the sha256 or the provided tag of the new image with added metadata.
-Currently this will add the label `io.pivotal.metadata` along with the necessary metadata.
 
-To visualise the metadata this command can be run
+By default running `deplab` does not return anything but will perform validation on the input. To get a return use one of the following flags:
+
+* To return a file with the metadata use the `--metadata-file` flag
+* To return the dpkg list use the `--dpkg-file` flag
+* To return a tar of the image with the metadata attached use the `--output-tar` flag
+
+Outputting the tar will add the label `io.pivotal.metadata` along with the necessary metadata. To visualise the metadata this command can be run
 
 ```bash
-docker inspect $(./deplab --image <image-name> --git <path to git repo>) \
-  | jq -r '.[0].Config.Labels."io.pivotal.metadata"' \ 
+./deplab --image <image-name> --git <path to git repo> --output-tar <path to output tar>
+skopeo inspect <path to output tar> \
+  | jq -r '.Labels."io.pivotal.metadata"' \ 
   | jq .
 ```
 
@@ -82,14 +83,9 @@ vcs:
 
 ### Outputs
 
-#### Default
-
-This returns the sha256 of the new image with added metadata.
-Currently this will add the label `io.pivotal.metadata` along with the necessary metadata.
-
 #### Tag
 
-Optionally image can be tagged in the local registry using the provided tag. Tag need to be a valid docker tag.
+Optionally image can be tagged when exported as tar using the provided tag. Tag need to be a valid docker tag.
 
 #### Tar
 

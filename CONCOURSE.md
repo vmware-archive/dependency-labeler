@@ -62,7 +62,6 @@ run:
 
 ```yaml
   - task: deplab
-    privileged: true
     config:
       platform: linux
 
