@@ -1,4 +1,3 @@
-FROM pivotalnavcon/docker-go
+FROM ubuntu:bionic
 
-ADD release-bin/deplab-linux-amd64 /deplab
-ADD git-deplab/task/run.sh /usr/local/bin/deplab
+ADD release-bin/deplab-linux-amd64 /usr/local/bin/deplab
