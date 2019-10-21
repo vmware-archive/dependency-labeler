@@ -26,10 +26,10 @@ func BuildArchiveDependencyMetadata(archiveUrl string) (metadata.Dependency, err
 func ValidateURLs(additionalSourceUrls []string, fn HTTPHeadFn) error {
 	for _, asu := range additionalSourceUrls {
 		if resp, err := fn(asu); err != nil {
-			return err
+			return fmt.Errorf("invalid url: %s", err)
 		} else {
 			if resp.StatusCode > 299 {
-				return fmt.Errorf("could not reach %s with a valid status code", asu)
+				return fmt.Errorf("got status code %d when trying to reach %s (expected 2xx)", resp.StatusCode, asu)
 			}
 		}
 	}
