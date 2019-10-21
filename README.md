@@ -20,7 +20,7 @@ Outputting the tar will add the label `io.pivotal.metadata` along with the neces
 
 ```bash
 ./deplab --image <image-name> --git <path to git repo> --output-tar <path to output tar>
-skopeo inspect <path to output tar> \
+skopeo inspect docker-archive:<path to output tar> \
   | jq -r '.Labels."io.pivotal.metadata"' \ 
   | jq .
 ```
