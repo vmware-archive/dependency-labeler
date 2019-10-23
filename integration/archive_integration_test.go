@@ -29,7 +29,7 @@ var _ = Describe("deplab additional-source-url", func() {
 			BeforeEach(func() {
 				server = startServer(
 					ghttp.RespondWith(http.StatusOK, []byte("")))
-				address = server.URL() + "/foo/bar"
+				address = server.URL() + "/foo/bar/file.zip"
 				additionalArguments = []string{"--additional-source-url", address}
 			})
 
@@ -61,8 +61,8 @@ var _ = Describe("deplab additional-source-url", func() {
 				)
 
 				additionalArguments = []string{
-					"--additional-source-url", server.URL() + "/deplab",
-					"--additional-source-url", server.URL() + "/foobar"}
+					"--additional-source-url", server.URL() + "/deplab/file.zip",
+					"--additional-source-url", server.URL() + "/foobar/file.zip"}
 			})
 
 			It("adds multiple archive entries", func() {
