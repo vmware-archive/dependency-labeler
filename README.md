@@ -66,9 +66,13 @@ For OSL purposes you need to provide the source of these dependencies. The flags
 
 Additional source url allows you to specify a url which points to an archived source of a dependency. You can specify as many source urls as required using additional `--additional-source-url` flags.
 
+Validation: The urls must be valid and reachable.  There is also a check to ensure that the url points to a compressed file type. Only the extension is checked and not the contents of the file.
+
 ##### Additional sources file
 
 Additional sources file allows you to specify sources for additional dependencies as source archives or version control systems. You can specify as many of each type as required within a file, and as many additional sources files as required by passing more than one `--additional-sources-file` flags.
+
+Validation: The urls must be valid and reachable.  There is also a check to ensure that the url points to a compressed file type. Only the extension is checked and not the contents of the file. 
 
 Supported format of the yaml file:
 ```yaml
@@ -349,10 +353,6 @@ To build for release, please run the following:
 go build -o deplab ./cmd/deplab
 ```
 
-To build the Concourse task image, please run the following:
-```bash
-docker build . -f Dockerfile.task
-```
 
 ## Support
 
