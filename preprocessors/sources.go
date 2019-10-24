@@ -3,9 +3,11 @@ package preprocessors
 import (
 	"errors"
 	"fmt"
+	"os"
+	"regexp"
+
 	"github.com/pivotal/deplab/metadata"
 	"gopkg.in/yaml.v2"
-	"os"
 )
 
 type AdditionalSources struct {
@@ -19,8 +21,8 @@ type AdditionalSourceArchive struct {
 
 type AdditionalSourceVcs struct {
 	Protocol string `yml:protocol`
-	Version string `yml:version`
-	Url string `yml:url`
+	Version  string `yml:version`
+	Url      string `yml:url`
 }
 
 func ParseAdditionalSourcesFile(additionalSourcesFilePath string) ([]string, []metadata.Dependency, error) {
@@ -42,9 +44,12 @@ func ParseAdditionalSourcesFile(additionalSourcesFilePath string) ([]string, []m
 	}
 
 	var gitDependencies []metadata.Dependency
-	for _, vcs := range additionalSources.Vcs{
+	for _, vcs := range additionalSources.Vcs {
 		switch vcs.Protocol {
 		case GitSourceType:
+			if !validGitDependency(vcs.Url) {
+				return nil, nil, errors.New(fmt.Sprintf("vcs git url in an unsupported format: %s", vcs.Url))
+			}
 			gitDependencies = append(gitDependencies, createGitDependency(vcs))
 		default:
 			return nil, nil, errors.New(fmt.Sprintf("unsupported vcs protocol: %s", vcs.Protocol))
@@ -52,6 +57,11 @@ func ParseAdditionalSourcesFile(additionalSourcesFilePath string) ([]string, []m
 	}
 
 	return urls, gitDependencies, nil
+}
+
+func validGitDependency(gitUrl string) bool {
+	valid, _ := regexp.MatchString(`((git|ssh|http(s)?)|(git@[\w\.]+))(:)([\w\.@\:/\-~]+)(/)?`, gitUrl)
+	return valid
 }
 
 func createGitDependency(vcs AdditionalSourceVcs) metadata.Dependency {

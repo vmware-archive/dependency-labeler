@@ -234,6 +234,24 @@ var _ = Describe("deplab additional sources file", func() {
 				Expect(errorOutput).To(ContainSubstring("unsupported extension for url"))
 			})
 		})
+
+		Context("with an invalid git url", func() {
+			It("exits with an error", func() {
+				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
+				Expect(err).ToNot(HaveOccurred())
+
+				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-invalid-git-url.yml"))
+				Expect(err).ToNot(HaveOccurred())
+
+				_, stdErr := runDepLab([]string{
+					"--additional-sources-file", inputAdditionalSourcesPath,
+					"--image-tar", inputTarPath,
+					"--git", pathToGitRepo,
+				}, 1)
+				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+				Expect(errorOutput).To(ContainSubstring("pivotal/deplab.git"))
+			})
+		})
 	})
 })
 
