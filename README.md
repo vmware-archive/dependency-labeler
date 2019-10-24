@@ -72,7 +72,9 @@ Validation: The urls must be valid and reachable.  There is also a check to ensu
 
 Additional sources file allows you to specify sources for additional dependencies as source archives or version control systems. You can specify as many of each type as required within a file, and as many additional sources files as required by passing more than one `--additional-sources-file` flags.
 
-Validation: The urls must be valid and reachable.  There is also a check to ensure that the url points to a compressed file type. Only the extension is checked and not the contents of the file. 
+Validation: 
+* archives: The urls must be valid and reachable.  There is also a check to ensure that the url points to a compressed file type. Only the extension is checked and not the contents of the file.
+ * vcs: The url for git repository urls must start with on of the following: git:, ssh:, http:, https: or git@xxxx. 
 
 Supported format of the yaml file:
 ```yaml
