@@ -1,8 +1,10 @@
 package integration_test
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -249,7 +251,50 @@ var _ = Describe("deplab additional sources file", func() {
 					"--git", pathToGitRepo,
 				}, 1)
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-				Expect(errorOutput).To(ContainSubstring("pivotal/deplab.git"))
+				Expect(errorOutput).To(SatisfyAll(
+					ContainSubstring("error"),
+					ContainSubstring("pivotal/deplab.git"),
+				))
+			})
+
+			Context("with ignore-validation-error flag set", func() {
+				It("succeeds with a warning", func() {
+					f, err := ioutil.TempFile("", "")
+					Expect(err).ToNot(HaveOccurred())
+
+					defer os.Remove(f.Name())
+
+					inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
+					Expect(err).ToNot(HaveOccurred())
+
+					inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-invalid-git-url.yml"))
+					Expect(err).ToNot(HaveOccurred())
+
+					_, stdErr := runDepLab([]string{
+						"--additional-sources-file", inputAdditionalSourcesPath,
+						"--image-tar", inputTarPath,
+						"--git", pathToGitRepo,
+						"--metadata-file", f.Name(),
+						"--ignore-validation-errors",
+					}, 0)
+
+					By("providing a warning message")
+					errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+					Expect(errorOutput).To(SatisfyAll(
+						ContainSubstring("warning"),
+						ContainSubstring("pivotal/deplab.git"),
+					))
+
+					By("by including a vcs git dependency")
+					metadataLabel := metadata.Metadata{}
+					err = json.NewDecoder(f).Decode(&metadataLabel)
+					Expect(err).ToNot(HaveOccurred())
+
+					gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
+					Expect(gitDependencies).To(HaveLen(2))
+					vcsGitDependencies := selectVcsGitDependencies(gitDependencies)
+					Expect(vcsGitDependencies).To(HaveLen(1))
+				})
 			})
 		})
 	})

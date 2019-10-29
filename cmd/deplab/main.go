@@ -18,6 +18,7 @@ var (
 	dpkgFilePath              string
 	tag                       string
 	additionalSourceUrls      []string
+	ignoreValidationErrors    bool
 )
 
 func init() {
@@ -30,6 +31,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&tag, "tag", "t", "", "tags the output image")
 	rootCmd.Flags().StringArrayVarP(&additionalSourceUrls, "additional-source-url", "u", []string{}, "`url` to the source of an added dependency")
 	rootCmd.Flags().StringArrayVarP(&additionalSourceFilePaths, "additional-sources-file", "a", []string{}, "`path` to file describing additional sources")
+	rootCmd.Flags().BoolVar(&ignoreValidationErrors, "ignore-validation-errors", false, "Set flag to ignore validation errors")
 
 	_ = rootCmd.MarkFlagRequired("git")
 }
@@ -68,7 +70,7 @@ func validateFlags(cmd *cobra.Command, args []string) error {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	deplab.Run(inputImageTar, inputImage, gitPaths, tag, outputImageTar, metadataFilePath, dpkgFilePath, additionalSourceUrls, additionalSourceFilePaths)
+	deplab.Run(inputImageTar, inputImage, gitPaths, tag, outputImageTar, metadataFilePath, dpkgFilePath, additionalSourceUrls, additionalSourceFilePaths, ignoreValidationErrors)
 }
 
 func main() {

@@ -1,6 +1,7 @@
 package providers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -52,20 +53,25 @@ var SupportedExtensions = []string{
 }
 
 func ValidateURLs(additionalSourceUrls []string, fn HTTPHeadFn) error {
+	var errorMessages []string
 	for _, asu := range additionalSourceUrls {
 		if !isValidExtension(asu) {
-			return fmt.Errorf("unsupported extension for url %s", asu)
+			errorMessages = append(errorMessages, fmt.Sprintf("unsupported extension for url %s", asu))
 		}
 
 		if resp, err := fn(asu); err != nil {
-			return fmt.Errorf("invalid url: %s", err)
+			errorMessages = append(errorMessages, fmt.Sprintf("invalid url: %s", err))
 		} else {
 			if resp.StatusCode > 299 {
-				return fmt.Errorf("got status code %d when trying to reach %s (expected 2xx)", resp.StatusCode, asu)
+				errorMessages = append(errorMessages, fmt.Sprintf("got status code %d when trying to reach %s (expected 2xx)", resp.StatusCode, asu))
 			}
 		}
 	}
+	if len(errorMessages) != 0 {
+		return errors.New(strings.Join(errorMessages, ", "))
+	}
 	return nil
+
 }
 
 func isValidExtension(sourceUrl string) bool {

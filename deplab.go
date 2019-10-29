@@ -21,19 +21,28 @@ var (
 
 const UnknownDeplabVersion = "0.0.0-dev"
 
-func Run(inputImageTarPath string, inputImage string, gitPaths []string, tag string, outputImageTar string, metadataFilePath string, dpkgFilePath string, additionalSourceUrls []string, additionalSourceFilePaths []string) {
+func Run(inputImageTarPath string, inputImage string,
+	gitPaths []string, tag string, outputImageTar string,
+	metadataFilePath string, dpkgFilePath string,
+	additionalSourceUrls []string, additionalSourceFilePaths []string,
+	ignoreValidationErrors bool) {
 	dli, err := rootfs.NewDeplabImage(inputImage, inputImageTarPath)
 	if err != nil {
 		log.Fatalf("could not load image: %s", err)
 	}
 	defer dli.Cleanup()
 
-	gitDependencies, archiveUrls := preprocess(gitPaths, additionalSourceFilePaths)
+	gitDependencies, archiveUrls := preprocess(gitPaths, additionalSourceFilePaths, ignoreValidationErrors)
 	additionalSourceUrls = append(additionalSourceUrls, archiveUrls...)
 
 	err = providers.ValidateURLs(additionalSourceUrls, http.Head)
 	if err != nil {
-		log.Fatalf("error validating additional source url: %s", err)
+		errMsg := fmt.Sprintf("failed to validate additional source url: %s", err)
+		if ignoreValidationErrors {
+			log.Printf("warning: %s", errMsg)
+		} else {
+			log.Fatalf("error: %s", errMsg)
+		}
 	}
 
 	dependencies, err := generateDependencies(dli, gitDependencies, additionalSourceUrls)
@@ -69,13 +78,18 @@ func GetVersion() string {
 	return DeplabVersion
 }
 
-func preprocess(gitPaths, additionalSourcesFiles []string) ([]metadata.Dependency, []string) {
+func preprocess(gitPaths, additionalSourcesFiles []string, ignoreValidationErrors bool) ([]metadata.Dependency, []string) {
 	var archiveUrls []string
 	var gitDependencies []metadata.Dependency
 	for _, additionalSourcesFile := range additionalSourcesFiles {
 		archiveUrlsFromAdditionalSourcesFile, gitVcsFromAdditionalSourcesFile, err := preprocessors.ParseAdditionalSourcesFile(additionalSourcesFile)
 		if err != nil {
-			log.Fatal(errors.Wrap(err, fmt.Sprintf("could not parse additional sources file: %s", additionalSourcesFile)))
+			errMsg := fmt.Sprintf("could not parse additional sources file: %s, %s", additionalSourcesFile, err)
+			if ignoreValidationErrors {
+				log.Printf("warning: %s", errMsg)
+			} else {
+				log.Fatalf("error: %s", errMsg)
+			}
 		}
 		archiveUrls = append(archiveUrls, archiveUrlsFromAdditionalSourcesFile...)
 		gitDependencies = append(gitDependencies, gitVcsFromAdditionalSourcesFile...)

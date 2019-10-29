@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/pivotal/deplab/metadata"
 	"gopkg.in/yaml.v2"
@@ -44,16 +45,21 @@ func ParseAdditionalSourcesFile(additionalSourcesFilePath string) ([]string, []m
 	}
 
 	var gitDependencies []metadata.Dependency
+	var errorMessages []string
 	for _, vcs := range additionalSources.Vcs {
 		switch vcs.Protocol {
 		case GitSourceType:
 			if !validGitDependency(vcs.Url) {
-				return nil, nil, errors.New(fmt.Sprintf("vcs git url in an unsupported format: %s", vcs.Url))
+				errorMessages = append(errorMessages, fmt.Sprintf("vcs git url in an unsupported format: %s", vcs.Url))
 			}
 			gitDependencies = append(gitDependencies, createGitDependency(vcs))
 		default:
-			return nil, nil, errors.New(fmt.Sprintf("unsupported vcs protocol: %s", vcs.Protocol))
+			errorMessages = append(errorMessages, fmt.Sprintf("unsupported vcs protocol: %s", vcs.Protocol))
 		}
+	}
+
+	if len(errorMessages) != 0 {
+		return urls, gitDependencies, errors.New(strings.Join(errorMessages, ", "))
 	}
 
 	return urls, gitDependencies, nil

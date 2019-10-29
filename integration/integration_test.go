@@ -1,8 +1,14 @@
 package integration_test
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
+
+	"github.com/pivotal/deplab/metadata"
+	"github.com/pivotal/deplab/providers"
 
 	"github.com/onsi/gomega/ghttp"
 
@@ -68,7 +74,8 @@ var _ = Describe("deplab", func() {
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(SatisfyAll(
 				ContainSubstring("/foo/bar"),
-				ContainSubstring("error validating additional source url")))
+				ContainSubstring("error"),
+				ContainSubstring("failed to validate additional source url")))
 		})
 
 		It("exits with an error if additional-source-url is not reachable ", func() {
@@ -81,7 +88,8 @@ var _ = Describe("deplab", func() {
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(SatisfyAll(
 				ContainSubstring("https://package.some.invalid/cool-package"),
-				ContainSubstring("error validating additional source url")))
+				ContainSubstring("error"),
+				ContainSubstring("failed to validate additional source url")))
 		})
 
 		It("exits with an error if additional-source-url is not returning a success status code ", func() {
@@ -99,7 +107,88 @@ var _ = Describe("deplab", func() {
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(SatisfyAll(
 				ContainSubstring(address),
-				ContainSubstring("error validating additional source url")))
+				ContainSubstring("error"),
+				ContainSubstring("failed to validate additional source url")))
+		})
+
+		Context("when ignore-validation-errors flag is set", func() {
+			It("succeeds with a warning if additional-source-url is not valid", func() {
+				_, stdErr := runDepLab([]string{
+					"--image", "ubuntu:bionic",
+					"--git", pathToGitRepo,
+					"--additional-source-url", "/foo/bar",
+					"--ignore-validation-errors",
+				}, 0)
+
+				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+				Expect(errorOutput).To(SatisfyAll(
+					ContainSubstring("/foo/bar"),
+					ContainSubstring("warning"),
+					ContainSubstring("failed to validate additional source url")))
+			})
+
+			It("succeeds with a warning for multiple invalid additional-source-urls", func() {
+				f, err := ioutil.TempFile("", "")
+				Expect(err).ToNot(HaveOccurred())
+
+				defer os.Remove(f.Name())
+
+				server := startServer(
+					ghttp.RespondWith(http.StatusNotFound, []byte("HTTP status not found code returned")),
+					ghttp.RespondWith(http.StatusOK, ""),
+					ghttp.RespondWith(http.StatusOK, ""))
+				defer server.Close()
+
+				addresses := []string{
+					"/foo/bar",
+					"https://package.some.invalid/unreachable-package",
+					server.URL() + "/404-package",
+					server.URL() + "/invalid-extension",
+					server.URL() + "/should-pass.tgz",
+				}
+
+				_, stdErr := runDepLab([]string{
+					"--image", "ubuntu:bionic",
+					"--git", pathToGitRepo,
+					"--additional-source-url", addresses[0],
+					"--additional-source-url", addresses[1],
+					"--additional-source-url", addresses[2],
+					"--additional-source-url", addresses[3],
+					"--additional-source-url", addresses[4],
+					"--metadata-file", f.Name(),
+					"--ignore-validation-errors",
+				}, 0)
+
+				By("reporting a validation warning for all invalid urls")
+				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+				Expect(errorOutput).To(SatisfyAll(
+					ContainSubstring(addresses[0]),
+					ContainSubstring(addresses[1]),
+					ContainSubstring(addresses[2]),
+					ContainSubstring(addresses[3]),
+					Not(ContainSubstring(addresses[4])),
+					ContainSubstring("warning"),
+					ContainSubstring("failed to validate additional source url"),
+				))
+
+				By("by including an archive dependency")
+				metadataLabel := metadata.Metadata{}
+				err = json.NewDecoder(f).Decode(&metadataLabel)
+				Expect(err).ToNot(HaveOccurred())
+
+				archiveDependencies := selectArchiveDependencies(metadataLabel.Dependencies)
+				Expect(archiveDependencies).To(HaveLen(5))
+				for i, archiveDependency := range archiveDependencies {
+
+					By("adding the invalid additional-source-url to the archive dependency")
+					Expect(archiveDependency.Type).ToNot(BeEmpty())
+					Expect(archiveDependency.Type).To(Equal("package"))
+					Expect(archiveDependency.Source.Type).To(Equal(providers.ArchiveType))
+
+					archiveSourceMetadata := archiveDependency.Source.Metadata.(map[string]interface{})
+					Expect(archiveSourceMetadata["url"]).To(Equal(addresses[i]))
+				}
+			})
 		})
 	})
 })
