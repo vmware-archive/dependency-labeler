@@ -1,7 +1,7 @@
 package integration_test
 
 import (
-	. "github.com/onsi/ginkgo/extensions/table"
+	"github.com/pivotal/deplab/test_utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -9,26 +9,23 @@ import (
 
 var _ = Describe("deplab", func() {
 	Context("when called with --metadata-file", func() {
-		DescribeTable("and metadata can be written", func(metadataDestinationPath string) {
-			defer cleanupFile(metadataDestinationPath)
+		Describe("and metadata can be written", func() {
+			It("succeeds", func() {
+				metadataDestinationPath := test_utils.ExistingFileName()
+				defer test_utils.CleanupFile(metadataDestinationPath)
 
-			inputImage := "pivotalnavcon/ubuntu-additional-sources"
-
-			_, _ = runDepLab([]string{
-				"--image", inputImage,
-				"--git", pathToGitRepo,
-				"--metadata-file", metadataDestinationPath,
-			}, 0)
-		},
-			Entry("when the file exists", existingFileName()),
-			Entry("when the file does not exists", nonExistingFileName()),
-		)
+				_, _ = runDepLab([]string{
+					"--image", "pivotalnavcon/ubuntu-additional-sources",
+					"--git", pathToGitRepo,
+					"--metadata-file", metadataDestinationPath,
+				}, 0)
+			})
+		})
 
 		Describe("and metadata can't be written", func() {
-			It("writes the image metadata, return the sha and throws an error about the file missing", func() {
-				inputImage := "pivotalnavcon/ubuntu-additional-sources"
+			It("exits with 1 and throws an error about the file missing", func() {
 				_, stdErr := runDepLab([]string{
-					"--image", inputImage,
+					"--image", "pivotalnavcon/ubuntu-additional-sources",
 					"--git", pathToGitRepo,
 					"--metadata-file", "a-path-that-does-not-exist/foo.json",
 				}, 1)

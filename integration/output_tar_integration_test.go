@@ -13,6 +13,7 @@ import (
 
 	. "github.com/onsi/ginkgo/extensions/table"
 	"github.com/pivotal/deplab/metadata"
+	"github.com/pivotal/deplab/test_utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -34,10 +35,10 @@ var _ = Describe("deplab", func() {
 			})
 
 			DescribeTable("without a tag", func(inputImage, tarDestinationPath string) {
-				defer cleanupFile(tarDestinationPath)
+				defer test_utils.CleanupFile(tarDestinationPath)
 				metadataFile, err := ioutil.TempFile("", "")
 				Expect(err).ToNot(HaveOccurred())
-				defer cleanupFile(metadataFile.Name())
+				defer test_utils.CleanupFile(metadataFile.Name())
 
 				_, _ = runDepLab([]string{
 					"--image", inputImage,
@@ -54,11 +55,11 @@ var _ = Describe("deplab", func() {
 
 				Expect(metadataFileContent).To(Equal(md))
 			},
-				Entry("ubuntu based image", "pivotalnavcon/ubuntu-additional-sources", nonExistingFileName()),
-				Entry("alpine based image", "alpine", nonExistingFileName()),
-				Entry("scratch based image", "pivotalnavcon/ubuntu-all-file-types", nonExistingFileName()),
-				Entry("cf tiny image", "cloudfoundry/run:tiny", nonExistingFileName()),
-				Entry("cf tiny image", "cloudfoundry/run:tiny", existingFileName()),
+				Entry("ubuntu based image", "pivotalnavcon/ubuntu-additional-sources", test_utils.NonExistingFileName()),
+				Entry("alpine based image", "alpine", test_utils.NonExistingFileName()),
+				Entry("scratch based image", "pivotalnavcon/ubuntu-all-file-types", test_utils.NonExistingFileName()),
+				Entry("cf tiny image", "cloudfoundry/run:tiny", test_utils.NonExistingFileName()),
+				Entry("cf tiny image", "cloudfoundry/run:tiny", test_utils.ExistingFileName()),
 			)
 
 			Context("when there is a tag", func() {
@@ -79,7 +80,7 @@ var _ = Describe("deplab", func() {
 					_, stdErr := runDepLab([]string{"--image", "ubuntu:bionic",
 						"--git", pathToGitRepo,
 						"--tag", "foo:testtag/bar",
-						"--output-tar", existingFileName(),
+						"--output-tar", test_utils.ExistingFileName(),
 					}, 1)
 
 					errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))

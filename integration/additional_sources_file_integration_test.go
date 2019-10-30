@@ -9,6 +9,8 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/pivotal/deplab/test_utils"
+
 	"github.com/onsi/gomega/ghttp"
 
 	. "github.com/onsi/ginkgo"
@@ -42,7 +44,7 @@ var _ = Describe("deplab additional sources file", func() {
 			})
 
 			AfterEach(func() {
-				cleanupFile(inputAdditionalSourcesPath)
+				test_utils.CleanupFile(inputAdditionalSourcesPath)
 				server.Close()
 			})
 
@@ -79,7 +81,7 @@ var _ = Describe("deplab additional sources file", func() {
 			})
 
 			AfterEach(func() {
-				cleanupFile(inputAdditionalSourcesPath)
+				test_utils.CleanupFile(inputAdditionalSourcesPath)
 				server.Close()
 			})
 		})
@@ -144,7 +146,7 @@ var _ = Describe("deplab additional sources file", func() {
 
 			AfterEach(func() {
 				server.Close()
-				cleanupFile(inputAdditionalSourcesPath)
+				test_utils.CleanupFile(inputAdditionalSourcesPath)
 			})
 		})
 
@@ -177,8 +179,8 @@ var _ = Describe("deplab additional sources file", func() {
 
 			AfterEach(func() {
 				server.Close()
-				cleanupFile(inputAdditionalSourcesPath1)
-				cleanupFile(inputAdditionalSourcesPath2)
+				test_utils.CleanupFile(inputAdditionalSourcesPath1)
+				test_utils.CleanupFile(inputAdditionalSourcesPath2)
 			})
 		})
 	})

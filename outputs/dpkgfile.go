@@ -2,20 +2,22 @@ package outputs
 
 import (
 	"fmt"
-	"github.com/pivotal/deplab/providers"
 	"io"
 	"log"
 	"os"
 	"strings"
 	"unicode/utf8"
 
+	"github.com/pivotal/deplab/providers"
+
 	"github.com/pivotal/deplab/metadata"
 )
 
-func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion string) {
-	f, err := os.OpenFile(dpkgFilePath, os.O_RDWR|os.O_CREATE, 0644)
+func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion string) error {
+	f, err := os.Create(dpkgFilePath)
 	if err != nil {
-		log.Fatalf("no such file: %s\n", dpkgFilePath)
+
+		return fmt.Errorf("no such file: %s\n", dpkgFilePath)
 	}
 
 	defer func() {
@@ -27,7 +29,7 @@ func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion stri
 
 	dep, err := findDpkgListInMetadata(md)
 	if err != nil {
-		log.Fatalf("%s", err)
+		return fmt.Errorf("%s", err)
 	}
 	pkgs := dep.Source.Metadata.(metadata.DebianPackageListSourceMetadata).Packages
 
@@ -52,7 +54,7 @@ func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion stri
 
 	sha, ok := dep.Source.Version["sha256"].(string)
 	if !ok {
-		log.Fatalf("version in dpkg list was not a string")
+		return fmt.Errorf("version in dpkg list was not a string")
 	}
 
 	unpaddedFmtString := fmt.Sprintf("%%-%ds%%-%ds%%-%ds%%-%ds%%-%ds\n", tMaxLen[0]+1, tMaxLen[1]+1, tMaxLen[2]+1, tMaxLen[3]+1, tMaxLen[4]+1)
@@ -78,8 +80,9 @@ func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion stri
 	}
 
 	if df.err != nil {
-		log.Fatalf("Could not write to file: %s\n", dpkgFilePath)
+		return fmt.Errorf("Could not write to file: %s\n", dpkgFilePath)
 	}
+	return nil
 }
 
 type dpkgFile struct {

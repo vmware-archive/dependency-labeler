@@ -2,16 +2,18 @@ package outputs
 
 import (
 	"encoding/json"
-	"github.com/pivotal/deplab/metadata"
-	"log"
+	"fmt"
 	"os"
+
+	"github.com/pivotal/deplab/metadata"
 )
 
-func WriteMetadataFile(md metadata.Metadata, metadataFilePath string) {
-	metadataFile, err := os.OpenFile(metadataFilePath, os.O_RDWR|os.O_CREATE, 0644)
+func WriteMetadataFile(md metadata.Metadata, metadataFilePath string) error {
+	metadataFile, err := os.Create(metadataFilePath)
 	if err != nil {
-		log.Fatalf("no such file: %s\n", metadataFilePath)
+		return fmt.Errorf("no such file: %s\n", metadataFilePath)
 	}
 	encoder := json.NewEncoder(metadataFile)
 	_ = encoder.Encode(md)
+	return nil
 }

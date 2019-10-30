@@ -133,10 +133,16 @@ func generateDependencies(dli rootfs.Image, gitDependencies []metadata.Dependenc
 
 func writeOutputs(md metadata.Metadata, metadataFilePath, dpkgFilePath string) {
 	if metadataFilePath != "" {
-		outputs.WriteMetadataFile(md, metadataFilePath)
+		err := outputs.WriteMetadataFile(md, metadataFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	if dpkgFilePath != "" {
-		outputs.WriteDpkgFile(md, dpkgFilePath, GetVersion())
+		err := outputs.WriteDpkgFile(md, dpkgFilePath, GetVersion())
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }

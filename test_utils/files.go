@@ -1,4 +1,4 @@
-package integration_test
+package test_utils
 
 import (
 	"io/ioutil"
@@ -8,17 +8,17 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func existingFileName() string {
+func ExistingFileName() string {
 	dpkgDestination, _ := ioutil.TempFile("", "deplab-test-file")
 	return dpkgDestination.Name()
 }
 
-func nonExistingFileName() string {
+func NonExistingFileName() string {
 	tempDir, _ := ioutil.TempDir("", "deplab-test-dir")
 	return path.Join(tempDir, "deplab-test-file")
 }
 
-func cleanupFile(filePath string) {
+func CleanupFile(filePath string) {
 	err := os.Remove(filePath)
 	Expect(err).ToNot(HaveOccurred())
 }
