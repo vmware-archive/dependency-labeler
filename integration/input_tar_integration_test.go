@@ -31,7 +31,11 @@ var _ = Describe("deplab", func() {
 		It("exits with an error", func() {
 			By("executing it")
 			inputTarPath := "/path/to/image.tar"
-			_, stdErr := runDepLab([]string{"--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+			_, stdErr := runDepLab([]string{
+				"--image-tar", inputTarPath,
+				"--git", pathToGitRepo,
+				"--metadata-file", "doesnotmatter7",
+			}, 1)
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(
 				SatisfyAll(

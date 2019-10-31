@@ -1,6 +1,9 @@
 package integration_test
 
 import (
+	"io/ioutil"
+	"os"
+
 	"github.com/pivotal/deplab/preprocessors"
 
 	"github.com/pivotal/deplab/metadata"
@@ -70,7 +73,11 @@ var _ = Describe("deplab git", func() {
 		It("exits with an error message", func() {
 			By("executing it")
 			inputImage := "ubuntu:bionic"
-			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", "/dev/null"}, 1)
+			_, stdErr := runDepLab([]string{
+				"--image", inputImage,
+				"--git", "/dev/null",
+				"--metadata-file", "doesnotmatter6",
+			}, 1)
 
 			Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("cannot open git repository \"/dev/null\""))
 		})
@@ -79,8 +86,15 @@ var _ = Describe("deplab git", func() {
 	Context("when I don't supply a git flag as an argument", func() {
 		It("has no git metadata", func() {
 			By("executing it")
+			d, err := ioutil.TempDir("", "deplab-integration-test")
+			metadatafileName := d + "/metadata-file.yml"
+			defer os.Remove(d)
+			Expect(err).To(Not(HaveOccurred()))
 			inputImage := "ubuntu:bionic"
-			_, stdErr := runDepLab([]string{"--image", inputImage}, 1)
+			_, stdErr := runDepLab([]string{
+				"--image", inputImage,
+				"--metadata-file", metadatafileName,
+			}, 1)
 
 			Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("required flag(s) \"git\" not set"))
 		})

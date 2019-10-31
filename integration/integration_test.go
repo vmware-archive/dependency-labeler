@@ -21,7 +21,11 @@ var _ = Describe("deplab", func() {
 		It("throws an error if scratch image is provided", func() {
 			By("executing it")
 			inputImage := "scratch"
-			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo}, 1)
+			_, stdErr := runDepLab([]string{
+				"--image", inputImage,
+				"--git", pathToGitRepo,
+				"--metadata-file", "doesnotmatter8",
+			}, 1)
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(
 				SatisfyAll(
@@ -33,7 +37,11 @@ var _ = Describe("deplab", func() {
 		It("throws an error if trying to pull an invalid image", func() {
 			By("executing it")
 			inputImage := "swkichtlsmhasd" // random string unlikely for an image ever to exist
-			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo}, 1)
+			_, stdErr := runDepLab([]string{
+				"--image", inputImage,
+				"--git", pathToGitRepo,
+				"--metadata-file", "doesnotmatter9",
+			}, 1)
 
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(
@@ -49,8 +57,19 @@ var _ = Describe("deplab", func() {
 			Expect(errorOutput).To(ContainSubstring("ERROR: requires one of --image or --image-tar"))
 		})
 
+		It("exits with an error if neither metadata-file, dpkg-list, output-tar flags are set", func() {
+			_, stdErr := runDepLab([]string{"--git", pathToGitRepo,
+				"--image", "ubuntu:bionic"}, 1)
+			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+			Expect(errorOutput).To(ContainSubstring("ERROR: requires one of --metadata-file, --dpkg-file, or --output-tar"))
+		})
+
 		It("exits with an error if both image and image-tar flags are set", func() {
-			_, stdErr := runDepLab([]string{"--image", "foo", "--image-tar", "path/to/image.tar", "--git", "does-not-matter"}, 1)
+			_, stdErr := runDepLab([]string{"--image", "foo",
+				"--image-tar", "path/to/image.tar",
+				"--git", "does-not-matter",
+				"--metadata-file", "doesnotmatter10",
+			}, 1)
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(ContainSubstring("ERROR: cannot accept both --image and --image-tar"))
 		})
@@ -58,7 +77,11 @@ var _ = Describe("deplab", func() {
 		It("throws an error if invalid characters are in image name", func() {
 			By("executing it")
 			inputImage := "£$Invalid_image_name$£"
-			_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo}, 1)
+			_, stdErr := runDepLab([]string{
+				"--image", inputImage,
+				"--git", pathToGitRepo,
+				"--metadata-file", "doesnotmatter11",
+			}, 1)
 
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 			Expect(errorOutput).To(ContainSubstring("could not parse reference"))
@@ -68,6 +91,7 @@ var _ = Describe("deplab", func() {
 			_, stdErr := runDepLab([]string{
 				"--image", "ubuntu:bionic",
 				"--git", pathToGitRepo,
+				"--metadata-file", "doesnotmatter12",
 				"--additional-source-url", "/foo/bar",
 			}, 1)
 
@@ -82,6 +106,7 @@ var _ = Describe("deplab", func() {
 			_, stdErr := runDepLab([]string{
 				"--image", "ubuntu:bionic",
 				"--git", pathToGitRepo,
+				"--metadata-file", "doesnotmatter13",
 				"--additional-source-url", "https://package.some.invalid/cool-package",
 			}, 1)
 
@@ -102,6 +127,7 @@ var _ = Describe("deplab", func() {
 				"--image", "ubuntu:bionic",
 				"--git", pathToGitRepo,
 				"--additional-source-url", address,
+				"--metadata-file", "doesnotmatter14",
 			}, 1)
 
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
@@ -113,10 +139,15 @@ var _ = Describe("deplab", func() {
 
 		Context("when ignore-validation-errors flag is set", func() {
 			It("succeeds with a warning if additional-source-url is not valid", func() {
+				d, err := ioutil.TempDir("", "deplab-integration-test-")
+				metadataFileName := d + "/metadata-file.yml"
+				Expect(err).To(Not(HaveOccurred()))
+				defer os.Remove(d)
 				_, stdErr := runDepLab([]string{
 					"--image", "ubuntu:bionic",
 					"--git", pathToGitRepo,
 					"--additional-source-url", "/foo/bar",
+					"--metadata-file", metadataFileName,
 					"--ignore-validation-errors",
 				}, 0)
 

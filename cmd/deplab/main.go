@@ -50,23 +50,27 @@ var rootCmd = &cobra.Command{
 }
 
 func validateFlags(cmd *cobra.Command, args []string) error {
-	flagSet := cmd.Flags()
-	img, err := flagSet.GetString("image")
-	if err != nil {
-		return fmt.Errorf("error processing flag: %s", err)
-	}
-	imgTar, err := flagSet.GetString("image-tar")
-	if err != nil {
-		return fmt.Errorf("error processing flag: %s", err)
-	}
-
-	if img == "" && imgTar == "" {
+	if !isFlagSet(cmd, "image") && !isFlagSet(cmd, "image-tar") {
 		return fmt.Errorf("ERROR: requires one of --image or --image-tar")
-	} else if img != "" && imgTar != "" {
+	} else if isFlagSet(cmd, "image") && isFlagSet(cmd, "image-tar") {
 		return fmt.Errorf("ERROR: cannot accept both --image and --image-tar")
 	}
 
+	if !isFlagSet(cmd, "metadata-file") && !isFlagSet(cmd, "dpkg-file") && !isFlagSet(cmd, "output-tar") {
+		return fmt.Errorf("ERROR: requires one of --metadata-file, --dpkg-file, or --output-tar")
+	}
+
 	return nil
+}
+
+func isFlagSet(cmd *cobra.Command, flagName string) bool {
+	flagSet := cmd.Flags()
+	flag, err := flagSet.GetString(flagName)
+	if err != nil {
+		return false
+	}
+
+	return flag != ""
 }
 
 func run(cmd *cobra.Command, args []string) {

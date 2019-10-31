@@ -196,6 +196,7 @@ var _ = Describe("deplab additional sources file", func() {
 					"--additional-sources-file", "erroneous_path.yml",
 					"--image-tar", inputTarPath,
 					"--git", pathToGitRepo,
+					"--metadata-file", "doesnotmatter1",
 				}, 1)
 
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
@@ -209,7 +210,12 @@ var _ = Describe("deplab additional sources file", func() {
 				Expect(err).ToNot(HaveOccurred())
 				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "empty-file.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				_, stdErr := runDepLab([]string{"--additional-sources-file", inputAdditionalSourcesPath, "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+				_, stdErr := runDepLab([]string{
+					"--additional-sources-file", inputAdditionalSourcesPath,
+					"--image-tar", inputTarPath,
+					"--git", pathToGitRepo,
+					"--metadata-file", "doesnotmatter2",
+				}, 1)
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 				Expect(errorOutput).To(ContainSubstring("could not parse additional sources file"))
 			})
@@ -221,7 +227,12 @@ var _ = Describe("deplab additional sources file", func() {
 				Expect(err).ToNot(HaveOccurred())
 				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-unsupported-vcs.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				_, stdErr := runDepLab([]string{"--additional-sources-file", inputAdditionalSourcesPath, "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+				_, stdErr := runDepLab([]string{
+					"--additional-sources-file", inputAdditionalSourcesPath,
+					"--image-tar", inputTarPath,
+					"--git", pathToGitRepo,
+					"--metadata-file", "doesnotmatter3",
+				}, 1)
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 				Expect(errorOutput).To(ContainSubstring("unsupported vcs protocol: hg"))
 			})
@@ -233,7 +244,12 @@ var _ = Describe("deplab additional sources file", func() {
 				Expect(err).ToNot(HaveOccurred())
 				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-unsupported-extension.yml"))
 				Expect(err).ToNot(HaveOccurred())
-				_, stdErr := runDepLab([]string{"--additional-sources-file", inputAdditionalSourcesPath, "--image-tar", inputTarPath, "--git", pathToGitRepo}, 1)
+				_, stdErr := runDepLab([]string{
+					"--additional-sources-file", inputAdditionalSourcesPath,
+					"--image-tar", inputTarPath,
+					"--git", pathToGitRepo,
+					"--metadata-file", "doesnotmatter4",
+				}, 1)
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 				Expect(errorOutput).To(ContainSubstring("unsupported extension for url"))
 			})
@@ -251,6 +267,7 @@ var _ = Describe("deplab additional sources file", func() {
 					"--additional-sources-file", inputAdditionalSourcesPath,
 					"--image-tar", inputTarPath,
 					"--git", pathToGitRepo,
+					"--metadata-file", "doesnotmatter5",
 				}, 1)
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 				Expect(errorOutput).To(SatisfyAll(
