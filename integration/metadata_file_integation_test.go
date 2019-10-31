@@ -15,7 +15,7 @@ var _ = Describe("deplab", func() {
 				defer test_utils.CleanupFile(metadataDestinationPath)
 
 				_, _ = runDepLab([]string{
-					"--image", "pivotalnavcon/ubuntu-additional-sources",
+					"--image", "pivotalnavcon/test-asset-additional-sources",
 					"--git", pathToGitRepo,
 					"--metadata-file", metadataDestinationPath,
 				}, 0)
@@ -25,7 +25,7 @@ var _ = Describe("deplab", func() {
 		Describe("and metadata can't be written", func() {
 			It("exits with 1 and throws an error about the file missing", func() {
 				_, stdErr := runDepLab([]string{
-					"--image", "pivotalnavcon/ubuntu-additional-sources",
+					"--image", "pivotalnavcon/test-asset-additional-sources",
 					"--git", pathToGitRepo,
 					"--metadata-file", "a-path-that-does-not-exist/foo.json",
 				}, 1)

@@ -6,7 +6,7 @@ set -x
 for dockerfile in integration/assets/Dockerfile* ; do
     (cd integration/assets
       filename=$(basename $dockerfile)
-      image_name=pivotalnavcon/ubuntu-${filename/Dockerfile./}
+      image_name=pivotalnavcon/test-asset-${filename/Dockerfile./}
 
       docker build . -f $filename -t ${image_name}
       docker push ${image_name}

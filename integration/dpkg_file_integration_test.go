@@ -16,7 +16,7 @@ var _ = Describe("deplab", func() {
 				dpkgDestinationPath := test_utils.ExistingFileName()
 				defer test_utils.CleanupFile(dpkgDestinationPath)
 
-				inputImage := "pivotalnavcon/ubuntu-additional-sources"
+				inputImage := "pivotalnavcon/test-asset-additional-sources"
 				_ = runDeplabAgainstImage(inputImage,
 					"--dpkg-file", dpkgDestinationPath)
 
@@ -35,7 +35,7 @@ var _ = Describe("deplab", func() {
 
 		Describe("and metadata can't be written", func() {
 			It("writes the image metadata, returns the sha and throws an error about the file missing", func() {
-				inputImage := "pivotalnavcon/ubuntu-additional-sources"
+				inputImage := "pivotalnavcon/test-asset-additional-sources"
 				_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--dpkg-file", "a-path-that-does-not-exist/foo.dpkg"}, 1)
 				Expect(string(getContentsOfReader(stdErr))).To(
 					ContainSubstring("a-path-that-does-not-exist/foo.dpkg"))

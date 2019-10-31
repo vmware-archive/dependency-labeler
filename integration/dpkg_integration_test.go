@@ -20,7 +20,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/ubuntu-additional-sources"
+			inputImage = "pivotalnavcon/test-asset-additional-sources"
 			metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
@@ -73,7 +73,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an image with dpkg, but no apt sources", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/ubuntu-no-sources"
+			inputImage = "pivotalnavcon/test-asset-no-sources"
 			metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 

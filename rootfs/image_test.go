@@ -23,7 +23,7 @@ var _ = Describe("Image", func() {
 			)
 
 			It("instantiates an image starting from a remote source", func() {
-				image, err = rootfs.NewDeplabImage("pivotalnavcon/ubuntu-all-file-types", "")
+				image, err = rootfs.NewDeplabImage("pivotalnavcon/test-asset-all-file-types", "")
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(image).ToNot(BeNil())

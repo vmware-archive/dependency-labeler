@@ -55,9 +55,9 @@ var _ = Describe("deplab", func() {
 
 				Expect(metadataFileContent).To(Equal(md))
 			},
-				Entry("ubuntu based image", "pivotalnavcon/ubuntu-additional-sources", test_utils.NonExistingFileName()),
+				Entry("ubuntu based image", "pivotalnavcon/test-asset-additional-sources", test_utils.NonExistingFileName()),
 				Entry("alpine based image", "alpine", test_utils.NonExistingFileName()),
-				Entry("scratch based image", "pivotalnavcon/ubuntu-all-file-types", test_utils.NonExistingFileName()),
+				Entry("scratch based image", "pivotalnavcon/test-asset-all-file-types", test_utils.NonExistingFileName()),
 				Entry("cf tiny image", "cloudfoundry/run:tiny", test_utils.NonExistingFileName()),
 				Entry("cf tiny image", "cloudfoundry/run:tiny", test_utils.ExistingFileName()),
 			)
@@ -69,7 +69,7 @@ var _ = Describe("deplab", func() {
 					tarDestinationPath = path.Join(tempDir, "image.tar")
 
 					Expect(err).ToNot(HaveOccurred())
-					inputImage = "pivotalnavcon/ubuntu-additional-sources"
+					inputImage = "pivotalnavcon/test-asset-additional-sources"
 					_ = runDeplabAgainstImage(inputImage, "--output-tar", tarDestinationPath, "--tag", "foo:bar")
 
 					manifest := getManifestFromImageTarball(tarDestinationPath)
@@ -99,7 +99,7 @@ var _ = Describe("deplab", func() {
 
 		Describe("and file can't be written", func() {
 			It("writes the image metadata, returns the sha and throws an error about the file location", func() {
-				inputImage = "pivotalnavcon/ubuntu-additional-sources"
+				inputImage = "pivotalnavcon/test-asset-additional-sources"
 				_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--output-tar", "a-path-that-does-not-exist/image.tar"}, 1)
 
 				Expect(string(getContentsOfReader(stdErr))).To(

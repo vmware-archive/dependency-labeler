@@ -1,3 +1,0 @@
-FROM ubuntu:bionic-20190718
-
-ENTRYPOINT ["/bin/echo"]
