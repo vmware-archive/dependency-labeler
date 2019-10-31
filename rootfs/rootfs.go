@@ -2,6 +2,7 @@ package rootfs
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -78,5 +79,8 @@ func New(image v1.Image) (RootFS, error) {
 }
 
 func (rfs *RootFS) Cleanup() {
-	_ = os.RemoveAll(rfs.rootfsLocation)
+	err := os.RemoveAll(rfs.rootfsLocation)
+	if err != nil {
+		log.Printf("could not clean up rootfs location: %s. %s\n", rfs.rootfsLocation, err)
+	}
 }

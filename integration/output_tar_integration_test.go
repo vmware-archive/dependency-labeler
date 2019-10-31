@@ -113,7 +113,8 @@ var _ = Describe("deplab", func() {
 })
 
 func getMetadataFromImageTarball(tarDestinationPath string) metadata.Metadata {
-	image, _ := crane.Load(tarDestinationPath)
+	image, err := crane.Load(tarDestinationPath)
+	Expect(err).To(Not(HaveOccurred()))
 	rawConfig, err := image.RawConfigFile()
 	Expect(err).ToNot(HaveOccurred())
 

@@ -25,14 +25,17 @@ func Run(inputImageTarPath string, inputImage string,
 	gitPaths []string, tag string, outputImageTar string,
 	metadataFilePath string, dpkgFilePath string,
 	additionalSourceUrls []string, additionalSourceFilePaths []string,
-	ignoreValidationErrors bool) {
+	ignoreValidationErrors bool) error {
 	dli, err := rootfs.NewDeplabImage(inputImage, inputImageTarPath)
 	if err != nil {
-		log.Fatalf("could not load image: %s", err)
+		return errors.Wrapf(err, "could not load image.")
 	}
 	defer dli.Cleanup()
 
-	gitDependencies, archiveUrls := preprocess(gitPaths, additionalSourceFilePaths, ignoreValidationErrors)
+	gitDependencies, archiveUrls, err := preprocess(gitPaths, additionalSourceFilePaths, ignoreValidationErrors)
+	if err != nil {
+		return errors.Wrapf(err, "could not preprocess provided data.")
+	}
 	additionalSourceUrls = append(additionalSourceUrls, archiveUrls...)
 
 	err = providers.ValidateURLs(additionalSourceUrls, http.Head)
@@ -41,13 +44,13 @@ func Run(inputImageTarPath string, inputImage string,
 		if ignoreValidationErrors {
 			log.Printf("warning: %s", errMsg)
 		} else {
-			log.Fatalf("error: %s", errMsg)
+			return errors.Errorf("error: %s", errMsg)
 		}
 	}
 
 	dependencies, err := generateDependencies(dli, gitDependencies, additionalSourceUrls)
 	if err != nil {
-		log.Fatalf("error generating dependencies: %s", err)
+		return errors.Wrapf(err, "error generating dependencies")
 	}
 	md := metadata.Metadata{Dependencies: dependencies}
 
@@ -63,11 +66,16 @@ func Run(inputImageTarPath string, inputImage string,
 		err = dli.ExportWithMetadata(md, outputImageTar, tag)
 
 		if err != nil {
-			log.Fatalf("error exporting tar to %s: %s", outputImageTar, err)
+			return errors.Wrapf(err, "error exporting tar to %s", outputImageTar)
 		}
 	}
 
-	writeOutputs(md, metadataFilePath, dpkgFilePath)
+	err = writeOutputs(md, metadataFilePath, dpkgFilePath)
+	if err != nil {
+		return errors.Wrapf(err, "could not write outputs.")
+	}
+
+	return nil
 }
 
 func GetVersion() string {
@@ -78,7 +86,7 @@ func GetVersion() string {
 	return DeplabVersion
 }
 
-func preprocess(gitPaths, additionalSourcesFiles []string, ignoreValidationErrors bool) ([]metadata.Dependency, []string) {
+func preprocess(gitPaths, additionalSourcesFiles []string, ignoreValidationErrors bool) ([]metadata.Dependency, []string, error) {
 	var archiveUrls []string
 	var gitDependencies []metadata.Dependency
 	for _, additionalSourcesFile := range additionalSourcesFiles {
@@ -88,7 +96,7 @@ func preprocess(gitPaths, additionalSourcesFiles []string, ignoreValidationError
 			if ignoreValidationErrors {
 				log.Printf("warning: %s", errMsg)
 			} else {
-				log.Fatalf("error: %s", errMsg)
+				return nil, nil, errors.Errorf("error: %s", errMsg)
 			}
 		}
 		archiveUrls = append(archiveUrls, archiveUrlsFromAdditionalSourcesFile...)
@@ -99,12 +107,12 @@ func preprocess(gitPaths, additionalSourcesFiles []string, ignoreValidationError
 		gitMetadata, err := preprocessors.BuildGitDependencyMetadata(gitPath)
 
 		if err != nil {
-			log.Fatalf("git metadata: %s", err)
+			return nil, nil, errors.Wrapf(err, "could not build git metadata")
 		}
 		gitDependencies = append(gitDependencies, gitMetadata)
 	}
 
-	return gitDependencies, archiveUrls
+	return gitDependencies, archiveUrls, nil
 }
 
 func generateDependencies(dli rootfs.Image, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
@@ -131,18 +139,20 @@ func generateDependencies(dli rootfs.Image, gitDependencies []metadata.Dependenc
 	return dependencies, nil
 }
 
-func writeOutputs(md metadata.Metadata, metadataFilePath, dpkgFilePath string) {
+func writeOutputs(md metadata.Metadata, metadataFilePath, dpkgFilePath string) error {
 	if metadataFilePath != "" {
 		err := outputs.WriteMetadataFile(md, metadataFilePath)
 		if err != nil {
-			log.Fatal(err)
+			return errors.Wrapf(err, "could not write metadata file.")
 		}
 	}
 
 	if dpkgFilePath != "" {
 		err := outputs.WriteDpkgFile(md, dpkgFilePath, GetVersion())
 		if err != nil {
-			log.Fatal(err)
+			return errors.Wrapf(err, "could not write dpkg file.")
 		}
 	}
+
+	return nil
 }

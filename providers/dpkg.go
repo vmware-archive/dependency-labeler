@@ -22,14 +22,20 @@ func BuildDebianDependencyMetadata(dli rootfs.Image) (metadata.Dependency, error
 	packages, err := getDebianPackages(dli)
 
 	if len(packages) != 0 {
-		sources, _ := getAptSources(dli)
+		sources, err := getAptSources(dli)
+		if err != nil {
+			return metadata.Dependency{}, errors.Wrapf(err, "could not get apt sources")
+		}
 
 		sourceMetadata := metadata.DebianPackageListSourceMetadata{
 			Packages:   packages,
 			AptSources: sources,
 		}
 
-		version := Digest(sourceMetadata)
+		version, err := Digest(sourceMetadata)
+		if err != nil {
+			return metadata.Dependency{}, errors.Wrapf(err, "Could not get digest for source metadata")
+		}
 
 		dpkgList := metadata.Dependency{
 			Type: DebianPackageListSourceType,
@@ -48,12 +54,15 @@ func BuildDebianDependencyMetadata(dli rootfs.Image) (metadata.Dependency, error
 	return metadata.Dependency{}, err
 }
 
-func Digest(sourceMetadata metadata.DebianPackageListSourceMetadata) string {
+func Digest(sourceMetadata metadata.DebianPackageListSourceMetadata) (string, error) {
 	hash := sha256.New()
 	encoder := json.NewEncoder(hash)
-	_ = encoder.Encode(sourceMetadata)
+	err := encoder.Encode(sourceMetadata)
+	if err != nil {
+		return "", errors.Wrapf(err, "could not encode source metadata.")
+	}
 	version := hex.EncodeToString(hash.Sum(nil))
-	return version
+	return version, nil
 }
 
 func getAptSources(dli rootfs.Image) ([]string, error) {

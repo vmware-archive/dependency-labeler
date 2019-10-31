@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/pkg/errors"
+
 	"github.com/pivotal/deplab/metadata"
 )
 
@@ -14,6 +16,9 @@ func WriteMetadataFile(md metadata.Metadata, metadataFilePath string) error {
 		return fmt.Errorf("no such file: %s\n", metadataFilePath)
 	}
 	encoder := json.NewEncoder(metadataFile)
-	_ = encoder.Encode(md)
+	err = encoder.Encode(md)
+	if err != nil {
+		return errors.Wrapf(err, "could not write metadata file")
+	}
 	return nil
 }

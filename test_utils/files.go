@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-
-	. "github.com/onsi/gomega"
 )
 
 func ExistingFileName() string {
@@ -19,6 +17,5 @@ func NonExistingFileName() string {
 }
 
 func CleanupFile(filePath string) {
-	err := os.Remove(filePath)
-	Expect(err).ToNot(HaveOccurred())
+	os.Remove(filePath)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/pivotal/deplab"
@@ -33,7 +34,10 @@ func init() {
 	rootCmd.Flags().StringArrayVarP(&additionalSourceFilePaths, "additional-sources-file", "a", []string{}, "`path` to file describing additional sources")
 	rootCmd.Flags().BoolVar(&ignoreValidationErrors, "ignore-validation-errors", false, "Set flag to ignore validation errors")
 
-	_ = rootCmd.MarkFlagRequired("git")
+	err := rootCmd.MarkFlagRequired("git")
+	if err != nil {
+		log.Printf("could not mark flag as required. %s\n", err)
+	}
 }
 
 var rootCmd = &cobra.Command{
@@ -74,7 +78,10 @@ func isFlagSet(cmd *cobra.Command, flagName string) bool {
 }
 
 func run(cmd *cobra.Command, args []string) {
-	deplab.Run(inputImageTar, inputImage, gitPaths, tag, outputImageTar, metadataFilePath, dpkgFilePath, additionalSourceUrls, additionalSourceFilePaths, ignoreValidationErrors)
+	err := deplab.Run(inputImageTar, inputImage, gitPaths, tag, outputImageTar, metadataFilePath, dpkgFilePath, additionalSourceUrls, additionalSourceFilePaths, ignoreValidationErrors)
+	if err != nil {
+		log.Fatalf("deplab failed to run. %s\n", err)
+	}
 }
 
 func main() {

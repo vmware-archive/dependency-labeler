@@ -3,6 +3,7 @@ package preprocessors
 import (
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -66,7 +67,10 @@ func ParseAdditionalSourcesFile(additionalSourcesFilePath string) ([]string, []m
 }
 
 func validGitDependency(gitUrl string) bool {
-	valid, _ := regexp.MatchString(`((git|ssh|http(s)?)|(git@[\w\.]+))(:)([\w\.@\:/\-~]+)(/)?`, gitUrl)
+	valid, err := regexp.MatchString(`((git|ssh|http(s)?)|(git@[\w\.]+))(:)([\w\.@\:/\-~]+)(/)?`, gitUrl)
+	if err != nil {
+		log.Printf("error when matching regex to validate git dependency: %s", err)
+	}
 	return valid
 }
 

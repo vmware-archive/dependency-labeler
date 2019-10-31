@@ -35,7 +35,10 @@ func NewDeplabImage(inputImage, inputImageTarPath string) (Image, error) {
 		return Image{}, errors.New("You must provide either an inputImage or inputImageTarPath parameter")
 	}
 
-	rootfs, _ := New(image)
+	rootfs, err := New(image)
+	if err != nil {
+		return Image{}, errors.Wrapf(err, "could not create new image")
+	}
 
 	return Image{image: image, rootfs: rootfs}, nil
 }
@@ -91,7 +94,10 @@ func (dli *Image) setMetadata(metadata metadata.Metadata) error {
 func (dli *Image) export(path string, tag string) error {
 	var actualTag string
 	if tag == "" {
-		h, _ := dli.image.Digest()
+		h, err := dli.image.Digest()
+		if err != nil {
+			return errors.Wrapf(err, "could not retrieve image digest")
+		}
 		actualTag = h.String()
 	} else {
 		actualTag = tag

@@ -23,7 +23,7 @@ func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion stri
 	defer func() {
 		err := f.Close()
 		if err != nil {
-			log.Fatalf("could not close file: %s; error: %s\n", dpkgFilePath, err)
+			log.Printf("could not close file: %s; error: %s\n", dpkgFilePath, err)
 		}
 	}()
 
