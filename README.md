@@ -38,7 +38,7 @@ skopeo inspect docker-archive:<path to output tar> \
 | `-d` | `--dpkg-file` | path | [write dpkg list metadata in (modified) '`dpkg -l`' format to a file at this path](#dpkg-file)| Optional |
 | `-m` | `--metadata-file` | path | [write metadata to this file at the given path](#metadata-file) | Optional | 
 | `-o` | `--output-tar` | path | [path to write a tarball of the image to](#tar) | Optional, but required for Concourse | 
-|  | `--ignore-validation-errors` |  | By default Deplab will exit with a non-zero exit code if a validation error is encountered. This flag will instead force Deplab to output the validation failure message as a warning in StdErr and continue.  | Optional | 
+|  | `--ignore-validation-errors` |  | By default deplab will exit with a non-zero exit code if a validation error is encountered. This flag will instead force deplab to output the validation failure message as a warning in StdErr and continue.  | Optional | 
 | `-h` | `--help` |  | help for deplab |  | 
 |  | `--version` |  |  version for deplab |  | 
 
@@ -67,7 +67,7 @@ For OSL purposes you need to provide the source of these dependencies. The flags
 
 Additional source url allows you to specify a url which points to an archived source of a dependency. You can specify as many source urls as required using additional `--additional-source-url` flags.
 
-Validation: The urls must be valid and reachable.  There is also a check to ensure that the url points to a compressed file type. Only the extension is checked and not the contents of the file.  On encountering an invalid url, Deplab will provide an error message in StdErr.  By default Deplab will exit with a non-zero exit code.  This default behaviour can be altered by using the `--ignore-validation-errors` flag, and Deplab will continue and exit with a zero exit code.
+Validation: The urls must be valid and reachable.  There is also a check to ensure that the url points to a compressed file type. Only the extension is checked and not the contents of the file.  On encountering an invalid url, deplab will provide an error message in StdErr.  By default deplab will exit with a non-zero exit code.  This default behaviour can be altered by using the `--ignore-validation-errors` flag, and deplab will continue and exit with a zero exit code.
 
 ##### Additional sources file
 
@@ -76,7 +76,7 @@ Additional sources file allows you to specify sources for additional dependencie
 Validation: 
 * archives: The urls must be valid and reachable.  There is also a check to ensure that the url points to a compressed file type. Only the extension is checked and not the contents of the file.
  * vcs: The url for git repository urls must start with on of the following: git:, ssh:, http:, https: or git@xxxx. 
- On encountering an invalid value, Deplab will provide an error message in StdErr.  By default Deplab will exit with a non-zero exit code.  This default behaviour can be altered by using the `--ignore-validation-errors` flag, and Deplab will continue and exit with a zero exit code.
+ On encountering an invalid value, deplab will provide an error message in StdErr.  By default deplab will exit with a non-zero exit code.  This default behaviour can be altered by using the `--ignore-validation-errors` flag, and deplab will continue and exit with a zero exit code.
 
 Supported format of the yaml file:
 ```yaml
