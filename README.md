@@ -84,7 +84,7 @@ archives:
 - url: <url to source archive>
 - url: <url to source archive>
 vcs:
-- type: git
+- protocol: git
   commit: <commit sha>
   url: <git repository url>
 ```
