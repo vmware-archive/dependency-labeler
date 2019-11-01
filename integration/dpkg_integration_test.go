@@ -90,7 +90,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an ubuntu:bionic based image with a non-shell entrypoint", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/entrypoint-return-stdout"
+			inputImage = "pivotalnavcon/test-asset-entrypoint-return-stdout"
 			metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
@@ -108,7 +108,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with Pivotal Tiny", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/tiny"
+			inputImage = "cloudfoundry/run:tiny"
 			metadataLabel = runDeplabAgainstImage(inputImage)
 		})
 
@@ -120,7 +120,7 @@ var _ = Describe("deplab dpkg", func() {
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})
 
 			pkgs := dpkgMetadata["packages"].([]interface{})
-			Expect(pkgs).To(HaveLen(6))
+			Expect(pkgs).To(HaveLen(7))
 			Expect(ArePackagesSorted(pkgs)).To(BeTrue())
 		})
 	})
