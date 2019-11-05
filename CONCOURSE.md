@@ -15,9 +15,15 @@ A Concourse task for adding metadata to Containers for OSL.
 
 ## usage
 
-The task implementation is available as an image on Docker Hub at
-[`pivotalnavcon/deplab-task`](http://hub.docker.com/r/pivotalnavcon/deplab-task). (This
+The task implementation is available as an image on Pivotal's internal registry at
+[`dev.registry.pivotal.io/navcon/deplab-task`](https://dev.registry.pivotal.io/harbor/projects/15/repositories). (This
 image is built from [`Dockerfile.task`](Dockerfile.task).)
+
+To gain access to this image, you will have to request authorization for you (or your bot account).
+
+1. Please ensure you (or your bot) has a PivNet account
+1. Send a slack message to @navcon in [#navcon-team](https://app.slack.com/client/T024LQKAS/CFUA5BXV5/thread/C2Y1X7ZAN-1572563183.022900) requesting access to the `deplab-task` image, providing the email address corresponding to your (or your bot's) PivNet account.
+1. Once NavCon have confirmed that you (or your bot) have been added to the `deplab-task` repository, you can access the image using your (or your bot's) PivNet username and password.
 
 ### `params`
 
@@ -68,7 +74,9 @@ run:
       image_resource:
         type: docker-image
         source:
-          repository: pivotalnavcon/deplab-task
+          repository: dev.registry.pivotal.io/navcon/deplab-task
+          username: ((your-pivnet-username))
+          password: ((your-pivnet-password))
 
       inputs:
       - name: git-deplab
