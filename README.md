@@ -360,7 +360,6 @@ go build -o deplab ./cmd/deplab
 
 ## Support
 
-This tool is currently maintained by the Pivotal NavCon team;
-@navcon in #navcon-team on Pivotal Slack.
+This tool is currently maintained by the Pivotal NavCon team; #navcon-team channel on Pivotal Slack.
 
 Please reach out to us on Slack first, and then raise a Github issue.
