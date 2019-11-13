@@ -37,7 +37,7 @@ var inspectCmd = &cobra.Command{
 		} else {
 			err := json.Unmarshal([]byte(label), &metadata.Metadata{})
 			if err != nil {
-				log.Fatalf("deplab cannot parse the label on the provided image %s: %s", inputImageTar, err)
+				log.Fatalf("deplab cannot parse the label on the provided image %s, label: %s: %s", inputImageTar, label, err)
 			}
 			stdOutBuffer := bytes.Buffer{}
 
