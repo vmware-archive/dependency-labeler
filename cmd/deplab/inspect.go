@@ -28,24 +28,16 @@ var inspectCmd = &cobra.Command{
 	Long:    `prints the deplab "io.pivotal.metadata" label in the config file of an OCI compatible image tarball to stdout.  The label will be printed in json format.`,
 	PreRunE: validateInspectFlags,
 	Run: func(cmd *cobra.Command, args []string) {
-		var img v1.Image
-		var err error
+		var cf *v1.ConfigFile
 		var inputPath string
 		if inputImageTar != "" {
-			img, err = crane.Load(inputImageTar)
 			inputPath = inputImageTar
+			cf = getConfigFileFromTarballImage(inputPath)
 		} else {
-			img, err = crane.Pull(inputImage)
 			inputPath = inputImage
-		}
-		if err != nil {
-			log.Fatalf("deplab cannot open the provided image %s: %s", inputPath, err)
+			cf = getConfigFileFromRegistryImage(inputPath)
 		}
 
-		cf, err := img.ConfigFile()
-		if err != nil {
-			log.Fatalf("deplab cannot open the Config file for %s: %s", inputPath, err)
-		}
 		if label, ok := cf.Config.Labels["io.pivotal.metadata"]; !ok {
 			log.Fatalf("deplab cannot find the 'io.pivotal.metadata' label on the provided image: %s", inputPath)
 		} else {
@@ -64,6 +56,34 @@ var inspectCmd = &cobra.Command{
 			os.Exit(0)
 		}
 	},
+}
+
+func getConfigFileFromTarballImage(inputPath string) *v1.ConfigFile {
+	img, err := crane.Load(inputImageTar)
+	if err != nil {
+		log.Fatalf("deplab cannot open the provided image %s: %s", inputPath, err)
+	}
+
+	cf, err := img.ConfigFile()
+	if err != nil {
+		log.Fatalf("deplab cannot open the Config file for %s: %s", inputPath, err)
+	}
+
+	return cf
+}
+
+func getConfigFileFromRegistryImage(inputPath string) *v1.ConfigFile {
+	rawConfig, err := crane.Config(inputPath)
+	if err != nil {
+		log.Fatalf("deplab cannot retrieve the Config file for %s: %s", inputPath, err)
+	}
+
+	cf, err := v1.ParseConfigFile(bytes.NewReader(rawConfig))
+	if err != nil {
+		log.Fatalf("deplab cannot parse the Config file for %s: %s", inputPath, err)
+	}
+
+	return cf
 }
 
 func validateInspectFlags(cmd *cobra.Command, args []string) error {

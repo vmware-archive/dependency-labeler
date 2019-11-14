@@ -56,7 +56,7 @@ var _ = Describe("deplab inspect", func() {
 		Entry("with a deplab'd image from a registry", "--image", "pivotalnavcon/test-asset-tiny-deplabd"),
 	)
 
-	DescribeTable("provides an error", func(flag, path string) {
+	DescribeTable("provides an error", func(flag, path, errorMsg string) {
 		_, stderr := runDepLab([]string{
 			"inspect",
 			flag, path,
@@ -64,41 +64,15 @@ var _ = Describe("deplab inspect", func() {
 
 		Expect(getContentsOfReader(stderr)).To(
 			SatisfyAll(
-				ContainSubstring("deplab cannot find the 'io.pivotal.metadata' label on the provided image"),
+				ContainSubstring(errorMsg),
 				ContainSubstring(path)))
 	},
-		Entry("with a undeplab'd image tar path", "--image-tar", getTestAssetPath("tiny.tgz")),
-		Entry("with a undeplab'd image from a registry", "--image", "cloudfoundry/run:tiny"),
-	)
-
-	DescribeTable("provides an error", func(flag, path string) {
-		_, stderr := runDepLab([]string{
-			"inspect",
-			flag, path,
-		}, 1)
-
-		Expect(getContentsOfReader(stderr)).To(
-			SatisfyAll(
-				ContainSubstring("deplab cannot open the provided image"),
-				ContainSubstring(path)))
-	},
-		Entry("with a invalid image tarball", "--image-tar", getTestAssetPath("invalid-image-archive.tgz")),
-		Entry("with a non-existent image from registry", "--image", "pivotalnavcon/does-not-exist"),
-	)
-
-	DescribeTable("provides an error", func(flag, path string) {
-		_, stderr := runDepLab([]string{
-			"inspect",
-			flag, path,
-		}, 1)
-
-		Expect(getContentsOfReader(stderr)).To(
-			SatisfyAll(
-				ContainSubstring("deplab cannot parse the label"),
-				ContainSubstring(path)))
-	},
-		Entry("with a valid image tar ball with invalid json label", "--image-tar", getTestAssetPath("tiny-with-invalid-label.tgz")),
-		Entry("with a valid image from a registry with invalid json label", "--image", "pivotalnavcon/test-asset-tiny-with-invalid-label"),
+		Entry("with a undeplab'd image tar path", "--image-tar", getTestAssetPath("tiny.tgz"), "deplab cannot find the 'io.pivotal.metadata' label on the provided image"),
+		Entry("with a undeplab'd image from a registry", "--image", "cloudfoundry/run:tiny", "deplab cannot find the 'io.pivotal.metadata' label on the provided image"),
+		Entry("with a invalid image tarball", "--image-tar", getTestAssetPath("invalid-image-archive.tgz"), "deplab cannot open the provided image"),
+		Entry("with a non-existent image from registry", "--image", "pivotalnavcon/does-not-exist", "deplab cannot retrieve the Config file"),
+		Entry("with a valid image tar ball with invalid json label", "--image-tar", getTestAssetPath("tiny-with-invalid-label.tgz"), "deplab cannot parse the label"),
+		Entry("with a valid image from a registry with invalid json label", "--image", "pivotalnavcon/test-asset-tiny-with-invalid-label", "deplab cannot parse the label"),
 	)
 })
 
