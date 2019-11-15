@@ -27,9 +27,8 @@ var _ = Describe("deplab", func() {
 	Context("with an invalid image tar path", func() {
 		It("exits with an error", func() {
 			By("executing it")
-			inputTarPath := "/path/to/image.tar"
 			_, stdErr := runDepLab([]string{
-				"--image-tar", inputTarPath,
+				"--image-tar", "/path/to/image.tar",
 				"--git", pathToGitRepo,
 				"--metadata-file", "doesnotmatter7",
 			}, 1)

@@ -24,7 +24,6 @@ import (
 )
 
 var _ = Describe("deplab additional sources file", func() {
-
 	Context("when I supply additional sources file(s) as an argument", func() {
 		var (
 			metadataLabel              metadata.Metadata
@@ -34,7 +33,7 @@ var _ = Describe("deplab additional sources file", func() {
 		)
 
 		JustBeforeEach(func() {
-			metadataLabel = runDeplabAgainstImage("ubuntu:bionic", additionalArguments...)
+			metadataLabel = runDeplabAgainstTar(getTestAssetPath("tiny.tgz"), additionalArguments...)
 		})
 
 		Context("and it only has one source archive", func() {
@@ -91,9 +90,7 @@ var _ = Describe("deplab additional sources file", func() {
 
 		Context("with no source archive urls", func() {
 			BeforeEach(func() {
-				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-empty-archives.yml"))
-				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
+				additionalArguments = []string{"--additional-sources-file", getTestAssetPath("sources-file-empty-archives.yml")}
 			})
 
 			It("adds zero archive entries", func() {
@@ -104,9 +101,7 @@ var _ = Describe("deplab additional sources file", func() {
 
 		Context("with only one vcs", func() {
 			BeforeEach(func() {
-				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-single-vcs.yml"))
-				Expect(err).ToNot(HaveOccurred())
-				additionalArguments = []string{"--additional-sources-file", inputAdditionalSourcesPath}
+				additionalArguments = []string{"--additional-sources-file", getTestAssetPath("sources-file-single-vcs.yml")}
 			})
 
 			It("adds a git dependency", func() {
@@ -192,12 +187,9 @@ var _ = Describe("deplab additional sources file", func() {
 
 		Context("with erroneous paths", func() {
 			It("exits with an error", func() {
-				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
-				Expect(err).ToNot(HaveOccurred())
-
 				_, stdErr := runDepLab([]string{
 					"--additional-sources-file", "erroneous_path.yml",
-					"--image-tar", inputTarPath,
+					"--image-tar", getTestAssetPath("tiny.tgz"),
 					"--git", pathToGitRepo,
 					"--metadata-file", "doesnotmatter1",
 				}, 1)
@@ -209,13 +201,9 @@ var _ = Describe("deplab additional sources file", func() {
 
 		Context("with an empty file", func() {
 			It("exits with an error", func() {
-				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
-				Expect(err).ToNot(HaveOccurred())
-				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "empty-file.yml"))
-				Expect(err).ToNot(HaveOccurred())
 				_, stdErr := runDepLab([]string{
-					"--additional-sources-file", inputAdditionalSourcesPath,
-					"--image-tar", inputTarPath,
+					"--additional-sources-file", getTestAssetPath("empty-file.yml"),
+					"--image-tar", getTestAssetPath("tiny.tgz"),
 					"--git", pathToGitRepo,
 					"--metadata-file", "doesnotmatter2",
 				}, 1)
@@ -226,13 +214,9 @@ var _ = Describe("deplab additional sources file", func() {
 
 		Context("with a unsupported vcs type", func() {
 			It("exits with an error", func() {
-				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
-				Expect(err).ToNot(HaveOccurred())
-				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-unsupported-vcs.yml"))
-				Expect(err).ToNot(HaveOccurred())
 				_, stdErr := runDepLab([]string{
-					"--additional-sources-file", inputAdditionalSourcesPath,
-					"--image-tar", inputTarPath,
+					"--additional-sources-file", getTestAssetPath("sources-unsupported-vcs.yml"),
+					"--image-tar", getTestAssetPath("tiny.tgz"),
 					"--git", pathToGitRepo,
 					"--metadata-file", "doesnotmatter3",
 				}, 1)
@@ -243,13 +227,9 @@ var _ = Describe("deplab additional sources file", func() {
 
 		Context("with a invalid file extension", func() {
 			It("exits with an error", func() {
-				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
-				Expect(err).ToNot(HaveOccurred())
-				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-file-unsupported-extension.yml"))
-				Expect(err).ToNot(HaveOccurred())
 				_, stdErr := runDepLab([]string{
-					"--additional-sources-file", inputAdditionalSourcesPath,
-					"--image-tar", inputTarPath,
+					"--additional-sources-file", getTestAssetPath("sources-file-unsupported-extension.yml"),
+					"--image-tar", getTestAssetPath("tiny.tgz"),
 					"--git", pathToGitRepo,
 					"--metadata-file", "doesnotmatter4",
 				}, 1)
@@ -260,15 +240,9 @@ var _ = Describe("deplab additional sources file", func() {
 
 		Context("with an invalid git url", func() {
 			It("exits with an error", func() {
-				inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
-				Expect(err).ToNot(HaveOccurred())
-
-				inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-invalid-git-url.yml"))
-				Expect(err).ToNot(HaveOccurred())
-
 				_, stdErr := runDepLab([]string{
-					"--additional-sources-file", inputAdditionalSourcesPath,
-					"--image-tar", inputTarPath,
+					"--additional-sources-file", getTestAssetPath("sources-invalid-git-url.yml"),
+					"--image-tar", getTestAssetPath("tiny.tgz"),
 					"--git", pathToGitRepo,
 					"--metadata-file", "doesnotmatter5",
 				}, 1)
@@ -286,15 +260,9 @@ var _ = Describe("deplab additional sources file", func() {
 
 					defer os.Remove(f.Name())
 
-					inputTarPath, err := filepath.Abs(filepath.Join("assets", "tiny.tgz"))
-					Expect(err).ToNot(HaveOccurred())
-
-					inputAdditionalSourcesPath, err := filepath.Abs(filepath.Join("assets", "sources-invalid-git-url.yml"))
-					Expect(err).ToNot(HaveOccurred())
-
 					_, stdErr := runDepLab([]string{
-						"--additional-sources-file", inputAdditionalSourcesPath,
-						"--image-tar", inputTarPath,
+						"--additional-sources-file", getTestAssetPath("sources-invalid-git-url.yml"),
+						"--image-tar", getTestAssetPath("tiny.tgz"),
 						"--git", pathToGitRepo,
 						"--metadata-file", f.Name(),
 						"--ignore-validation-errors",

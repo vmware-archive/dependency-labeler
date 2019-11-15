@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -175,4 +176,13 @@ func startServer(handlers ...http.HandlerFunc) (server *ghttp.Server) {
 		handlers...,
 	)
 	return server
+}
+
+func getTestAssetPath(path string) string {
+	inputTarPath := filepath.Join("assets", path)
+	inputTarPath, err := filepath.Abs(inputTarPath)
+	if err != nil {
+		log.Fatalf("Could not find test asset %s: %s", path, err)
+	}
+	return inputTarPath
 }

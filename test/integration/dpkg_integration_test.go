@@ -16,14 +16,12 @@ import (
 
 var _ = Describe("deplab dpkg", func() {
 	var (
-		inputImage    string
 		metadataLabel metadata.Metadata
 	)
 
 	Context("with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/test-asset-additional-sources"
-			metadataLabel = runDeplabAgainstImage(inputImage)
+			metadataLabel = runDeplabAgainstImage("pivotalnavcon/test-asset-additional-sources")
 		})
 
 		It("applies a metadata label", func() {
@@ -62,12 +60,9 @@ var _ = Describe("deplab dpkg", func() {
 	})
 
 	Context("with an image without dpkg", func() {
-		BeforeEach(func() {
-			inputImage = "alpine:latest"
-			metadataLabel = runDeplabAgainstImage(inputImage)
-		})
-
 		It("does not return a dpkg list", func() {
+			metadataLabel = runDeplabAgainstTar(getTestAssetPath("all-file-types.tgz"))
+
 			_, ok := filterDpkgDependency(metadataLabel.Dependencies)
 			Expect(ok).To(BeFalse())
 		})
@@ -75,8 +70,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an image with dpkg, but no apt sources", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/test-asset-no-sources"
-			metadataLabel = runDeplabAgainstImage(inputImage)
+			metadataLabel = runDeplabAgainstImage("pivotalnavcon/test-asset-no-sources")
 		})
 
 		It("does not return a dpkg list", func() {
@@ -92,8 +86,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an ubuntu:bionic based image with a non-shell entrypoint", func() {
 		BeforeEach(func() {
-			inputImage = "pivotalnavcon/test-asset-entrypoint-return-stdout"
-			metadataLabel = runDeplabAgainstImage(inputImage)
+			metadataLabel = runDeplabAgainstImage("pivotalnavcon/test-asset-entrypoint-return-stdout")
 		})
 
 		It("should return the apt source list", func() {
@@ -110,8 +103,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with Pivotal Tiny", func() {
 		BeforeEach(func() {
-			inputImage = "cloudfoundry/run:tiny"
-			metadataLabel = runDeplabAgainstImage(inputImage)
+			metadataLabel = runDeplabAgainstTar(getTestAssetPath("tiny.tgz"))
 		})
 
 		It("returns a dpkg list", func() {
@@ -122,7 +114,7 @@ var _ = Describe("deplab dpkg", func() {
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})
 
 			pkgs := dpkgMetadata["packages"].([]interface{})
-			Expect(pkgs).To(HaveLen(7))
+			Expect(pkgs).ToNot(BeEmpty())
 			Expect(ArePackagesSorted(pkgs)).To(BeTrue())
 		})
 	})

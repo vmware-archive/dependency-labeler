@@ -21,8 +21,7 @@ var _ = Describe("deplab git", func() {
 		)
 
 		JustBeforeEach(func() {
-			inputImage := "ubuntu:bionic"
-			metadataLabel = runDeplabAgainstImage(inputImage, additionalArguments...)
+			metadataLabel = runDeplabAgainstTar(getTestAssetPath("tiny.tgz"), additionalArguments...)
 			gitDependencies = selectGitDependencies(metadataLabel.Dependencies)
 		})
 
@@ -72,9 +71,8 @@ var _ = Describe("deplab git", func() {
 	Context("when I supply non-git repo as an argument", func() {
 		It("exits with an error message", func() {
 			By("executing it")
-			inputImage := "ubuntu:bionic"
 			_, stdErr := runDepLab([]string{
-				"--image", inputImage,
+				"--image-tar", getTestAssetPath("tiny.tgz"),
 				"--git", "/dev/null",
 				"--metadata-file", "doesnotmatter6",
 			}, 1)
@@ -90,9 +88,8 @@ var _ = Describe("deplab git", func() {
 			metadatafileName := d + "/metadata-file.yml"
 			defer os.Remove(d)
 			Expect(err).To(Not(HaveOccurred()))
-			inputImage := "ubuntu:bionic"
 			_, stdErr := runDepLab([]string{
-				"--image", inputImage,
+				"--image-tar", getTestAssetPath("tiny.tgz"),
 				"--metadata-file", metadatafileName,
 			}, 1)
 

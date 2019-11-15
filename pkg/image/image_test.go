@@ -46,7 +46,7 @@ var _ = Describe("Image", func() {
 
 		Context("when cannot be instantiated", func() {
 			It("returns an error if no image at the remote source", func() {
-				_, err := NewDeplabImage("pivotgarbledile-types", "")
+				_, err := NewDeplabImage("pivotalnavcon/this-does-not-exists", "")
 
 				Expect(err).To(HaveOccurred())
 			})

@@ -1,0 +1,3 @@
+FROM scratch
+
+COPY example-os-release /etc/os-release

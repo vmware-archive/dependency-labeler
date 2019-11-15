@@ -16,9 +16,10 @@ var _ = Describe("deplab", func() {
 				dpkgDestinationPath := test_utils.ExistingFileName()
 				defer test_utils.CleanupFile(dpkgDestinationPath)
 
-				inputImage := "pivotalnavcon/test-asset-additional-sources"
-				_ = runDeplabAgainstImage(inputImage,
-					"--dpkg-file", dpkgDestinationPath)
+				_ = runDeplabAgainstTar(
+					getTestAssetPath("tiny.tgz"),
+					"--dpkg-file",
+					dpkgDestinationPath)
 
 				dpkgFileBytes, err := ioutil.ReadFile(dpkgDestinationPath)
 
@@ -28,15 +29,19 @@ var _ = Describe("deplab", func() {
 						ContainSubstring("deplab SHASUM"),
 						ContainSubstring("deplab version: 0.0.0-dev"),
 						ContainSubstring("Desired=Unknown/Install/Remove/Purge/Hold"),
-						ContainSubstring("ii  zlib1g              1:1.2.11.dfsg-0ubuntu2   amd64"),
+						ContainSubstring("ii  tzdata          2019c-0ubuntu0.18.04     all"),
 					))
 			})
 		})
 
 		Describe("and metadata can't be written", func() {
 			It("writes the image metadata, returns the sha and throws an error about the file missing", func() {
-				inputImage := "pivotalnavcon/test-asset-additional-sources"
-				_, stdErr := runDepLab([]string{"--image", inputImage, "--git", pathToGitRepo, "--dpkg-file", "a-path-that-does-not-exist/foo.dpkg"}, 1)
+				_, stdErr := runDepLab([]string{
+					"--image-tar", getTestAssetPath("tiny.tgz"),
+					"--git", pathToGitRepo,
+					"--dpkg-file", "a-path-that-does-not-exist/foo.dpkg",
+				}, 1)
+
 				Expect(string(getContentsOfReader(stdErr))).To(
 					ContainSubstring("a-path-that-does-not-exist/foo.dpkg"))
 			})

@@ -2,8 +2,6 @@ package integration_test
 
 import (
 	"encoding/json"
-	"log"
-	"path/filepath"
 	"strings"
 
 	"github.com/pivotal/deplab/pkg/metadata"
@@ -75,12 +73,3 @@ var _ = Describe("deplab inspect", func() {
 		Entry("with a valid image from a registry with invalid json label", "--image", "pivotalnavcon/test-asset-tiny-with-invalid-label", "deplab cannot parse the label"),
 	)
 })
-
-func getTestAssetPath(path string) string {
-	inputTarPath := filepath.Join("assets", path)
-	inputTarPath, err := filepath.Abs(inputTarPath)
-	if err != nil {
-		log.Fatalf("Could not find test asset %s: %s", path, err)
-	}
-	return inputTarPath
-}

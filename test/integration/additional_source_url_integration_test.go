@@ -22,8 +22,7 @@ var _ = Describe("deplab additional-source-url", func() {
 		)
 
 		JustBeforeEach(func() {
-			inputImage := "ubuntu:bionic"
-			metadataLabel = runDeplabAgainstImage(inputImage, additionalArguments...)
+			metadataLabel = runDeplabAgainstTar(getTestAssetPath("tiny.tgz"), additionalArguments...)
 		})
 
 		Context("when I supply only one --additional-source-url argument", func() {
