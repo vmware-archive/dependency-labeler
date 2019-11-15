@@ -5,7 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/pivotal/deplab"
+	"github.com/pivotal/deplab/pkg/deplab"
+
 	"github.com/spf13/cobra"
 )
 
@@ -46,7 +47,7 @@ var rootCmd = &cobra.Command{
 	Long: `Dependency labeler adds information about a container image to that image's config. 
 	The information can be found in a "io.pivotal.metadata" label on the output image. 
 	Complete documentation is available at http://github.com/pivotal/deplab`,
-	Version: deplab.GetVersion(),
+	Version: deplab.Version,
 
 	PreRunE: validateFlags,
 
@@ -77,8 +78,20 @@ func isFlagSet(cmd *cobra.Command, flagName string) bool {
 	return flag != ""
 }
 
-func run(cmd *cobra.Command, args []string) {
-	err := deplab.Run(inputImageTar, inputImage, gitPaths, tag, outputImageTar, metadataFilePath, dpkgFilePath, additionalSourceUrls, additionalSourceFilePaths, ignoreValidationErrors)
+func run(_ *cobra.Command, _ []string) {
+	err := deplab.Run(
+		deplab.RunParams{
+			InputImageTarPath:         inputImageTar,
+			InputImage:                inputImage,
+			GitPaths:                  gitPaths,
+			Tag:                       tag,
+			OutputImageTar:            outputImageTar,
+			MetadataFilePath:          metadataFilePath,
+			DpkgFilePath:              dpkgFilePath,
+			AdditionalSourceUrls:      additionalSourceUrls,
+			AdditionalSourceFilePaths: additionalSourceFilePaths,
+			IgnoreValidationErrors:    ignoreValidationErrors,
+		})
 	if err != nil {
 		log.Fatalf("deplab failed to run. %s\n", err)
 	}

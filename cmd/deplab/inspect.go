@@ -9,7 +9,7 @@ import (
 
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 
-	"github.com/pivotal/deplab/metadata"
+	"github.com/pivotal/deplab/pkg/metadata"
 
 	"github.com/google/go-containerregistry/pkg/crane"
 	"github.com/spf13/cobra"
