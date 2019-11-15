@@ -6,7 +6,7 @@ import (
 
 	"github.com/pivotal/deplab/pkg/git"
 
-	metadata2 "github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/pkg/metadata"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,8 +15,8 @@ import (
 var _ = Describe("deplab git", func() {
 	Context("when I supply git repo(s) as argument(s)", func() {
 		var (
-			metadataLabel       metadata2.Metadata
-			gitDependencies     []metadata2.Dependency
+			metadataLabel       metadata.Metadata
+			gitDependencies     []metadata.Dependency
 			additionalArguments []string
 		)
 
@@ -101,8 +101,8 @@ var _ = Describe("deplab git", func() {
 	})
 })
 
-func selectGitDependencies(dependencies []metadata2.Dependency) []metadata2.Dependency {
-	var gitDependencies []metadata2.Dependency
+func selectGitDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
+	var gitDependencies []metadata.Dependency
 	for _, dependency := range dependencies {
 		if dependency.Source.Type == git.SourceType {
 			gitDependencies = append(gitDependencies, dependency)
