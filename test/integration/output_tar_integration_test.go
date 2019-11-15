@@ -9,7 +9,7 @@ import (
 	"path"
 	"strings"
 
-	metadata2 "github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/pkg/metadata"
 
 	"github.com/google/go-containerregistry/pkg/crane"
 
@@ -48,7 +48,7 @@ var _ = Describe("deplab", func() {
 					"--output-tar", tarDestinationPath,
 				}, 0)
 
-				metadataFileContent := metadata2.Metadata{}
+				metadataFileContent := metadata.Metadata{}
 				err = json.NewDecoder(metadataFile).Decode(&metadataFileContent)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -113,7 +113,7 @@ var _ = Describe("deplab", func() {
 	})
 })
 
-func getMetadataFromImageTarball(tarDestinationPath string) metadata2.Metadata {
+func getMetadataFromImageTarball(tarDestinationPath string) metadata.Metadata {
 	image, err := crane.Load(tarDestinationPath)
 	Expect(err).To(Not(HaveOccurred()))
 	rawConfig, err := image.RawConfigFile()
@@ -125,7 +125,7 @@ func getMetadataFromImageTarball(tarDestinationPath string) metadata2.Metadata {
 
 	mdString := config["config"].(map[string]interface{})["Labels"].(map[string]interface{})["io.pivotal.metadata"].(string)
 
-	md := metadata2.Metadata{}
+	md := metadata.Metadata{}
 
 	err = json.Unmarshal([]byte(mdString), &md)
 	Expect(err).ToNot(HaveOccurred())

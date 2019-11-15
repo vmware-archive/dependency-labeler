@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	metadata2 "github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/pkg/metadata"
 
 	"github.com/onsi/gomega/ghttp"
 
@@ -79,7 +79,7 @@ func runDepLab(args []string, expErrCode int) (stdOut *bytes.Reader, stdErr *byt
 	return stdOut, stdErr
 }
 
-func runDeplabAgainstImage(inputImage string, extraArgs ...string) (metadataLabel metadata2.Metadata) {
+func runDeplabAgainstImage(inputImage string, extraArgs ...string) (metadataLabel metadata.Metadata) {
 	f, err := ioutil.TempFile("", "")
 	Expect(err).ToNot(HaveOccurred())
 
@@ -90,14 +90,14 @@ func runDeplabAgainstImage(inputImage string, extraArgs ...string) (metadataLabe
 	args = append(args, extraArgs...)
 	_, _ = runDepLab(args, 0)
 
-	metadataLabel = metadata2.Metadata{}
+	metadataLabel = metadata.Metadata{}
 	err = json.NewDecoder(f).Decode(&metadataLabel)
 	Expect(err).ToNot(HaveOccurred())
 
 	return metadataLabel
 }
 
-func runDeplabAgainstTar(inputTarPath string, extraArgs ...string) (metadataLabel metadata2.Metadata) {
+func runDeplabAgainstTar(inputTarPath string, extraArgs ...string) (metadataLabel metadata.Metadata) {
 	f, err := ioutil.TempFile("", "")
 	Expect(err).ToNot(HaveOccurred())
 
@@ -107,7 +107,7 @@ func runDeplabAgainstTar(inputTarPath string, extraArgs ...string) (metadataLabe
 	_, _ = runDepLab(args, 0)
 
 	decoder := json.NewDecoder(f)
-	metadataLabel = metadata2.Metadata{}
+	metadataLabel = metadata.Metadata{}
 	err = decoder.Decode(&metadataLabel)
 	Expect(err).ToNot(HaveOccurred())
 

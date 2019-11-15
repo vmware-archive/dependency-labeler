@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	metadata2 "github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/pkg/metadata"
 
 	"github.com/google/go-containerregistry/pkg/crane"
 	. "github.com/onsi/ginkgo"
@@ -92,7 +92,7 @@ var _ = Describe("Image", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				destinationImage := filepath.Join(dir, "output-image.tar")
-				err = image.ExportWithMetadata(metadata2.Metadata{}, destinationImage, "")
+				err = image.ExportWithMetadata(metadata.Metadata{}, destinationImage, "")
 				Expect(err).ToNot(HaveOccurred())
 
 				labelledImage, err := crane.Load(destinationImage)
@@ -118,7 +118,7 @@ var _ = Describe("Image", func() {
 				image, err = NewDeplabImage("", inputTarPath)
 				Expect(err).ToNot(HaveOccurred())
 
-				err = image.ExportWithMetadata(metadata2.Metadata{}, "/tmp/this-path-does-not-exist/this-file-does-not-matter", "")
+				err = image.ExportWithMetadata(metadata.Metadata{}, "/tmp/this-path-does-not-exist/this-file-does-not-matter", "")
 				Expect(err).To(HaveOccurred())
 			})
 		})

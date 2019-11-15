@@ -9,7 +9,7 @@ import (
 
 	"github.com/pivotal/deplab/pkg/additionalsources"
 
-	metadata2 "github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/pkg/metadata"
 
 	"github.com/onsi/gomega/ghttp"
 
@@ -204,7 +204,7 @@ var _ = Describe("deplab", func() {
 				))
 
 				By("by including an archive dependency")
-				metadataLabel := metadata2.Metadata{}
+				metadataLabel := metadata.Metadata{}
 				err = json.NewDecoder(f).Decode(&metadataLabel)
 				Expect(err).ToNot(HaveOccurred())
 

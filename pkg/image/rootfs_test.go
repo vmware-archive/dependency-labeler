@@ -99,23 +99,4 @@ var _ = Describe("rootFS", func() {
 			rfs.Cleanup()
 		})
 	})
-
-	// test to convert for DeplabImage instantation
-
-	//Context("when there is not a valid image archive", func() {
-	//	It("returns an error", func() {
-	//		inputTarPath, err := filepath.Abs(filepath.Join("..", "integration", "assets", "invalid-image-archive.tgz"))
-	//		Expect(err).ToNot(HaveOccurred())
-	//
-	//		image, err := crane.Load(inputTarPath)
-	//		Expect(err).ToNot(HaveOccurred())
-	//
-	//		_, err = rootFS.NewRootFS(image)
-	//		Expect(err).To(MatchError(
-	//			SatisfyAll(
-	//				ContainSubstring("Could not load image from tar"),
-	//				ContainSubstring("invalid-image-archive.tgz"),
-	//			)))
-	//	})
-	//})
 })

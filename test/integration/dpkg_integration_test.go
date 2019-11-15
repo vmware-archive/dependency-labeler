@@ -5,7 +5,7 @@ import (
 
 	"github.com/pivotal/deplab/pkg/dpkg"
 
-	metadata2 "github.com/pivotal/deplab/pkg/metadata"
+	"github.com/pivotal/deplab/pkg/metadata"
 
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
@@ -17,7 +17,7 @@ import (
 var _ = Describe("deplab dpkg", func() {
 	var (
 		inputImage    string
-		metadataLabel metadata2.Metadata
+		metadataLabel metadata.Metadata
 	)
 
 	Context("with an ubuntu:bionic image", func() {
@@ -128,13 +128,13 @@ var _ = Describe("deplab dpkg", func() {
 	})
 })
 
-func filterDpkgDependency(dependencies []metadata2.Dependency) (metadata2.Dependency, bool) {
+func filterDpkgDependency(dependencies []metadata.Dependency) (metadata.Dependency, bool) {
 	for _, dependency := range dependencies {
 		if dependency.Source.Type == dpkg.PackageListSourceType {
 			return dependency, true
 		}
 	}
-	return metadata2.Dependency{}, false //should never be reached
+	return metadata.Dependency{}, false //should never be reached
 }
 
 func ArePackagesSorted(pkgs []interface{}) bool {
