@@ -22,7 +22,7 @@ var _ = Describe("deplab additional-source-url", func() {
 		)
 
 		JustBeforeEach(func() {
-			metadataLabel = runDeplabAgainstTar(getTestAssetPath("tiny.tgz"), additionalArguments...)
+			metadataLabel = runDeplabAgainstTar(getTestAssetPath("image-archives/tiny.tgz"), additionalArguments...)
 		})
 
 		Context("when I supply only one --additional-source-url argument", func() {

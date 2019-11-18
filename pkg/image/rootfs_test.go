@@ -16,7 +16,7 @@ var rfs RootFS
 var _ = Describe("rootFS", func() {
 	Context("when there is a valid image archive", func() {
 		BeforeEach(func() {
-			inputTarPath, err := filepath.Abs("../../test/integration/assets/all-file-types.tgz")
+			inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/all-file-types.tgz")
 			Expect(err).ToNot(HaveOccurred())
 
 			image, err := crane.Load(inputTarPath)

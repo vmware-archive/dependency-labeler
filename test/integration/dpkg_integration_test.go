@@ -21,7 +21,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
-			metadataLabel = runDeplabAgainstImage("pivotalnavcon/test-asset-additional-sources")
+			metadataLabel = runDeplabAgainstImage("dev.registry.pivotal.io/navcon/deplab-test-asset:additional-sources")
 		})
 
 		It("applies a metadata label", func() {
@@ -61,7 +61,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an image without dpkg", func() {
 		It("does not return a dpkg list", func() {
-			metadataLabel = runDeplabAgainstTar(getTestAssetPath("all-file-types.tgz"))
+			metadataLabel = runDeplabAgainstTar(getTestAssetPath("image-archives/all-file-types.tgz"))
 
 			_, ok := filterDpkgDependency(metadataLabel.Dependencies)
 			Expect(ok).To(BeFalse())
@@ -70,7 +70,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an image with dpkg, but no apt sources", func() {
 		BeforeEach(func() {
-			metadataLabel = runDeplabAgainstImage("pivotalnavcon/test-asset-no-sources")
+			metadataLabel = runDeplabAgainstImage("dev.registry.pivotal.io/navcon/deplab-test-asset:no-sources")
 		})
 
 		It("does not return a dpkg list", func() {
@@ -86,7 +86,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with an ubuntu:bionic based image with a non-shell entrypoint", func() {
 		BeforeEach(func() {
-			metadataLabel = runDeplabAgainstImage("pivotalnavcon/test-asset-entrypoint-return-stdout")
+			metadataLabel = runDeplabAgainstImage("dev.registry.pivotal.io/navcon/deplab-test-asset:entrypoint-return-stdout")
 		})
 
 		It("should return the apt source list", func() {
@@ -103,7 +103,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("with Pivotal Tiny", func() {
 		BeforeEach(func() {
-			metadataLabel = runDeplabAgainstTar(getTestAssetPath("tiny.tgz"))
+			metadataLabel = runDeplabAgainstTar(getTestAssetPath("image-archives/tiny.tgz"))
 		})
 
 		It("returns a dpkg list", func() {

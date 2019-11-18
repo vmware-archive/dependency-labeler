@@ -23,14 +23,14 @@ var _ = Describe("Image", func() {
 			)
 
 			It("instantiates an image starting from a remote source", func() {
-				image, err = NewDeplabImage("pivotalnavcon/test-asset-all-file-types", "")
+				image, err = NewDeplabImage("dev.registry.pivotal.io/navcon/deplab-test-asset:all-file-types", "")
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(image).ToNot(BeNil())
 			})
 
 			It("instantiates an image starting from a tarball", func() {
-				inputTarPath, err := filepath.Abs("../../test/integration/assets/all-file-types.tgz")
+				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/all-file-types.tgz")
 				Expect(err).ToNot(HaveOccurred())
 
 				image, err = NewDeplabImage("", inputTarPath)
@@ -52,7 +52,7 @@ var _ = Describe("Image", func() {
 			})
 
 			It("returns an error if an invalid image at the tarball path", func() {
-				inputTarPath, err := filepath.Abs("../../test/integration/assets/invalid-image-archive.tgz")
+				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/invalid-image-archive.tgz")
 				Expect(err).ToNot(HaveOccurred())
 
 				_, err = NewDeplabImage("", inputTarPath)
@@ -82,7 +82,7 @@ var _ = Describe("Image", func() {
 			})
 
 			It("includes metadata in the label", func() {
-				inputTarPath, err := filepath.Abs("../../test/integration/assets/all-file-types.tgz")
+				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/all-file-types.tgz")
 				Expect(err).ToNot(HaveOccurred())
 
 				image, err = NewDeplabImage("", inputTarPath)
@@ -112,7 +112,7 @@ var _ = Describe("Image", func() {
 			})
 
 			It("returns an error if the destination path is invalid", func() {
-				inputTarPath, err := filepath.Abs("../../test/integration/assets/all-file-types.tgz")
+				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/all-file-types.tgz")
 				Expect(err).ToNot(HaveOccurred())
 
 				image, err = NewDeplabImage("", inputTarPath)

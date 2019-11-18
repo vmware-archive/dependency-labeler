@@ -55,8 +55,8 @@ var _ = Describe("deplab", func() {
 
 				Expect(metadataFileContent).To(Equal(md))
 			},
-				Entry("non existing file", getTestAssetPath("tiny.tgz"), test_utils.NonExistingFileName()),
-				Entry("existing file", getTestAssetPath("tiny.tgz"), test_utils.ExistingFileName()),
+				Entry("non existing file", getTestAssetPath("image-archives/tiny.tgz"), test_utils.NonExistingFileName()),
+				Entry("existing file", getTestAssetPath("image-archives/tiny.tgz"), test_utils.ExistingFileName()),
 			)
 
 			Context("when there is a tag", func() {
@@ -66,14 +66,14 @@ var _ = Describe("deplab", func() {
 					tarDestinationPath = path.Join(tempDir, "image.tar")
 
 					Expect(err).ToNot(HaveOccurred())
-					_ = runDeplabAgainstTar(getTestAssetPath("tiny.tgz"), "--output-tar", tarDestinationPath, "--tag", "foo:bar")
+					_ = runDeplabAgainstTar(getTestAssetPath("image-archives/tiny.tgz"), "--output-tar", tarDestinationPath, "--tag", "foo:bar")
 
 					manifest := getManifestFromImageTarball(tarDestinationPath)
 					Expect(manifest["RepoTags"]).To(ConsistOf("foo:bar"))
 				})
 
 				It("exits with an error if the tag passed is not valid", func() {
-					_, stdErr := runDepLab([]string{"--image-tar", getTestAssetPath("tiny.tgz"),
+					_, stdErr := runDepLab([]string{"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 						"--git", pathToGitRepo,
 						"--tag", "foo:testtag/bar",
 						"--output-tar", test_utils.ExistingFileName(),
@@ -95,7 +95,7 @@ var _ = Describe("deplab", func() {
 
 		Describe("and file can't be written", func() {
 			It("writes the image metadata, returns the sha and throws an error about the file location", func() {
-				_, stdErr := runDepLab([]string{"--image-tar", getTestAssetPath("tiny.tgz"), "--git", pathToGitRepo, "--output-tar", "a-path-that-does-not-exist/image.tar"}, 1)
+				_, stdErr := runDepLab([]string{"--image-tar", getTestAssetPath("image-archives/tiny.tgz"), "--git", pathToGitRepo, "--output-tar", "a-path-that-does-not-exist/image.tar"}, 1)
 
 				Expect(string(getContentsOfReader(stdErr))).To(
 					SatisfyAll(

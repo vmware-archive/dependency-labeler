@@ -14,7 +14,7 @@ var _ = Describe("deplab", func() {
 
 		Expect(metadataLabel.Base).To(SatisfyAll(matchers...))
 	},
-		Entry("ubuntu:bionic image", "os-release-on-scratch.tgz",
+		Entry("ubuntu:bionic image os-release", "image-archives/os-release-on-scratch.tgz",
 			HaveKeyWithValue("name", "Ubuntu"),
 			HaveKeyWithValue("version", "18.04.3 LTS (Bionic Beaver)"),
 			HaveKeyWithValue("version_id", "18.04"),
@@ -22,7 +22,7 @@ var _ = Describe("deplab", func() {
 			HaveKeyWithValue("version_codename", "bionic"),
 			HaveKeyWithValue("pretty_name", "Ubuntu 18.04.3 LTS"),
 		),
-		Entry("an image that doesn't have an os-release", "all-file-types.tgz",
+		Entry("an image that doesn't have an os-release", "image-archives/all-file-types.tgz",
 			HaveKeyWithValue("name", "unknown"),
 			HaveKeyWithValue("version_codename", "unknown"),
 			HaveKeyWithValue("version_id", "unknown"),

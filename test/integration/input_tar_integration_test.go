@@ -11,7 +11,7 @@ var _ = Describe("deplab", func() {
 	Context("with an image tar path", func() {
 		It("labels the image", func() {
 			By("executing it")
-			metadataLabel := runDeplabAgainstTar(getTestAssetPath("tiny.tgz"))
+			metadataLabel := runDeplabAgainstTar(getTestAssetPath("image-archives/tiny.tgz"))
 
 			gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
 			gitDependency := gitDependencies[0]
@@ -44,7 +44,7 @@ var _ = Describe("deplab", func() {
 	Context("with an image tar with a eu.gcr.io tag", func() {
 		It("labels the image", func() {
 			By("executing it")
-			metadataLabel := runDeplabAgainstTar(getTestAssetPath("tiny-with-eu.gcr.io-tag.tar"))
+			metadataLabel := runDeplabAgainstTar(getTestAssetPath("image-archives/tiny-with-eu.gcr.io-tag.tar"))
 
 			gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
 			gitDependency := gitDependencies[0]

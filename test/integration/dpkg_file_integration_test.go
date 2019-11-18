@@ -17,7 +17,7 @@ var _ = Describe("deplab", func() {
 				defer test_utils.CleanupFile(dpkgDestinationPath)
 
 				_ = runDeplabAgainstTar(
-					getTestAssetPath("tiny.tgz"),
+					getTestAssetPath("image-archives/tiny.tgz"),
 					"--dpkg-file",
 					dpkgDestinationPath)
 
@@ -37,7 +37,7 @@ var _ = Describe("deplab", func() {
 		Describe("and metadata can't be written", func() {
 			It("writes the image metadata, returns the sha and throws an error about the file missing", func() {
 				_, stdErr := runDepLab([]string{
-					"--image-tar", getTestAssetPath("tiny.tgz"),
+					"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 					"--git", pathToGitRepo,
 					"--dpkg-file", "a-path-that-does-not-exist/foo.dpkg",
 				}, 1)

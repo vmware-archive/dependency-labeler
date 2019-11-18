@@ -21,7 +21,7 @@ var _ = Describe("deplab git", func() {
 		)
 
 		JustBeforeEach(func() {
-			metadataLabel = runDeplabAgainstTar(getTestAssetPath("tiny.tgz"), additionalArguments...)
+			metadataLabel = runDeplabAgainstTar(getTestAssetPath("image-archives/tiny.tgz"), additionalArguments...)
 			gitDependencies = selectGitDependencies(metadataLabel.Dependencies)
 		})
 
@@ -72,7 +72,7 @@ var _ = Describe("deplab git", func() {
 		It("exits with an error message", func() {
 			By("executing it")
 			_, stdErr := runDepLab([]string{
-				"--image-tar", getTestAssetPath("tiny.tgz"),
+				"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 				"--git", "/dev/null",
 				"--metadata-file", "doesnotmatter6",
 			}, 1)
@@ -89,7 +89,7 @@ var _ = Describe("deplab git", func() {
 			defer os.Remove(d)
 			Expect(err).To(Not(HaveOccurred()))
 			_, stdErr := runDepLab([]string{
-				"--image-tar", getTestAssetPath("tiny.tgz"),
+				"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 				"--metadata-file", metadatafileName,
 			}, 1)
 

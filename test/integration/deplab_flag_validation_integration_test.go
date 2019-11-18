@@ -59,7 +59,7 @@ var _ = Describe("deplab", func() {
 		It("exits with an error if neither metadata-file, dpkg-list, output-tar flags are set", func() {
 			_, stdErr := runDepLab([]string{
 				"--git", pathToGitRepo,
-				"--image-tar", getTestAssetPath("tiny.tgz"),
+				"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 			}, 1)
 
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
@@ -90,7 +90,7 @@ var _ = Describe("deplab", func() {
 
 		It("exits with an error if additional-source-url is not valid", func() {
 			_, stdErr := runDepLab([]string{
-				"--image-tar", getTestAssetPath("tiny.tgz"),
+				"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 				"--git", pathToGitRepo,
 				"--metadata-file", "doesnotmatter12",
 				"--additional-source-url", "/foo/bar",
@@ -105,7 +105,7 @@ var _ = Describe("deplab", func() {
 
 		It("exits with an error if additional-source-url is not reachable ", func() {
 			_, stdErr := runDepLab([]string{
-				"--image-tar", getTestAssetPath("tiny.tgz"),
+				"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 				"--git", pathToGitRepo,
 				"--metadata-file", "doesnotmatter13",
 				"--additional-source-url", "https://package.some.invalid/cool-package",
@@ -125,7 +125,7 @@ var _ = Describe("deplab", func() {
 			address := server.URL() + "/cool-package"
 
 			_, stdErr := runDepLab([]string{
-				"--image-tar", getTestAssetPath("tiny.tgz"),
+				"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 				"--git", pathToGitRepo,
 				"--additional-source-url", address,
 				"--metadata-file", "doesnotmatter14",
@@ -146,7 +146,7 @@ var _ = Describe("deplab", func() {
 				defer os.Remove(d)
 
 				_, stdErr := runDepLab([]string{
-					"--image-tar", getTestAssetPath("tiny.tgz"),
+					"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 					"--git", pathToGitRepo,
 					"--additional-source-url", "/foo/bar",
 					"--metadata-file", metadataFileName,
@@ -181,7 +181,7 @@ var _ = Describe("deplab", func() {
 				}
 
 				_, stdErr := runDepLab([]string{
-					"--image-tar", getTestAssetPath("tiny.tgz"),
+					"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 					"--git", pathToGitRepo,
 					"--additional-source-url", addresses[0],
 					"--additional-source-url", addresses[1],

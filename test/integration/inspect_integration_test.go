@@ -50,8 +50,8 @@ var _ = Describe("deplab inspect", func() {
 		Expect(err).ToNot(HaveOccurred())
 		Expect(md.Provenance[0].Name).To(Equal("deplab"))
 	},
-		Entry("with a deplab'd image tarball", "--image-tar", getTestAssetPath("tiny-deplabd.tgz")),
-		Entry("with a deplab'd image from a registry", "--image", "pivotalnavcon/test-asset-tiny-deplabd"),
+		Entry("with a deplab'd image tarball", "--image-tar", getTestAssetPath("image-archives/tiny-deplabd.tgz")),
+		Entry("with a deplab'd image from a registry", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-deplabd"),
 	)
 
 	DescribeTable("provides an error", func(flag, path, errorMsg string) {
@@ -65,11 +65,11 @@ var _ = Describe("deplab inspect", func() {
 				ContainSubstring(errorMsg),
 				ContainSubstring(path)))
 	},
-		Entry("with a undeplab'd image tar path", "--image-tar", getTestAssetPath("tiny.tgz"), "deplab cannot find the 'io.pivotal.metadata' label on the provided image"),
+		Entry("with a undeplab'd image tar path", "--image-tar", getTestAssetPath("image-archives/tiny.tgz"), "deplab cannot find the 'io.pivotal.metadata' label on the provided image"),
 		Entry("with a undeplab'd image from a registry", "--image", "cloudfoundry/run:tiny", "deplab cannot find the 'io.pivotal.metadata' label on the provided image"),
-		Entry("with a invalid image tarball", "--image-tar", getTestAssetPath("invalid-image-archive.tgz"), "deplab cannot open the provided image"),
+		Entry("with a invalid image tarball", "--image-tar", getTestAssetPath("image-archives/invalid-image-archive.tgz"), "deplab cannot open the provided image"),
 		Entry("with a non-existent image from registry", "--image", "pivotalnavcon/does-not-exist", "deplab cannot retrieve the Config file"),
-		Entry("with a valid image tar ball with invalid json label", "--image-tar", getTestAssetPath("tiny-with-invalid-label.tgz"), "deplab cannot parse the label"),
-		Entry("with a valid image from a registry with invalid json label", "--image", "pivotalnavcon/test-asset-tiny-with-invalid-label", "deplab cannot parse the label"),
+		Entry("with a valid image tar ball with invalid json label", "--image-tar", getTestAssetPath("image-archives/tiny-with-invalid-label.tgz"), "deplab cannot parse the label"),
+		Entry("with a valid image from a registry with invalid json label", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-with-invalid-label", "deplab cannot parse the label"),
 	)
 })

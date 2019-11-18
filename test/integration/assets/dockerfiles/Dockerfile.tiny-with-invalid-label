@@ -1,0 +1,3 @@
+FROM cloudfoundry/run:tiny
+
+LABEL "io.pivotal.metadata"="invalidjson"

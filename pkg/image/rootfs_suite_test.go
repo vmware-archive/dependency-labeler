@@ -9,5 +9,5 @@ import (
 
 func TestProviders(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "RootFS Suite")
+	RunSpecs(t, "Image Suite")
 }
