@@ -40,21 +40,4 @@ var _ = Describe("deplab", func() {
 				))
 		})
 	})
-
-	Context("with an image tar with a eu.gcr.io tag", func() {
-		It("labels the image", func() {
-			By("executing it")
-			metadataLabel := runDeplabAgainstTar(getTestAssetPath("image-archives/tiny-with-eu.gcr.io-tag.tar"))
-
-			gitDependencies := selectGitDependencies(metadataLabel.Dependencies)
-			gitDependency := gitDependencies[0]
-
-			Expect(gitDependency.Type).ToNot(BeEmpty())
-
-			By("adding the git commit of HEAD to a git dependency")
-			Expect(gitDependency.Type).To(Equal("package"))
-			Expect(gitDependency.Source.Version["commit"]).To(Equal(commitHash))
-		})
-	})
-
 })
