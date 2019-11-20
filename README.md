@@ -20,9 +20,7 @@ Outputting the tar will add the label `io.pivotal.metadata` along with the neces
 
 ```bash
 ./deplab --image <image-name> --git <path to git repo> --output-tar <path to output tar>
-skopeo inspect docker-archive:<path to output tar> \
-  | jq -r '.Labels."io.pivotal.metadata"' \ 
-  | jq .
+./deplab inspect --iamge-tar:<path to output tar>
 ```
 
 ## Flags
@@ -128,7 +126,8 @@ This file is approximately similar to the file which will be output by running `
 
 ```
 deplab --image <image-reference> \
-  --git <path-to-repo> 
+  --git <path-to-repo> \
+  --output-tar <path-to-image-output> 
 ```
 
 ### Multiple git inputs
@@ -136,24 +135,17 @@ deplab --image <image-reference> \
 ```
 deplab --image <image-reference> \
   --git <path-to-repo> \
-  --git <path-to-another-repo>
+  --git <path-to-another-repo> \
+  --output-tar <path-to-image-output> 
 ```
 
 ### Input image as tar
 
 ```
 deplab --image-tar <path-to-image-tar> \
-  --git <path-to-repo> 
-```
-
-### Output image as tar
-
-```
-deplab --image <image-reference> \
   --git <path-to-repo> \
   --output-tar <path-to-image-output> 
 ```
-
 
 ### Multiple additional source url inputs
 
@@ -161,7 +153,8 @@ deplab --image <image-reference> \
 deplab --image <image-reference> \
   --git <path-to-repo> \
   --additional-source-url <url to archive> \
-  --additional-source-url <url to archive>
+  --additional-source-url <url to archive> \
+  --output-tar <path-to-image-output>
 ```
 
 ### Multiple additional-sources-file inputs
@@ -170,7 +163,8 @@ deplab --image <image-reference> \
 deplab --image <image-reference> \
   --git <path-to-repo> \
   --additional-sources-file <path to file> \
-  --additional-sources-file <path to file>
+  --additional-sources-file <path to file> \
+  --output-tar <path-to-image-output>
 ```
 
 ### Tag output image
@@ -178,7 +172,8 @@ deplab --image <image-reference> \
 ```
 deplab --image <image-reference> \
   --git <path-to-repo> \
-  --tag <tag> 
+  --tag <tag> \
+  --output-tar <path-to-image-output>
 ```
 
 ### dpkg list file
@@ -186,7 +181,7 @@ deplab --image <image-reference> \
 ```
 deplab --image <image-reference> \
   --git <path-to-repo> \
-  --dpkg-file <path-to-dpkg-file-output> 
+  --dpkg-file <path-to-dpkg-file-output>
 ```
 
 ### metadata file
@@ -194,7 +189,7 @@ deplab --image <image-reference> \
 ```
 deplab --image <image-reference> \
   --git <path-to-repo> \
-  --metadata-file <path-to-metadata-file-output> 
+  --metadata-file <path-to-metadata-file-output>
 ```
 
 ### Usage in Concourse
