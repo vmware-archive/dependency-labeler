@@ -20,7 +20,7 @@ Outputting the tar will add the label `io.pivotal.metadata` along with the neces
 
 ```bash
 ./deplab --image <image-name> --git <path to git repo> --output-tar <path to output tar>
-./deplab inspect --iamge-tar:<path to output tar>
+./deplab inspect --image-tar <path to output tar>
 ```
 
 ## Flags
