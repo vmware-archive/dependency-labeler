@@ -1,7 +1,7 @@
 # deplab
 
 ## Introduction
-deplab adds metadata about a container image's dependencies as a label to the container image.
+deplab adds and inspects metadata about a container image's dependencies.
 
 ## Usage
 Download the latest `deplab` binary from the [releases page](https://github.com/pivotal/deplab/releases).
@@ -10,20 +10,17 @@ To run the tool run the following command:
 ./deplab [flags]
 ```
 
-By default running `deplab` does not return anything but will perform validation on the input. To get a return use one of the following flags:
+By default, `deplab` will [investigate](#investigate-mode) the contents of an image and the provided git repository (from where the image is built). Alternatively, `deplab` can be used in [inspect](#inspect-mode) mode to read existing metadata label from an image.
 
-* To return a file with the metadata use the `--metadata-file` flag
-* To return the dpkg list use the `--dpkg-file` flag
-* To return a tar of the image with the metadata attached use the `--output-tar` flag
+## Investigate mode
 
-Outputting the tar will add the label `io.pivotal.metadata` along with the necessary metadata. To visualise the metadata this command can be run
+`deplab` requires two input flags, one of which must be the `git` flag, and one output flag to be specified.
 
 ```bash
 ./deplab --image <image-name> --git <path to git repo> --output-tar <path to output tar>
-./deplab inspect --image-tar <path to output tar>
 ```
 
-## Flags
+### Investigate mode flags
 
 | short flag  | long flag  | value type | description | remarks |
 |---|---|---|---|---|
@@ -40,7 +37,27 @@ Outputting the tar will add the label `io.pivotal.metadata` along with the neces
 | `-h` | `--help` |  | help for deplab |  | 
 |  | `--version` |  |  version for deplab |  | 
 
-### Inputs
+## Inspect mode
+Inspect prints the deplab "io.pivotal.metadata" label in the config file of an OCI compatible image to stdout.  The label will be printed in json format.
+
+`deplab inspect` requires one input flag to be specified.
+
+```bash
+./deplab inspect --image <image-name>
+```
+
+The metadata on the inspected image will be printed to standard out.  If metadata does not exist on the image an error will be printed to standard error.
+
+### Inspect mode flags
+
+| short flag  | long flag  | value type | description | remarks |
+|---|---|---|---|---|
+| `-i` | `--image` | string | [image to be inspected by deplab](#image) | Optional. Cannot be used with `--image-tar` flag | 
+| `-p` | `--image-tar` |  path | [path to tarball of input image to be inspected by deplab](#image-tarball) | Optional, but required for Concourse. Cannot be used with `--image` flag | 
+
+## Detailed flag descriptions
+
+### Input flag descriptions
 
 #### Git
 
@@ -87,7 +104,7 @@ vcs:
   url: <git repository url>
 ```
 
-### Outputs
+### Output flag descriptions
 
 #### Tag
 
@@ -118,7 +135,6 @@ If the file path cannot be created, deplab will return the newly labelled image,
 If a file exists at the given path, the file will be overwritten.
 
 This file is approximately similar to the file which will be output by running `dpkg -l`, with the addition of an extra header which provides an ID for this list.
-
 
 ## Examples
 
@@ -192,7 +208,13 @@ deplab --image <image-reference> \
   --metadata-file <path-to-metadata-file-output>
 ```
 
-### Usage in Concourse
+### inspecting a tarball file
+
+```
+deplab --image-tar <image-reference>
+```
+
+## Usage in Concourse
 
 Please see [CONCOURSE.md](CONCOURSE.md) for information about using deplab as a task in your
 Concourse pipeline.
