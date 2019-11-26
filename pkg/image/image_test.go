@@ -80,12 +80,16 @@ var _ = Describe("Image", func() {
 				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/broken-files.tgz")
 				Expect(err).ToNot(HaveOccurred())
 
-				_, err = NewDeplabImage(
+				di, err := NewDeplabImage(
 					"",
 					inputTarPath,
 					[]string{"all-files/broken-folder/"})
 
 				Expect(err).ToNot(HaveOccurred())
+				defer di.Cleanup()
+
+				_, err = di.GetDirContents("all-files/broken-folder/no-permissions")
+				Expect(err).To(MatchError(ContainSubstring("all-files/broken-folder/no-permissions")))
 			})
 		})
 
