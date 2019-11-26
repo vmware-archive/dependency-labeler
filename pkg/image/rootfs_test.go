@@ -3,6 +3,8 @@ package image_test
 import (
 	"path/filepath"
 
+	v1 "github.com/google/go-containerregistry/pkg/v1"
+
 	"github.com/google/go-containerregistry/pkg/crane"
 
 	. "github.com/onsi/ginkgo"
@@ -22,7 +24,7 @@ var _ = Describe("rootFS", func() {
 			image, err := crane.Load(inputTarPath)
 			Expect(err).ToNot(HaveOccurred())
 
-			rfs, err = NewRootFS(image)
+			rfs, err = NewRootFS(image, nil)
 			Expect(err).ToNot(HaveOccurred())
 		})
 
@@ -97,6 +99,26 @@ var _ = Describe("rootFS", func() {
 
 		AfterEach(func() {
 			rfs.Cleanup()
+		})
+	})
+	Context("when the tar contains a directory with no permissions", func() {
+		var image v1.Image
+		BeforeEach(func() {
+			inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/broken-files.tgz")
+			Expect(err).ToNot(HaveOccurred())
+
+			image, err = crane.Load(inputTarPath)
+			Expect(err).ToNot(HaveOccurred())
+		})
+		It("can no longer retrieve the content", func() {
+			_, err := NewRootFS(image, nil)
+			Expect(err).To(HaveOccurred())
+		})
+		Context("when the offending file is excluded", func() {
+			It("succeeds creating the rootfs", func() {
+				_, err := NewRootFS(image, []string{"all-files/broken-folder/"})
+				Expect(err).ToNot(HaveOccurred())
+			})
 		})
 	})
 })

@@ -23,6 +23,7 @@ done
 
 images=( "cloudfoundry/run:tiny" \
           "$DEPLAB_ASSET_REPOSITORY:all-file-types" \
+          "$DEPLAB_ASSET_REPOSITORY:broken-files" \
           "$DEPLAB_ASSET_REPOSITORY:tiny-with-invalid-label" \
           "$DEPLAB_ASSET_REPOSITORY:os-release-on-scratch" )
 

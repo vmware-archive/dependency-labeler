@@ -16,7 +16,7 @@ type Image struct {
 	image  v1.Image
 }
 
-func NewDeplabImage(inputImage, inputImageTarPath string) (Image, error) {
+func NewDeplabImage(inputImage, inputImageTarPath string, excludePatterns []string) (Image, error) {
 	var (
 		image v1.Image
 		err   error
@@ -36,7 +36,7 @@ func NewDeplabImage(inputImage, inputImageTarPath string) (Image, error) {
 		return Image{}, errors.New("You must provide either an inputImage or inputImageTarPath parameter")
 	}
 
-	rootFS, err := NewRootFS(image)
+	rootFS, err := NewRootFS(image, excludePatterns)
 	if err != nil {
 		return Image{}, errors.Wrapf(err, "could not create new image")
 	}

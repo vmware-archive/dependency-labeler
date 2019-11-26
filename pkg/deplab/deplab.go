@@ -36,7 +36,12 @@ type RunParams struct {
 }
 
 func Run(params RunParams) error {
-	dli, err := image.NewDeplabImage(params.InputImage, params.InputImageTarPath)
+	dli, err := image.NewDeplabImage(params.InputImage,
+		params.InputImageTarPath,
+		// this folder is unnecessary and may contain folders with bad permissions
+		[]string{"usr/share/doc/"},
+	)
+
 	if err != nil {
 		return errors.Wrapf(err, "could not load image.")
 	}

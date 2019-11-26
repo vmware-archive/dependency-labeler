@@ -1,0 +1,15 @@
+FROM ubuntu:bionic as builder
+
+RUN mkdir -p /all-files/folder
+
+WORKDIR /all-files
+
+RUN mkdir -p broken-folder/no-permissions \
+    && echo 'no-permissions' > broken-folder/no-permissions/foo \
+    && chmod 000 broken-folder/no-permissions
+
+FROM scratch
+
+COPY --from=builder /all-files/ /all-files
+
+LABEL foo="bar"

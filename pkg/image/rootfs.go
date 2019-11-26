@@ -54,7 +54,7 @@ func (rfs *RootFS) GetFileContent(path string) (string, error) {
 	return string(fileBytes), nil
 }
 
-func NewRootFS(image v1.Image) (RootFS, error) {
+func NewRootFS(image v1.Image, excludePatterns []string) (RootFS, error) {
 	var (
 		rootFS string
 		err    error
@@ -72,7 +72,10 @@ func NewRootFS(image v1.Image) (RootFS, error) {
 		return RootFS{}, errors.Wrap(err, "Could not create rootFS temp directory.")
 	}
 
-	err = archive.Untar(fs, rootFS, &archive.TarOptions{NoLchown: true})
+	err = archive.Untar(fs, rootFS, &archive.TarOptions{
+		NoLchown:        true,
+		ExcludePatterns: excludePatterns,
+	})
 	if err != nil {
 		return RootFS{}, errors.Wrapf(err, "Could not untar from tar %s to temp directory %s.", f.Name(), rootFS)
 	}
