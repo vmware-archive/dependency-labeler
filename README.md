@@ -1,26 +1,36 @@
 # deplab
 
-## Introduction
-deplab adds and inspects metadata about a container image's dependencies.
+deplab generates and shows metadata about a container image's dependencies.
+
+## Obtain
+
+Download the latest deplab release matching your OS from https://github.com/pivotal/deplab/releases/latest. Make it executable and move it to a directory in your `PATH` renaming it `deplab`.
 
 ## Usage
-Download the latest `deplab` binary from the [releases page](https://github.com/pivotal/deplab/releases).
-To run the tool run the following command:
-```bash
-./deplab [flags]
-```
 
-By default, `deplab` will [investigate](#investigate-mode) the contents of an image and the provided git repository (from where the image is built). Alternatively, `deplab` can be used in [inspect](#inspect-mode) mode to read existing metadata label from an image.
+By default `deplab` [generates](#generate-metadata) the metadata of an image and the provided git repository (from where the image is built). Once an image is labelled with `deplab` the metadata can be visualized using [inspect](#inspect).
 
-## Investigate mode
-
-`deplab` requires two input flags, one of which must be the `git` flag, and one output flag to be specified.
-
+To generate the metadata run
 ```bash
 ./deplab --image <image-name> --git <path to git repo> --output-tar <path to output tar>
 ```
 
-### Investigate mode flags
+Then, to visualise the metadata run 
+```bash
+./deplab inspect --image-tar <path to output tar>
+```
+
+## Generate metadata
+
+`deplab` requires two input flags: an image source (remote `--image` or a local archive `--image-tar`) and the `--git` flag. An output flag need to be specified (`--output-tar`, `--metadata-file`, `--dpkg-file`).  
+
+```bash
+./deplab --image-tar <path to input tar> \
+    --git <path to git repo> \
+    --output-tar <path to output tar>
+```
+
+### Generate flags
 
 | short flag  | long flag  | value type | description | remarks |
 |---|---|---|---|---|
@@ -37,10 +47,10 @@ By default, `deplab` will [investigate](#investigate-mode) the contents of an im
 | `-h` | `--help` |  | help for deplab |  | 
 |  | `--version` |  |  version for deplab |  | 
 
-## Inspect mode
-Inspect prints the deplab "io.pivotal.metadata" label in the config file of an OCI compatible image to stdout.  The label will be printed in json format.
+## Inspect
+Inspect prints the deplab "io.pivotal.metadata" label in the config file of an image to stdout.  The label will be printed in json format.
 
-`deplab inspect` requires one input flag to be specified.
+`deplab inspect` requires one image source to be specified (`--image` or `--image-tar`).
 
 ```bash
 ./deplab inspect --image <image-name>
@@ -48,7 +58,7 @@ Inspect prints the deplab "io.pivotal.metadata" label in the config file of an O
 
 The metadata on the inspected image will be printed to standard out.  If metadata does not exist on the image an error will be printed to standard error.
 
-### Inspect mode flags
+### Inspect flags
 
 | short flag  | long flag  | value type | description | remarks |
 |---|---|---|---|---|
@@ -66,12 +76,12 @@ git flag into the command.
 
 #### Image
 
-deplab accept as input an image stored in the local registry (tags, sha, or image id are all valid options).
+deplab accepts as input an image stored in the local registry (tags, sha, or image id are all valid options).
 One and only one of `--image` or `--image-tar` have to be used when invoking deplab.
 
 #### Image tarball
 
-deplab accept as input an image stored in tar format (e.g. the output of `docker save ...` or of a concourse task).
+deplab accepts as input an image stored in tar format (e.g. the output of `docker save ...` or of a concourse task).
 One and only one of `--image` or `--image-tar` have to be used when invoking deplab.
 
 #### Additional sources
@@ -211,7 +221,7 @@ deplab --image <image-reference> \
 ### inspecting a tarball file
 
 ```
-deplab --image-tar <image-reference>
+deplab inspect --image-tar <image-reference>
 ```
 
 ## Usage in Concourse
@@ -362,7 +372,7 @@ Provenance is a list of the tools which have added information to the image. It 
 
 
 ## Testing
-Testing requires `go` to be installed.  Please clone this git repository.  Tests can be run with:
+Testing requires `go` to be installed. To run tests you need to be authenticated against `dev.registry.pivotal.io` and be authorized for read access to `navcon/deplab-test-asset` repository.
 ```bash
 go test ./...
 ```
