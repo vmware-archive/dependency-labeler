@@ -22,7 +22,7 @@ Then, to visualise the metadata run
 
 ## Generate metadata
 
-`deplab` requires two input flags: an image source (remote `--image` or a local archive `--image-tar`) and the `--git` flag. An output flag need to be specified (`--output-tar`, `--metadata-file`, `--dpkg-file`).  
+`deplab` requires two input flags: an image source (remote `--image` or a local archive `--image-tar`) and the `--git` flag. An output flag needs to be specified (`--output-tar`, `--metadata-file`, `--dpkg-file`).  
 
 ```bash
 ./deplab --image-tar <path to input tar> \
@@ -48,7 +48,7 @@ Then, to visualise the metadata run
 |  | `--version` |  |  version for deplab |  | 
 
 ## Inspect
-Inspect prints the deplab "io.pivotal.metadata" label in the config file of an image to stdout.  The label will be printed in json format.
+Inspect prints the deplab "io.pivotal.metadata" label in the config file of an image to stdout.  The label will be printed in JSON format.
 
 `deplab inspect` requires one image source to be specified (`--image` or `--image-tar`).
 
