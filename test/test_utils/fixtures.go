@@ -11,7 +11,7 @@ var MetadataSample = metadata.Metadata{
 					"sha256": "some-sha",
 				},
 				Metadata: metadata.DebianPackageListSourceMetadata{
-					Packages: []metadata.Package{
+					Packages: []metadata.DpkgPackage{
 						{
 							Package:      "foobar",
 							Version:      "0.42.0-version",

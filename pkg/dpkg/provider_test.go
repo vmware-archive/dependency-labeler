@@ -12,7 +12,7 @@ var _ = Describe("Dpkg", func() {
 		It("generate a sha256 of the input", func() {
 			out, err := Digest(metadata.DebianPackageListSourceMetadata{
 				AptSources: []string{"deb example.com bionic main universe"},
-				Packages: []metadata.Package{
+				Packages: []metadata.DpkgPackage{
 					{
 						Package: "foo",
 						Source: metadata.PackageSource{
@@ -29,7 +29,7 @@ var _ = Describe("Dpkg", func() {
 		It("generates the same digest for 2 different input instances with the same content", func() {
 			input1 := metadata.DebianPackageListSourceMetadata{
 				AptSources: []string{"deb example.com bionic main universe"},
-				Packages: []metadata.Package{
+				Packages: []metadata.DpkgPackage{
 					{
 						Package: "foo",
 						Source: metadata.PackageSource{
@@ -40,7 +40,7 @@ var _ = Describe("Dpkg", func() {
 			}
 			input2 := metadata.DebianPackageListSourceMetadata{
 				AptSources: []string{"deb example.com bionic main universe"},
-				Packages: []metadata.Package{
+				Packages: []metadata.DpkgPackage{
 					{
 						Package: "foo",
 						Source: metadata.PackageSource{
@@ -62,7 +62,7 @@ var _ = Describe("Dpkg", func() {
 		It("generates a different digest for 2 different input instances with the same content in different order", func() {
 			input1 := metadata.DebianPackageListSourceMetadata{
 				AptSources: []string{"deb example.com bionic main universe"},
-				Packages: []metadata.Package{
+				Packages: []metadata.DpkgPackage{
 					{
 						Package: "foo",
 						Source: metadata.PackageSource{
@@ -79,7 +79,7 @@ var _ = Describe("Dpkg", func() {
 			}
 			input2 := metadata.DebianPackageListSourceMetadata{
 				AptSources: []string{"deb example.com bionic main universe"},
-				Packages: []metadata.Package{
+				Packages: []metadata.DpkgPackage{
 					{
 						Package: "bar",
 						Source: metadata.PackageSource{
@@ -107,7 +107,7 @@ var _ = Describe("Dpkg", func() {
 		It("generates different digest for 2 different inputs", func() {
 			input1 := metadata.DebianPackageListSourceMetadata{
 				AptSources: []string{"deb example.com bionic main universe"},
-				Packages: []metadata.Package{
+				Packages: []metadata.DpkgPackage{
 					{
 						Package: "bar",
 						Source: metadata.PackageSource{
@@ -118,7 +118,7 @@ var _ = Describe("Dpkg", func() {
 			}
 			input2 := metadata.DebianPackageListSourceMetadata{
 				AptSources: []string{"deb example.com bionic main universe"},
-				Packages: []metadata.Package{
+				Packages: []metadata.DpkgPackage{
 					{
 						Package: "foo",
 						Source: metadata.PackageSource{
@@ -156,7 +156,7 @@ Description: GCC support library
  that GCC uses to overcome shortcomings of particular machines, or
  special needs for some languages.
 Homepage: http://gcc.gnu.org/
-Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>`)).To(Equal(metadata.Package{
+Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>`)).To(Equal(metadata.DpkgPackage{
 				Package:      "libgcc1",
 				Version:      "1:8.3.0-6ubuntu1~18.04.1",
 				Architecture: "amd64",
@@ -168,7 +168,7 @@ Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>`)).To(
 			}))
 		})
 
-		It("returns error if entry does not contain Package:", func() {
+		It("returns error if entry does not contain DpkgPackage:", func() {
 			_, err := ParseStatDBEntry("\n")
 			Expect(err).To(HaveOccurred())
 		})

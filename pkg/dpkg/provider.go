@@ -19,7 +19,9 @@ import (
 
 const PackageListSourceType = "debian_package_list"
 
-func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
+type DpkgProvider struct{}
+
+func (dp DpkgProvider) BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 	packages, err := getDebianPackages(dli)
 
 	if len(packages) != 0 {
@@ -97,13 +99,13 @@ func getAptSources(dli image.Image) ([]string, error) {
 	return sources, nil
 }
 
-func getDebianPackages(dli image.Image) ([]metadata.Package, error) {
-	var packages []metadata.Package
+func getDebianPackages(dli image.Image) ([]metadata.DpkgPackage, error) {
+	var packages []metadata.DpkgPackage
 
 	statusPackages, err := listPackagesFromStatus(dli)
 
 	if err != nil {
-		return []metadata.Package{}, err
+		return []metadata.DpkgPackage{}, err
 	}
 
 	packages = append(packages, statusPackages...)
@@ -111,7 +113,7 @@ func getDebianPackages(dli image.Image) ([]metadata.Package, error) {
 	statusDPackages, err := listPackagesFromStatusD(dli)
 
 	if err != nil {
-		return []metadata.Package{}, err
+		return []metadata.DpkgPackage{}, err
 	}
 
 	packages = append(packages, statusDPackages...)
@@ -124,8 +126,8 @@ func getDebianPackages(dli image.Image) ([]metadata.Package, error) {
 	return packages, nil
 }
 
-func ParseStatDBEntry(content string) (metadata.Package, error) {
-	pkg := metadata.Package{}
+func ParseStatDBEntry(content string) (metadata.DpkgPackage, error) {
+	pkg := metadata.DpkgPackage{}
 
 	if strings.TrimSpace(content) == "" {
 		return pkg, errors.New("invalid StatDB entry")
@@ -175,7 +177,7 @@ func ParseStatDBEntry(content string) (metadata.Package, error) {
 	return pkg, nil
 }
 
-func listPackagesFromStatusD(dli image.Image) (packages []metadata.Package, err error) {
+func listPackagesFromStatusD(dli image.Image) (packages []metadata.DpkgPackage, err error) {
 	fileList, err := dli.GetDirContents("/var/lib/dpkg/status.d")
 	if err != nil {
 		// in this case an empty or non-existent directory is not an error
@@ -192,7 +194,7 @@ func listPackagesFromStatusD(dli image.Image) (packages []metadata.Package, err 
 	return packages, nil
 }
 
-func listPackagesFromStatus(dli image.Image) (packages []metadata.Package, err error) {
+func listPackagesFromStatus(dli image.Image) (packages []metadata.DpkgPackage, err error) {
 	statDBString, err := dli.GetFileContent("/var/lib/dpkg/status")
 	if err != nil {
 		// in this case an empty or non-existent file is not an error

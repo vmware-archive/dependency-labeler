@@ -18,7 +18,7 @@ var _ = Describe("Image", func() {
 	Describe("NewDeplabImage", func() {
 		Context("with valid inputs", func() {
 			var (
-				image Image
+				image RootFSImage
 				err   error
 			)
 
@@ -88,7 +88,7 @@ var _ = Describe("Image", func() {
 	Describe("ExportWithMetadata", func() {
 		Context("when saving the image to a tar", func() {
 			var (
-				image Image
+				image RootFSImage
 				dir   string
 			)
 
@@ -137,6 +137,29 @@ var _ = Describe("Image", func() {
 
 				err = image.ExportWithMetadata(metadata.Metadata{}, "/tmp/this-path-does-not-exist/this-file-does-not-matter", "")
 				Expect(err).To(HaveOccurred())
+			})
+		})
+	})
+
+	Describe("AbsolutePath", func() {
+		Context("relative path to rootFS location", func() {
+			var image RootFSImage
+			It("provides the absolute path", func() {
+				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/all-file-types.tgz")
+				Expect(err).ToNot(HaveOccurred())
+
+				image, err = NewDeplabImage("", inputTarPath, nil)
+				Expect(err).ToNot(HaveOccurred())
+
+				path, err := image.AbsolutePath("/var/lib/rpm")
+				Expect(err).ToNot(HaveOccurred())
+				Expect(path).To(SatisfyAll(
+					ContainSubstring("/var/lib/rpm"),
+					ContainSubstring(RootfsPrefix)))
+			})
+
+			AfterEach(func() {
+				image.Cleanup()
 			})
 		})
 	})

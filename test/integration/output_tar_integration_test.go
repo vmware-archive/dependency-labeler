@@ -95,7 +95,11 @@ var _ = Describe("deplab", func() {
 
 		Describe("and file can't be written", func() {
 			It("writes the image metadata, returns the sha and throws an error about the file location", func() {
-				_, stdErr := runDepLab([]string{"--image-tar", getTestAssetPath("image-archives/tiny.tgz"), "--git", pathToGitRepo, "--output-tar", "a-path-that-does-not-exist/image.tar"}, 1)
+				_, stdErr := runDepLab([]string{
+					"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
+					"--git", pathToGitRepo,
+					"--output-tar", "a-path-that-does-not-exist/image.tar",
+				}, 1)
 
 				Expect(string(getContentsOfReader(stdErr))).To(
 					SatisfyAll(

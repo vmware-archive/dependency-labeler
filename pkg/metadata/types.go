@@ -26,8 +26,12 @@ type Source struct {
 }
 
 type DebianPackageListSourceMetadata struct {
-	Packages   []Package `json:"packages"`
-	AptSources []string  `json:"apt_sources"`
+	Packages   []DpkgPackage `json:"packages"`
+	AptSources []string      `json:"apt_sources"`
+}
+
+type RpmPackageListSourceMetadata struct {
+	Packages []RpmPackage `json:"packages"`
 }
 
 type GitSourceMetadata struct {
@@ -36,14 +40,22 @@ type GitSourceMetadata struct {
 }
 
 type ArchiveSourceMetadata struct {
-	URL  string   `json:"url"`
+	URL string `json:"url"`
 }
 
-type Package struct {
+type DpkgPackage struct {
 	Package      string        `json:"package"`
 	Version      string        `json:"version"`
 	Architecture string        `json:"architecture"`
 	Source       PackageSource `json:"source"`
+}
+
+type RpmPackage struct {
+	Package      string `json:"package" rpm:"NAME"`
+	Version      string `json:"version" rpm:"VERSION"`
+	Architecture string `json:"architecture" rpm:"ARCH"`
+	License      string `json:"license" rpm:"LICENSE"`
+	SourceRpm    string `json:"source_rpm" rpm:"SOURCERPM"`
 }
 
 type PackageSource struct {
