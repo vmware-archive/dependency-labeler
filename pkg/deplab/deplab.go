@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/pivotal/deplab/pkg/common"
+	"github.com/pivotal/deplab/pkg/rpm"
+
 	"github.com/pivotal/deplab/pkg/additionalsources"
 
 	"github.com/pivotal/deplab/pkg/git"
@@ -122,15 +125,21 @@ func preprocess(gitPaths, additionalSourcesFiles []string, ignoreValidationError
 	return gitDependencies, archiveUrls, nil
 }
 
-func generateDependencies(dli image.Image, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
+func generateDependencies(dli image.RootFSImage, gitDependencies []metadata.Dependency, archiveUrls []string) ([]metadata.Dependency, error) {
 	var dependencies []metadata.Dependency
 
-	dpkgList, err := dpkg.BuildDependencyMetadata(dli)
-	if err != nil {
-		return dependencies, errors.Wrapf(err, "Could not generate debian package dependencies.")
+	providers := []common.Provider{
+		rpm.RPMProvider{},
+		dpkg.DpkgProvider{},
 	}
-	if dpkgList.Type != "" {
-		dependencies = append(dependencies, dpkgList)
+	for _, provider := range providers {
+		providerMetadata, err := provider.BuildDependencyMetadata(&dli)
+		if err != nil {
+			return dependencies, errors.Wrapf(err, "Could not generate dependencies for provider.")
+		}
+		if providerMetadata.Type != "" {
+			dependencies = append(dependencies, providerMetadata)
+		}
 	}
 
 	dependencies = append(dependencies, gitDependencies...)
@@ -143,6 +152,7 @@ func generateDependencies(dli image.Image, gitDependencies []metadata.Dependency
 		}
 		dependencies = append(dependencies, archiveMetadata)
 	}
+
 	return dependencies, nil
 }
 

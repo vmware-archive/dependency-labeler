@@ -10,7 +10,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func BuildOSMetadata(dli image.Image) metadata.Base {
+func BuildOSMetadata(dli image.RootFSImage) metadata.Base {
 	osRelease, err := dli.GetFileContent("/etc/os-release")
 
 	if err != nil {

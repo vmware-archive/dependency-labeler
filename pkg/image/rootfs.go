@@ -24,6 +24,8 @@ type RootFS struct {
 	rootfsLocation string
 }
 
+const RootfsPrefix = "deplab-rootFS-"
+
 func (rfs *RootFS) GetDirContents(path string) ([]string, error) {
 	var fileContents []string
 	files, err := ioutil.ReadDir(filepath.Join(rfs.rootfsLocation, path))
@@ -67,7 +69,7 @@ func NewRootFS(image v1.Image, excludePatterns []string) (RootFS, error) {
 
 	fs := mutate.Extract(image)
 
-	rootFS, err = ioutil.TempDir("", "deplab-rootFS-")
+	rootFS, err = ioutil.TempDir("", RootfsPrefix)
 	if err != nil {
 		return RootFS{}, errors.Wrap(err, "Could not create rootFS temp directory.")
 	}

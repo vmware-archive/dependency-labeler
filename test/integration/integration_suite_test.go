@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -84,7 +85,9 @@ func runDeplabAgainstImage(inputImage string, extraArgs ...string) (metadataLabe
 	f, err := ioutil.TempFile("", "")
 	Expect(err).ToNot(HaveOccurred())
 
-	defer os.Remove(f.Name())
+	defer func() {
+		Expect(os.Remove(f.Name())).ToNot(HaveOccurred())
+	}()
 
 	By("executing it")
 	args := []string{"--image", inputImage, "--git", pathToGitRepo, "--metadata-file", f.Name()}
@@ -99,20 +102,31 @@ func runDeplabAgainstImage(inputImage string, extraArgs ...string) (metadataLabe
 }
 
 func runDeplabAgainstTar(inputTarPath string, extraArgs ...string) (metadataLabel metadata.Metadata) {
+	metadataLabel, _ = runDeplabAgainstTarReportErrorMessages(inputTarPath, extraArgs...)
+
+	return metadataLabel
+}
+
+func runDeplabAgainstTarReportErrorMessages(inputTarPath string, extraArgs ...string) (metadataLabel metadata.Metadata, errorOutput string) {
 	f, err := ioutil.TempFile("", "")
 	Expect(err).ToNot(HaveOccurred())
+	defer func() {
+		Expect(os.Remove(f.Name())).ToNot(HaveOccurred())
+	}()
 
 	By("executing it")
 	args := []string{"--image-tar", inputTarPath, "--git", pathToGitRepo, "--metadata-file", f.Name()}
 	args = append(args, extraArgs...)
-	_, _ = runDepLab(args, 0)
+	_, stdErr := runDepLab(args, 0)
 
 	decoder := json.NewDecoder(f)
 	metadataLabel = metadata.Metadata{}
 	err = decoder.Decode(&metadataLabel)
 	Expect(err).ToNot(HaveOccurred())
 
-	return metadataLabel
+	errorOutput = strings.TrimSpace(string(getContentsOfReader(stdErr)))
+
+	return metadataLabel, errorOutput
 }
 
 func makeFakeGitRepo() (string, string) {
