@@ -30,6 +30,10 @@ type DebianPackageListSourceMetadata struct {
 	AptSources []string  `json:"apt_sources"`
 }
 
+type RpmPackageListSourceMetadata struct {
+	Packages   []Package `json:"packages"`
+}
+
 type GitSourceMetadata struct {
 	URL  string   `json:"url"`
 	Refs []string `json:"refs"`
