@@ -50,6 +50,7 @@ type DpkgPackage struct {
 	Source       PackageSource `json:"source"`
 }
 
+//go:generate go run ../../gen/main.go RpmPackage
 type RpmPackage struct {
 	Package      string `json:"package" rpm:"NAME"`
 	Version      string `json:"version" rpm:"VERSION"`
