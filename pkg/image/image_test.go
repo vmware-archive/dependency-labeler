@@ -22,7 +22,7 @@ var _ = Describe("Image", func() {
 				err   error
 			)
 
-			It("instantiates an image starting from a remote source", func() {
+			It("[remote-image][private-registry] instantiates an image starting from a remote source", func() {
 				image, err = NewDeplabImage("dev.registry.pivotal.io/navcon/deplab-test-asset:all-file-types", "", nil)
 
 				Expect(err).ToNot(HaveOccurred())
@@ -67,15 +67,6 @@ var _ = Describe("Image", func() {
 		})
 
 		Context("when the image contains a directory with no permissions", func() {
-			It("instantiates an image starting from a remote source", func() {
-				_, err := NewDeplabImage(
-					"dev.registry.pivotal.io/navcon/deplab-test-asset:broken-files",
-					"",
-					[]string{"all-files/broken-folder/"})
-
-				Expect(err).ToNot(HaveOccurred())
-			})
-
 			It("instantiates an image starting from a tarball", func() {
 				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/broken-files.tgz")
 				Expect(err).ToNot(HaveOccurred())
@@ -92,7 +83,6 @@ var _ = Describe("Image", func() {
 				Expect(err).To(MatchError(ContainSubstring("all-files/broken-folder/no-permissions")))
 			})
 		})
-
 	})
 
 	Describe("ExportWithMetadata", func() {

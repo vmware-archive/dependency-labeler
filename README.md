@@ -369,13 +369,20 @@ Testing requires `go` to be installed. To run tests you need to be authenticated
 go test ./...
 ```
 
+Tests that pull images from registry are tagged `[remote-image]`. Tests that pull from a private registry that require authentication are tagged `[private-registry]`.
+
+To skip tests you can run 
+
+```bash
+go test ./...  -ginkgo.skip='\[private-registry\]'
+```
+
 ## Building
 
 To build for release, please run the following:
 ```bash
 go build -o deplab ./cmd/deplab
 ```
-
 
 ## Support
 

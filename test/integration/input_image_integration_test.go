@@ -7,7 +7,7 @@ import (
 
 var _ = Describe("deplab", func() {
 	Context("with a distroless base image", func() {
-		It("labels the image", func() {
+		It("[remote-image] labels the image", func() {
 			metadataLabel := runDeplabAgainstImage("gcr.io/distroless/base")
 
 			Expect(metadataLabel.Base).ToNot(BeEmpty())

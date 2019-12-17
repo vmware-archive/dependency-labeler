@@ -19,7 +19,7 @@ var _ = Describe("deplab dpkg", func() {
 		metadataLabel metadata.Metadata
 	)
 
-	Context("with an ubuntu:bionic image", func() {
+	Context("[remote-image][private-registry] with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
 			metadataLabel = runDeplabAgainstImage("dev.registry.pivotal.io/navcon/deplab-test-asset:additional-sources")
 		})
@@ -68,7 +68,7 @@ var _ = Describe("deplab dpkg", func() {
 		})
 	})
 
-	Context("with an image with dpkg, but no apt sources", func() {
+	Context("[remote-image][private-registry] with an image with dpkg, but no apt sources", func() {
 		BeforeEach(func() {
 			metadataLabel = runDeplabAgainstImage("dev.registry.pivotal.io/navcon/deplab-test-asset:no-sources")
 		})
@@ -84,7 +84,7 @@ var _ = Describe("deplab dpkg", func() {
 		})
 	})
 
-	Context("with an ubuntu:bionic based image with a non-shell entrypoint", func() {
+	Context("[remote-image][private-registry] with an ubuntu:bionic based image with a non-shell entrypoint", func() {
 		BeforeEach(func() {
 			metadataLabel = runDeplabAgainstImage("dev.registry.pivotal.io/navcon/deplab-test-asset:entrypoint-return-stdout")
 		})
