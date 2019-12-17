@@ -2,7 +2,6 @@ package metadata
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 
 	"github.com/pkg/errors"
@@ -11,7 +10,7 @@ import (
 func WriteMetadataFile(md Metadata, metadataFilePath string) error {
 	metadataFile, err := os.Create(metadataFilePath)
 	if err != nil {
-		return fmt.Errorf("no such file: %s\n", metadataFilePath)
+		return errors.Wrapf(err, "could not create file %s", metadataFilePath)
 	}
 	encoder := json.NewEncoder(metadataFile)
 	err = encoder.Encode(md)
