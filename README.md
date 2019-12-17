@@ -8,8 +8,7 @@ Download the latest deplab release matching your OS from https://github.com/pivo
 
 ## Usage
 
-By default `deplab` [generates](#generate-metadata) the metadata of an image and the provided git repository (from where the image is built). The labels generated on the output image are read by Pivotal's Open Source Licensing (OSL) process when using the container_image scan root. 
-Once an image is labelled with `deplab` the metadata can be visualized using [inspect](#inspect).
+By default `deplab` [generates](#generate-metadata) the metadata of an image and the provided git repository (from where the image is built). The metadata is placed in a label on the output image, which are read by Pivotal's Open Source Licensing (OSL) process when using the container_image scan root. Once an image is labelled with `deplab` the metadata can be visualized using [inspect](#inspect).
 
 To generate the metadata and output a labelled image, run
 ```bash
@@ -49,15 +48,13 @@ Then, to visualise the metadata (optional), run
 |  | `--version` |  |  version for deplab |  | 
 
 ## Inspect
-Inspect prints the deplab "io.pivotal.metadata" label in the config file of an image to stdout.  The label will be printed in JSON format.
+Inspect is used to view the deplab metadata on a container image. Inspect prints the deplab "io.pivotal.metadata" label in the config file of an image to stdout.  The label will be printed in JSON format. If metadata does not exist on the image an error will be printed to standard error.
 
 `deplab inspect` requires one image source to be specified (`--image` or `--image-tar`).
 
 ```bash
 ./deplab inspect --image <image-name>
 ```
-
-The metadata on the inspected image will be printed to standard out.  If metadata does not exist on the image an error will be printed to standard error.
 
 ### Inspect flags
 
@@ -119,13 +116,11 @@ vcs:
 
 #### Tag
 
-Optionally image can be tagged when exported as tar using the provided tag. Tag need to be a valid docker tag.
+Optionally, the image can be tagged when exported as tar using the provided tag. The tag needs to be a valid docker tag.
 
 #### Tar
 
 Optionally deplab can output the image in tar format.
-
-If the file path cannot be created deplab will process the image and store it in Docker, but will also return an error for the writing of the tar. 
 
 If a file exists at the given path, the file will be overwritten.
 
@@ -133,15 +128,11 @@ If a file exists at the given path, the file will be overwritten.
 
 Optionally deplab can output the metadata to a file providing the path with the argument `--metadata-file` or `-m` 
 
-If the file path cannot be created, deplab will return the newly labelled image, and return an error for the writing of the metadata file. 
-
 If a file exists at the given path, the file will be overwritten.
 
 #### dpkg file
 
 Optionally deplab can output the debian package list portion of the metadata to a file with the argument `--dpkg-file` or `-d`
-
-If the file path cannot be created, deplab will return the newly labelled image, and return an error for the writing of the dpkg file. 
 
 If a file exists at the given path, the file will be overwritten.
 
@@ -237,7 +228,7 @@ Concourse pipeline.
 The `debian_package_list` requires the Debian package db to be present at `/var/lib/dpkg/status` or `/var/lib/status.d/*` on the image being instrumented on.
 If not present, the dependency of type `debian_package_list` will be omitted.
 
-`version` contains the _sha256_ of the `json` content of the metadata. Successive run of deplab on containers with the same `packages` and `apt_sources` are going to generate the same digest.
+`version` contains the _sha256_ of the `json` content of the metadata. Successive run of deplab on containers with the same `packages` and `apt_sources` will generate the same digest.
 
 The debian package list is generated with the following format.
 
