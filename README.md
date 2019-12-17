@@ -8,21 +8,22 @@ Download the latest deplab release matching your OS from https://github.com/pivo
 
 ## Usage
 
-By default `deplab` [generates](#generate-metadata) the metadata of an image and the provided git repository (from where the image is built). Once an image is labelled with `deplab` the metadata can be visualized using [inspect](#inspect).
+By default `deplab` [generates](#generate-metadata) the metadata of an image and the provided git repository (from where the image is built). The labels generated on the output image are read by Pivotal's Open Source Licensing (OSL) process when using the container_image scan root. 
+Once an image is labelled with `deplab` the metadata can be visualized using [inspect](#inspect).
 
-To generate the metadata run
+To generate the metadata and output a labelled image, run
 ```bash
 ./deplab --image <image-name> --git <path to git repo> --output-tar <path to output tar>
 ```
 
-Then, to visualise the metadata run 
+Then, to visualise the metadata (optional), run 
 ```bash
 ./deplab inspect --image-tar <path to output tar>
 ```
 
 ## Generate metadata
 
-`deplab` requires two input flags: an image source (remote `--image` or a local archive `--image-tar`) and the `--git` flag. An output flag needs to be specified (`--output-tar`, `--metadata-file`, `--dpkg-file`).  
+`deplab` requires two input flags: an image source (remote `--image` or a local archive `--image-tar`) and the `--git` flag. At least one output flag needs to be specified (`--output-tar`, `--metadata-file`, `--dpkg-file`).  
 
 ```bash
 ./deplab --image-tar <path to input tar> \
