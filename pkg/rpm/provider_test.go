@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/pivotal/deplab/pkg/common"
-
 	"github.com/onsi/gomega/gstruct"
 
 	. "github.com/onsi/ginkgo"
@@ -40,12 +38,6 @@ func (m MockImage) AbsolutePath(string) (string, error) {
 }
 
 var _ = Describe("Pkg/Rpm/Provider", func() {
-	var (
-		rpmProvider common.Provider
-	)
-	BeforeEach(func() {
-		rpmProvider = rpm.RPMProvider{}
-	})
 
 	//rpm leaves __db.001 etc. files in the folder when it runs; we should try to clean those up
 	AfterEach(func() {
@@ -58,7 +50,7 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 	})
 
 	It("should generate list of dependencies", func() {
-		md, err := rpmProvider.BuildDependencyMetadata(MockImage{"../../test/integration/assets/rpm"})
+		md, err := rpm.BuildDependencyMetadata(MockImage{"../../test/integration/assets/rpm"})
 
 		Expect(err).ToNot(HaveOccurred())
 		packages := md.Source.Metadata.(metadata.RpmPackageListSourceMetadata).Packages
@@ -81,7 +73,7 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 		defer func() {
 			_ = os.Remove(tempDirPath)
 		}()
-		packages, err := rpmProvider.BuildDependencyMetadata(MockImage{tempDirPath})
+		packages, err := rpm.BuildDependencyMetadata(MockImage{tempDirPath})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(packages).To(Equal(metadata.Dependency{}))
@@ -94,7 +86,7 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 		defer func() {
 			_ = os.Remove(tempDirPath)
 		}()
-		packages, err := rpmProvider.BuildDependencyMetadata(MockImage{tempDirPath})
+		packages, err := rpm.BuildDependencyMetadata(MockImage{tempDirPath})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(packages).To(Equal(metadata.Dependency{}))
@@ -108,7 +100,7 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 			Expect(os.Setenv("PATH", PATH)).ToNot(HaveOccurred())
 		}()
 
-		_, err := rpmProvider.BuildDependencyMetadata(MockImage{"../../test/integration/assets/rpm"})
+		_, err := rpm.BuildDependencyMetadata(MockImage{"../../test/integration/assets/rpm"})
 
 		Expect(err).To(MatchError(SatisfyAll(
 			ContainSubstring("an rpm database exists at"),
@@ -127,7 +119,7 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 		}()
 
 		tempDirPath = "/tmp/this-path-does-not-exists"
-		packages, err := rpmProvider.BuildDependencyMetadata(MockImage{tempDirPath})
+		packages, err := rpm.BuildDependencyMetadata(MockImage{tempDirPath})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(packages).To(Equal(metadata.Dependency{}))

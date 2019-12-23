@@ -129,11 +129,11 @@ func generateDependencies(dli image.RootFSImage, gitDependencies []metadata.Depe
 	var dependencies []metadata.Dependency
 
 	providers := []common.Provider{
-		rpm.RPMProvider{},
-		dpkg.DpkgProvider{},
+		rpm.BuildDependencyMetadata,
+		dpkg.BuildDependencyMetadata,
 	}
 	for _, provider := range providers {
-		providerMetadata, err := provider.BuildDependencyMetadata(&dli)
+		providerMetadata, err := provider(&dli)
 		if err != nil {
 			return dependencies, errors.Wrapf(err, "Could not generate dependencies for provider.")
 		}

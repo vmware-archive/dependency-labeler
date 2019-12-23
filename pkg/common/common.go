@@ -5,6 +5,4 @@ import (
 	"github.com/pivotal/deplab/pkg/metadata"
 )
 
-type Provider interface {
-	BuildDependencyMetadata(image image.Image) (metadata.Dependency, error)
-}
+type Provider func(image image.Image) (metadata.Dependency, error)

@@ -25,9 +25,7 @@ const PackageListSourceType = "rpm_package_list"
 
 const RPMDbPath = "/var/lib/rpm"
 
-type RPMProvider struct{}
-
-func (rp RPMProvider) BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
+func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 
 	absPath, err := dli.AbsolutePath(RPMDbPath)
 	if err != nil {

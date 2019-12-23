@@ -19,9 +19,7 @@ import (
 
 const PackageListSourceType = "debian_package_list"
 
-type DpkgProvider struct{}
-
-func (dp DpkgProvider) BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
+func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 	packages, err := getDebianPackages(dli)
 
 	if len(packages) != 0 {
