@@ -10,6 +10,8 @@ Download the latest deplab release matching your OS from https://github.com/pivo
 
 By default `deplab` [generates](#generate-metadata) the metadata of an image and the provided git repository (from where the image is built). The metadata is placed in a label on the output image, which are read by Pivotal's Open Source Licensing (OSL) process when using the container_image scan root. Once an image is labelled with `deplab` the metadata can be visualized using [inspect](#inspect).
 
+Deplab currently supports the auto-generation of dpkg and rpm package lists. Additional sources can be entered manually. RPM support is currently experimental.  It necessitates the presence of the `rpm` binary in the  `$PATH` where deplab is run.
+
 To generate the metadata and output a labelled image, run
 ```bash
 ./deplab --image <image-name> --git <path to git repo> --output-tar <path to output tar>
