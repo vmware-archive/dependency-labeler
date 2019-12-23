@@ -1,6 +1,7 @@
 package rpm_test
 
 import (
+	"io/ioutil"
 	"os"
 
 	"github.com/pivotal/deplab/pkg/common"
@@ -75,14 +76,28 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 		}
 	})
 
-	It("returns an empty struct if no rpm database is found", func() {
+	It("returns an empty struct if no rpm database folder is found", func() {
 		tempDirPath := "/tmp/this-path-does-not-exists"
+		defer func() {
+			_ = os.Remove(tempDirPath)
+		}()
 		packages, err := rpmProvider.BuildDependencyMetadata(MockImage{tempDirPath})
 		Expect(err).NotTo(HaveOccurred())
 
 		Expect(packages).To(Equal(metadata.Dependency{}))
 
-		_ = os.Remove(tempDirPath)
+	})
+
+	It("returns an empty struct if no Package file is found in the rpm database folder", func() {
+		tempDirPath, err := ioutil.TempDir("", "")
+		Expect(err).NotTo(HaveOccurred())
+		defer func() {
+			_ = os.Remove(tempDirPath)
+		}()
+		packages, err := rpmProvider.BuildDependencyMetadata(MockImage{tempDirPath})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(packages).To(Equal(metadata.Dependency{}))
 	})
 
 	It("returns an error if rpm is not in the PATH", func() {
@@ -99,5 +114,22 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 			ContainSubstring("an rpm database exists at"),
 			ContainSubstring("but rpm is not installed and available on your path"))))
 
+	})
+
+	It("returns an empty struct if no database and rpm is not in the PATH", func() {
+		PATH := os.Getenv("PATH")
+		tempDirPath := "/tmp/this-path-does-not-exists"
+		Expect(os.Setenv("PATH", "")).ToNot(HaveOccurred())
+
+		defer func() {
+			Expect(os.Setenv("PATH", PATH)).ToNot(HaveOccurred())
+			_ = os.Remove(tempDirPath)
+		}()
+
+		tempDirPath = "/tmp/this-path-does-not-exists"
+		packages, err := rpmProvider.BuildDependencyMetadata(MockImage{tempDirPath})
+		Expect(err).NotTo(HaveOccurred())
+
+		Expect(packages).To(Equal(metadata.Dependency{}))
 	})
 })

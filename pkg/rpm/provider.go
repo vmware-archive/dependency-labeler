@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path"
 	"sort"
 	"strings"
 
@@ -33,7 +34,7 @@ func (rp RPMProvider) BuildDependencyMetadata(dli image.Image) (metadata.Depende
 		return metadata.Dependency{}, fmt.Errorf("absolute path for rpm database: %w", err)
 	}
 
-	exists, err := exists(absPath)
+	exists, err := exists(path.Join(absPath, "Packages"))
 	if err != nil {
 		return metadata.Dependency{}, fmt.Errorf("rpm could not find existance of path: %w", err)
 	}
