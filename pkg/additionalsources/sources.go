@@ -35,7 +35,7 @@ func ParseAdditionalSourcesFile(additionalSourcesFilePath string) ([]string, []m
 	var errorMessages []string
 	for _, vcs := range additionalSources.Vcs {
 		switch vcs.Protocol {
-		case git.SourceType:
+		case metadata.GitSourceType:
 			if !git.IsValidGitDependency(vcs.Url) {
 				errorMessages = append(errorMessages, fmt.Sprintf("vcs git url in an unsupported format: %s", vcs.Url))
 			}
@@ -56,7 +56,7 @@ func CreateGitDependency(vcs AdditionalSourceVcs) metadata.Dependency {
 	return metadata.Dependency{
 		Type: "package",
 		Source: metadata.Source{
-			Type: git.SourceType,
+			Type: metadata.GitSourceType,
 			Version: map[string]interface{}{
 				"commit": vcs.Version,
 			},

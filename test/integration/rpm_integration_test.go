@@ -8,7 +8,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/deplab/pkg/metadata"
-	"github.com/pivotal/deplab/pkg/rpm"
 )
 
 var _ = Describe("[rpm] deplab rpm", func() {
@@ -21,7 +20,7 @@ var _ = Describe("[rpm] deplab rpm", func() {
 				rpmPackages := selectRpmDependencies(metadataLabel.Dependencies)
 				Expect(rpmPackages).To(HaveLen(1))
 				rpmPackage := rpmPackages[0]
-				Expect(rpmPackage.Type).To(Equal(rpm.PackageListSourceType))
+				Expect(rpmPackage.Type).To(Equal(metadata.RPMPackageListSourceType))
 				Expect(rpmPackage.Source.Type).To(Equal("inline"))
 				packages := rpmPackage.Source.Metadata.(map[string]interface{})["packages"].([]interface{})
 				Expect(packages).To(HaveLen(34))
@@ -72,7 +71,7 @@ var _ = Describe("[rpm] deplab rpm", func() {
 func selectRpmDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
 	var rpmDependencies []metadata.Dependency
 	for _, dependency := range dependencies {
-		if dependency.Type == rpm.PackageListSourceType {
+		if dependency.Type == metadata.RPMPackageListSourceType {
 			rpmDependencies = append(rpmDependencies, dependency)
 		}
 	}

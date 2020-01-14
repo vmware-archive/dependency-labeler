@@ -1,8 +1,14 @@
 package common
 
-import (
-	"github.com/pivotal/deplab/pkg/image"
-	"github.com/pivotal/deplab/pkg/metadata"
-)
-
-type Provider func(image image.Image) (metadata.Dependency, error)
+type RunParams struct {
+	InputImageTarPath         string
+	InputImage                string
+	GitPaths                  []string
+	Tag                       string
+	OutputImageTar            string
+	MetadataFilePath          string
+	DpkgFilePath              string
+	AdditionalSourceUrls      []string
+	AdditionalSourceFilePaths []string
+	IgnoreValidationErrors    bool
+}

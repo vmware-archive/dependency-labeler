@@ -1,5 +1,13 @@
 package metadata
 
+const (
+	DebianPackageListSourceType = "debian_package_list"
+	GitSourceType               = "git"
+	RPMPackageListSourceType    = "rpm_package_list"
+	ArchiveType                 = "archive"
+	PackageType                 = "package"
+)
+
 type Metadata struct {
 	Base         Base         `json:"base"`
 	Provenance   []Provenance `json:"provenance"`

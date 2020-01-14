@@ -4,8 +4,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/pivotal/deplab/pkg/git"
-
 	"github.com/pivotal/deplab/pkg/metadata"
 
 	. "github.com/onsi/ginkgo"
@@ -101,7 +99,7 @@ var _ = Describe("deplab git", func() {
 func selectGitDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
 	var gitDependencies []metadata.Dependency
 	for _, dependency := range dependencies {
-		if dependency.Source.Type == git.SourceType {
+		if dependency.Source.Type == metadata.GitSourceType {
 			gitDependencies = append(gitDependencies, dependency)
 		}
 	}

@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/pivotal/deplab/pkg/common"
+
 	"github.com/pivotal/deplab/pkg/metadata"
 
 	"github.com/pivotal/deplab/pkg/image"
@@ -17,7 +19,14 @@ import (
 	"github.com/pkg/errors"
 )
 
-const PackageListSourceType = "debian_package_list"
+func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
+	dependency, err := BuildDependencyMetadata(dli)
+	if err != nil {
+		return metadata.Metadata{}, err
+	}
+	md.Dependencies = append(md.Dependencies, dependency)
+	return md, nil
+}
 
 func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 	packages, err := getDebianPackages(dli)
@@ -39,7 +48,7 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 		}
 
 		dpkgList := metadata.Dependency{
-			Type: PackageListSourceType,
+			Type: metadata.DebianPackageListSourceType,
 			Source: metadata.Source{
 				Type: "inline",
 				Version: map[string]interface{}{

@@ -9,10 +9,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/pivotal/deplab/pkg/additionalsources"
-
-	"github.com/pivotal/deplab/pkg/git"
-
 	"github.com/pivotal/deplab/pkg/metadata"
 
 	"github.com/pivotal/deplab/test/test_utils"
@@ -60,7 +56,7 @@ var _ = Describe("deplab additional sources file", func() {
 
 				By("adding the source archive url to the archive dependency")
 				Expect(archiveDependency.Type).To(Equal("package"))
-				Expect(archiveDependency.Source.Type).To(Equal(additionalsources.ArchiveType))
+				Expect(archiveDependency.Source.Type).To(Equal(metadata.ArchiveType))
 				Expect(archiveSourceMetadata["url"]).To(Equal(server.URL() + "/ubuntu/pool/main/c/ca-certificates/ca-certificates_20180409.tar.xz"))
 			})
 		})
@@ -295,7 +291,7 @@ func selectVcsGitDependencies(dependencies []metadata.Dependency) []metadata.Dep
 	for _, dependency := range dependencies {
 		Expect(dependency.Source.Metadata).To(Not(BeNil()))
 		gitSourceMetadata := dependency.Source.Metadata.(map[string]interface{})
-		if dependency.Source.Type == git.SourceType && gitSourceMetadata["url"].(string) != "https://example.com/example.git" {
+		if dependency.Source.Type == metadata.GitSourceType && gitSourceMetadata["url"].(string) != "https://example.com/example.git" {
 			gitDependencies = append(gitDependencies, dependency)
 		}
 	}

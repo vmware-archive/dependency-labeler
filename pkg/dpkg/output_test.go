@@ -41,7 +41,7 @@ var _ = Describe("dpkg", func() {
 
 				err := dpkg.WriteDpkgFile(metadata.Metadata{}, path, "0.1.0-dev")
 				gomega.Expect(err).To(gomega.MatchError(
-					gomega.ContainSubstring(dpkg.PackageListSourceType)))
+					gomega.ContainSubstring(metadata.DebianPackageListSourceType)))
 			})
 		})
 

@@ -3,7 +3,7 @@ package integration_test
 import (
 	"sort"
 
-	"github.com/pivotal/deplab/pkg/dpkg"
+	"github.com/pivotal/deplab/test/test_utils"
 
 	"github.com/pivotal/deplab/pkg/metadata"
 
@@ -48,7 +48,7 @@ var _ = Describe("deplab dpkg", func() {
 			Expect(AreSourcesSorted(sources)).To(BeTrue())
 
 			By("listing debian package dependencies in the image, sorted by name")
-			Expect(metadataLabel.Dependencies[0].Type).To(Equal(dpkg.PackageListSourceType))
+			Expect(metadataLabel.Dependencies[0].Type).To(Equal(metadata.DebianPackageListSourceType))
 
 			pkgs := dpkgMetadata["packages"].([]interface{})
 			Expect(pkgs).To(HaveLen(89))
@@ -63,7 +63,7 @@ var _ = Describe("deplab dpkg", func() {
 		It("does not return a dpkg list", func() {
 			metadataLabel = runDeplabAgainstTar(getTestAssetPath("image-archives/all-file-types.tgz"))
 
-			_, ok := filterDpkgDependency(metadataLabel.Dependencies)
+			_, ok := test_utils.SelectDpkgDependency(metadataLabel.Dependencies)
 			Expect(ok).To(BeFalse())
 		})
 	})
@@ -108,7 +108,7 @@ var _ = Describe("deplab dpkg", func() {
 
 		It("returns a dpkg list", func() {
 			By("listing debian package dependencies in the image alphabetically")
-			Expect(metadataLabel.Dependencies[0].Type).To(Equal(dpkg.PackageListSourceType))
+			Expect(metadataLabel.Dependencies[0].Type).To(Equal(metadata.DebianPackageListSourceType))
 
 			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
 			dpkgMetadata := dependencyMetadata.(map[string]interface{})
@@ -119,15 +119,6 @@ var _ = Describe("deplab dpkg", func() {
 		})
 	})
 })
-
-func filterDpkgDependency(dependencies []metadata.Dependency) (metadata.Dependency, bool) {
-	for _, dependency := range dependencies {
-		if dependency.Source.Type == dpkg.PackageListSourceType {
-			return dependency, true
-		}
-	}
-	return metadata.Dependency{}, false //should never be reached
-}
 
 func ArePackagesSorted(pkgs []interface{}) bool {
 	collator := collate.New(language.BritishEnglish)

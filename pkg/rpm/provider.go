@@ -11,6 +11,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/pivotal/deplab/pkg/common"
+
 	"github.com/pivotal/deplab/pkg/image"
 
 	"golang.org/x/text/collate"
@@ -21,9 +23,16 @@ import (
 	"github.com/pivotal/deplab/pkg/metadata"
 )
 
-const PackageListSourceType = "rpm_package_list"
-
 const RPMDbPath = "/var/lib/rpm"
+
+func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
+	dependency, err := BuildDependencyMetadata(dli)
+	if err != nil {
+		return metadata.Metadata{}, err
+	}
+	md.Dependencies = append(md.Dependencies, dependency)
+	return md, nil
+}
 
 func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 
@@ -86,7 +95,7 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 	}
 
 	return metadata.Dependency{
-		Type: PackageListSourceType,
+		Type: metadata.RPMPackageListSourceType,
 		Source: metadata.Source{
 			Type: "inline",
 			Version: map[string]interface{}{

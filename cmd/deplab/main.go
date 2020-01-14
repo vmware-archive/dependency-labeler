@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/pivotal/deplab/pkg/common"
+
 	"github.com/pivotal/deplab/pkg/deplab"
 
 	"github.com/spf13/cobra"
@@ -80,7 +82,7 @@ func isFlagSet(cmd *cobra.Command, flagName string) bool {
 
 func run(_ *cobra.Command, _ []string) {
 	err := deplab.Run(
-		deplab.RunParams{
+		common.RunParams{
 			InputImageTarPath:         inputImageTar,
 			InputImage:                inputImage,
 			GitPaths:                  gitPaths,

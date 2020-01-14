@@ -1,7 +1,9 @@
-package os
+package osrelease
 
 import (
 	"strings"
+
+	"github.com/pivotal/deplab/pkg/common"
 
 	"github.com/pivotal/deplab/pkg/metadata"
 
@@ -10,7 +12,12 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func BuildOSMetadata(dli image.RootFSImage) metadata.Base {
+func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
+	md.Base = BuildOSMetadata(dli)
+	return md, nil
+}
+
+func BuildOSMetadata(dli image.Image) metadata.Base {
 	osRelease, err := dli.GetFileContent("/etc/os-release")
 
 	if err != nil {

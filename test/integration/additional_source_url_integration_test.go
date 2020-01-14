@@ -3,8 +3,6 @@ package integration_test
 import (
 	"net/http"
 
-	"github.com/pivotal/deplab/pkg/additionalsources"
-
 	"github.com/pivotal/deplab/pkg/metadata"
 
 	. "github.com/onsi/ginkgo"
@@ -47,7 +45,7 @@ var _ = Describe("deplab additional-source-url", func() {
 				By("adding the additional-source-url to the archive dependency")
 				Expect(archiveDependency.Type).ToNot(BeEmpty())
 				Expect(archiveDependency.Type).To(Equal("package"))
-				Expect(archiveDependency.Source.Type).To(Equal(additionalsources.ArchiveType))
+				Expect(archiveDependency.Source.Type).To(Equal(metadata.ArchiveType))
 
 				archiveSourceMetadata := archiveDependency.Source.Metadata.(map[string]interface{})
 				Expect(archiveSourceMetadata["url"]).To(Equal(address))
@@ -81,7 +79,7 @@ var _ = Describe("deplab additional-source-url", func() {
 func selectArchiveDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
 	var archives []metadata.Dependency
 	for _, dependency := range dependencies {
-		if dependency.Source.Type == additionalsources.ArchiveType {
+		if dependency.Source.Type == metadata.ArchiveType {
 			archives = append(archives, dependency)
 		}
 	}

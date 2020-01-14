@@ -3,13 +3,27 @@ package git
 import (
 	"fmt"
 
+	"github.com/pivotal/deplab/pkg/common"
+
+	"github.com/pivotal/deplab/pkg/image"
+
 	"github.com/pivotal/deplab/pkg/metadata"
 
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
-const SourceType = "git"
+func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
+	for _, path := range params.GitPaths {
+		dependency, err := BuildDependencyMetadata(path)
+		if err != nil {
+			return metadata.Metadata{}, err
+		}
+		md.Dependencies = append(md.Dependencies, dependency)
+	}
+
+	return md, nil
+}
 
 func BuildDependencyMetadata(pathToGit string) (metadata.Dependency, error) {
 	repo, err := git.PlainOpen(pathToGit)
@@ -44,7 +58,7 @@ func BuildDependencyMetadata(pathToGit string) (metadata.Dependency, error) {
 	return metadata.Dependency{
 		Type: "package",
 		Source: metadata.Source{
-			Type: SourceType,
+			Type: metadata.GitSourceType,
 			Version: map[string]interface{}{
 				"commit": ref.Hash().String(),
 			},

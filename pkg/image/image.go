@@ -14,10 +14,10 @@ import (
 )
 
 type Image interface {
-	Cleanup()
 	GetFileContent(string) (string, error)
 	GetDirContents(string) ([]string, error)
 	AbsolutePath(string) (string, error)
+	GetConfig() (*v1.ConfigFile, error)
 }
 
 type ExportableImage interface {
@@ -30,7 +30,11 @@ type RootFSImage struct {
 	image  v1.Image
 }
 
-func NewDeplabImage(inputImage, inputImageTarPath string, excludePatterns []string) (RootFSImage, error) {
+func (dli *RootFSImage) GetConfig() (*v1.ConfigFile, error) {
+	return dli.image.ConfigFile()
+}
+
+func NewDeplabImage(inputImage, inputImageTarPath string) (RootFSImage, error) {
 	var (
 		image v1.Image
 		err   error
@@ -50,7 +54,8 @@ func NewDeplabImage(inputImage, inputImageTarPath string, excludePatterns []stri
 		return RootFSImage{}, errors.New("You must provide either an inputImage or inputImageTarPath parameter")
 	}
 
-	rootFS, err := NewRootFS(image, excludePatterns)
+	// this folder is unnecessary and may contain folders with bad permissions
+	rootFS, err := NewRootFS(image, []string{"usr/share/doc/"})
 	if err != nil {
 		return RootFSImage{}, errors.Wrapf(err, "could not create new image")
 	}
@@ -75,11 +80,11 @@ func (dli *RootFSImage) ExportWithMetadata(metadata metadata.Metadata, path stri
 	return nil
 }
 
-func (dli *RootFSImage) GetFileContent(s string) (string, error) {
+func (dli RootFSImage) GetFileContent(s string) (string, error) {
 	return dli.rootFS.GetFileContent(s)
 }
 
-func (dli *RootFSImage) GetDirContents(s string) ([]string, error) {
+func (dli RootFSImage) GetDirContents(s string) ([]string, error) {
 	return dli.rootFS.GetDirContents(s)
 }
 

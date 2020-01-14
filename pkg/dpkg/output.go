@@ -99,10 +99,10 @@ func (df *dpkgFile) printf(format string, a ...interface{}) *dpkgFile {
 
 func findDpkgListInMetadata(md metadata.Metadata) (metadata.Dependency, error) {
 	for _, v := range md.Dependencies {
-		if v.Type == PackageListSourceType {
+		if v.Type == metadata.DebianPackageListSourceType {
 			return v, nil
 		}
 	}
 
-	return metadata.Dependency{}, fmt.Errorf("could not find %s in metadata", PackageListSourceType)
+	return metadata.Dependency{}, fmt.Errorf("could not find %s in metadata", metadata.DebianPackageListSourceType)
 }
