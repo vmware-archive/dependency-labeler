@@ -43,6 +43,10 @@ func (m MockImage) AbsolutePath(string) (string, error) {
 	return path, err
 }
 
+func (m MockImage) ExportWithMetadata(metadata.Metadata, string, string) error {
+	panic("implement me")
+}
+
 var _ = Describe("Pkg/Rpm/Provider", func() {
 
 	//rpm leaves __db.001 etc. files in the folder when it runs; we should try to clean those up

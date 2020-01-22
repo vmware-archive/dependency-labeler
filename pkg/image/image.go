@@ -18,6 +18,7 @@ type Image interface {
 	GetDirContents(string) ([]string, error)
 	AbsolutePath(string) (string, error)
 	GetConfig() (*v1.ConfigFile, error)
+	ExportWithMetadata(metadata.Metadata, string, string) error
 }
 
 type ExportableImage interface {
@@ -30,7 +31,7 @@ type RootFSImage struct {
 	image  v1.Image
 }
 
-func (dli *RootFSImage) GetConfig() (*v1.ConfigFile, error) {
+func (dli RootFSImage) GetConfig() (*v1.ConfigFile, error) {
 	return dli.image.ConfigFile()
 }
 
@@ -67,7 +68,7 @@ func (dli *RootFSImage) Cleanup() {
 	dli.rootFS.Cleanup()
 }
 
-func (dli *RootFSImage) ExportWithMetadata(metadata metadata.Metadata, path string, tag string) error {
+func (dli RootFSImage) ExportWithMetadata(metadata metadata.Metadata, path string, tag string) error {
 	err := dli.setMetadata(metadata)
 	if err != nil {
 		return errors.Wrapf(err, "error setting metadata: %s", err)

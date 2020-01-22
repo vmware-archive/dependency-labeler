@@ -59,15 +59,7 @@ func Run(params common.RunParams) error {
 		}
 	}
 
-	if params.OutputImageTar != "" {
-		err = dli.ExportWithMetadata(md, params.OutputImageTar, params.Tag)
-
-		if err != nil {
-			return errors.Wrapf(err, "error exporting tar to %s", params.OutputImageTar)
-		}
-	}
-
-	err = writeOutputs(md, params.MetadataFilePath, params.DpkgFilePath)
+	err = writeOutputs(dli, params, md)
 	if err != nil {
 		return errors.Wrapf(err, "could not write outputs.")
 	}
@@ -113,16 +105,24 @@ func RunInspect(inputImage, inputImageTar string) error {
 	return nil
 }
 
-func writeOutputs(md metadata.Metadata, metadataFilePath, dpkgFilePath string) error {
-	if metadataFilePath != "" {
-		err := metadata.WriteMetadataFile(md, metadataFilePath)
+func writeOutputs(dli image.Image, params common.RunParams, md metadata.Metadata) error {
+	if params.OutputImageTar != "" {
+		err := dli.ExportWithMetadata(md, params.OutputImageTar, params.Tag)
+
+		if err != nil {
+			return errors.Wrapf(err, "error exporting tar to %s", params.OutputImageTar)
+		}
+	}
+
+	if params.MetadataFilePath != "" {
+		err := metadata.WriteMetadataFile(md, params.MetadataFilePath)
 		if err != nil {
 			return errors.Wrapf(err, "could not write metadata file.")
 		}
 	}
 
-	if dpkgFilePath != "" {
-		err := dpkg.WriteDpkgFile(md, dpkgFilePath, Version)
+	if params.DpkgFilePath != "" {
+		err := dpkg.WriteDpkgFile(md, params.DpkgFilePath, Version)
 		if err != nil {
 			return errors.Wrapf(err, "could not write dpkg file.")
 		}
