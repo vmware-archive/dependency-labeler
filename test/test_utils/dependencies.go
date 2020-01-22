@@ -9,3 +9,7 @@ func SelectDpkgDependency(dependencies []metadata.Dependency) (metadata.Dependen
 func SelectRpmDependency(dependencies []metadata.Dependency) (metadata.Dependency, bool) {
 	return metadata.SelectDependency(dependencies, metadata.RPMPackageListSourceType)
 }
+
+func SelectBuildpackDependency(dependencies []metadata.Dependency) (metadata.Dependency, bool) {
+	return metadata.SelectDependency(dependencies, metadata.BuildpackMetadataType)
+}

@@ -1,9 +1,6 @@
 package dpkg
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"sort"
 	"strings"
 
@@ -42,7 +39,7 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 			AptSources: sources,
 		}
 
-		version, err := Digest(sourceMetadata)
+		version, err := common.Digest(sourceMetadata)
 		if err != nil {
 			return metadata.Dependency{}, errors.Wrapf(err, "Could not get digest for source metadata")
 		}
@@ -62,17 +59,6 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 	}
 
 	return metadata.Dependency{}, err
-}
-
-func Digest(sourceMetadata metadata.DebianPackageListSourceMetadata) (string, error) {
-	hash := sha256.New()
-	encoder := json.NewEncoder(hash)
-	err := encoder.Encode(sourceMetadata)
-	if err != nil {
-		return "", errors.Wrapf(err, "could not encode source metadata.")
-	}
-	version := hex.EncodeToString(hash.Sum(nil))
-	return version, nil
 }
 
 func getAptSources(dli image.Image) ([]string, error) {

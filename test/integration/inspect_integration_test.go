@@ -154,6 +154,23 @@ var _ = Describe("deplab inspect", func() {
 	})
 
 	Context("image is not previously deplab'd", func() {
+		Context("image does not have an /etc/os-release file", func() {
+			It("prints the label", func() {
+				stdOut, stdErr := runDepLab([]string{
+					"inspect",
+					"--image-tar", getTestAssetPath("image-archives/scratch.tgz"),
+				}, 0)
+
+				md := metadata.Metadata{}
+				err := json.NewDecoder(stdOut).Decode(&md)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(md.Provenance[0].Name).To(Equal("deplab"))
+
+				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+				Expect(errorOutput).ToNot(ContainSubstring("base"))
+			})
+		})
 		It("prints the label", func() {
 			stdOut, _ := runDepLab([]string{
 				"inspect",

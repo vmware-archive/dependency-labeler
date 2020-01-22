@@ -6,6 +6,7 @@ const (
 	RPMPackageListSourceType    = "rpm_package_list"
 	ArchiveType                 = "archive"
 	PackageType                 = "package"
+	BuildpackMetadataType       = "buildpack_metadata"
 )
 
 type Metadata struct {
@@ -42,6 +43,12 @@ type RpmPackageListSourceMetadata struct {
 	Packages []RpmPackage `json:"packages"`
 }
 
+type BuildpackBOMSourceMetadata struct {
+	Buildpacks      []Buildpack            `json:"buildpacks"`
+	BillOfMaterials []BuildpackBOM         `json:"bom"`
+	Launcher        map[string]interface{} `json:"launcher"`
+}
+
 type GitSourceMetadata struct {
 	URL  string   `json:"url"`
 	Refs []string `json:"refs"`
@@ -66,11 +73,25 @@ type RpmPackage struct {
 	SourceRpm    string `json:"source_rpm" rpm:"SOURCERPM"`
 }
 
+type Buildpack struct {
+	ID      string `json:"id"`
+	Version string `json:"version"`
+}
+
+type BuildpackBOM struct {
+	Name      string               `json:"name"`
+	Version   string               `json:"version"`
+	Metadata  BuildpackBOMMetadata `json:"metadata"`
+	Buildpack Buildpack            `json:"buildpack"`
+}
+
 type PackageSource struct {
 	Package         string `json:"package"`
 	Version         string `json:"version"`
 	UpstreamVersion string `json:"upstreamVersion"`
 }
+
+type BuildpackBOMMetadata map[string]interface{}
 
 var UnknownBase = Base{
 	"name":             "unknown",

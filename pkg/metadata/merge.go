@@ -10,12 +10,13 @@ func Merge(original, current Metadata) (Metadata, []Warning) {
 	var warnings []Warning
 	var newDependencies []Dependency
 
-	if !reflect.DeepEqual(original.Base, current.Base) {
+	if len(original.Base) > 0 && !reflect.DeepEqual(original.Base, current.Base) {
 		warnings = append(warnings, "base")
 	}
 
 	newDependencies, warnings = selectAdditionalDependencies(DebianPackageListSourceType, newDependencies, warnings, original, current)
 	newDependencies, warnings = selectAdditionalDependencies(RPMPackageListSourceType, newDependencies, warnings, original, current)
+	newDependencies, warnings = selectAdditionalDependencies(BuildpackMetadataType, newDependencies, warnings, original, current)
 
 	for _, dep := range original.Dependencies {
 		if dep.Source.Type == GitSourceType {

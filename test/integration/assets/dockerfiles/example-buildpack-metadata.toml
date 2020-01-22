@@ -1,0 +1,118 @@
+[[processes]]
+  type = "executable-jar"
+  command = "java -cp $CLASSPATH $JAVA_OPTS org.springframework.boot.loader.JarLauncher"
+  direct = false
+
+[[processes]]
+  type = "spring-boot"
+  command = "java -cp $CLASSPATH $JAVA_OPTS io.buildpacks.example.sample.SampleApplication"
+  direct = false
+
+[[processes]]
+  type = "task"
+  command = "java -cp $CLASSPATH $JAVA_OPTS io.buildpacks.example.sample.SampleApplication"
+  direct = false
+
+[[processes]]
+  type = "web"
+  command = "java -cp $CLASSPATH $JAVA_OPTS io.buildpacks.example.sample.SampleApplication"
+  direct = false
+
+[[buildpacks]]
+  id = "org.cloudfoundry.openjdk"
+  version = "v1.0.64"
+
+[[buildpacks]]
+  id = "org.cloudfoundry.buildsystem"
+  version = "v1.0.147"
+
+[[buildpacks]]
+  id = "org.cloudfoundry.jvmapplication"
+  version = "v1.0.90"
+
+[[buildpacks]]
+  id = "org.cloudfoundry.tomcat"
+  version = "v1.1.39"
+
+[[buildpacks]]
+  id = "org.cloudfoundry.springboot"
+  version = "v1.0.123"
+
+[[buildpacks]]
+  id = "org.cloudfoundry.distzip"
+  version = "v1.0.111"
+
+[[buildpacks]]
+  id = "org.cloudfoundry.springautoreconfiguration"
+  version = "v1.0.126"
+
+[[bom]]
+  name = "openjdk-jdk"
+  version = "11.0.5"
+  [bom.metadata]
+    name = "OpenJDK JDK"
+    sha256 = "6dd0c9c8a740e6c19149e98034fba8e368fd9aa16ab417aa636854d40db1a161"
+    stacks = ["io.buildpacks.stacks.bionic", "org.cloudfoundry.stacks.cflinuxfs3"]
+    uri = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.5%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.5_10.tar.gz"
+
+    [[bom.metadata.licenses]]
+      type = "GPL-2.0 WITH Classpath-exception-2.0"
+      uri = "https://openjdk.java.net/legal/gplv2+ce.html"
+  [bom.buildpack]
+    id = "org.cloudfoundry.openjdk"
+    version = "v1.0.64"
+
+[[bom]]
+  name = "openjdk-jre"
+  version = "11.0.5"
+  [bom.metadata]
+    name = "OpenJDK JRE"
+    sha256 = "2f08c469c9a8adea1b6ee3444ba2a8242a7e99d87976a077faf037a9eb7f884b"
+    stacks = ["io.buildpacks.stacks.bionic", "org.cloudfoundry.stacks.cflinuxfs3"]
+    uri = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.5%2B10/OpenJDK11U-jre_x64_linux_hotspot_11.0.5_10.tar.gz"
+
+    [[bom.metadata.licenses]]
+      type = "GPL-2.0 WITH Classpath-exception-2.0"
+      uri = "https://openjdk.java.net/legal/gplv2+ce.html"
+  [bom.buildpack]
+    id = "org.cloudfoundry.openjdk"
+    version = "v1.0.64"
+
+[[bom]]
+  name = "executable-jar"
+  version = ""
+  [bom.metadata]
+    classpath = ["/workspace"]
+    main-class = "org.springframework.boot.loader.JarLauncher"
+  [bom.buildpack]
+    id = "org.cloudfoundry.jvmapplication"
+    version = "v1.0.90"
+
+[[bom]]
+  name = "spring-boot"
+  version = ""
+  [bom.metadata]
+    classes = "BOOT-INF/classes/"
+    classpath = ["/workspace/BOOT-INF/classes", "/workspace/BOOT-INF/lib/attoparser-2.0.5.RELEASE.jar", "/workspace/BOOT-INF/lib/classmate-1.4.0.jar", "/workspace/BOOT-INF/lib/hibernate-validator-6.0.18.Final.jar", "/workspace/BOOT-INF/lib/jackson-annotations-2.9.10.jar", "/workspace/BOOT-INF/lib/jackson-core-2.9.10.jar", "/workspace/BOOT-INF/lib/jackson-databind-2.9.10.1.jar", "/workspace/BOOT-INF/lib/jackson-datatype-jdk8-2.9.10.jar", "/workspace/BOOT-INF/lib/jackson-datatype-jsr310-2.9.10.jar", "/workspace/BOOT-INF/lib/jackson-module-parameter-names-2.9.10.jar", "/workspace/BOOT-INF/lib/javax.annotation-api-1.3.2.jar", "/workspace/BOOT-INF/lib/jboss-logging-3.3.3.Final.jar", "/workspace/BOOT-INF/lib/jul-to-slf4j-1.7.29.jar", "/workspace/BOOT-INF/lib/log4j-api-2.11.2.jar", "/workspace/BOOT-INF/lib/log4j-to-slf4j-2.11.2.jar", "/workspace/BOOT-INF/lib/logback-classic-1.2.3.jar", "/workspace/BOOT-INF/lib/logback-core-1.2.3.jar", "/workspace/BOOT-INF/lib/slf4j-api-1.7.29.jar", "/workspace/BOOT-INF/lib/snakeyaml-1.23.jar", "/workspace/BOOT-INF/lib/spring-aop-5.1.12.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-beans-5.1.12.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-boot-2.1.11.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-boot-autoconfigure-2.1.11.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-boot-starter-2.1.11.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-boot-starter-json-2.1.11.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-boot-starter-logging-2.1.11.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-boot-starter-thymeleaf-2.1.11.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-boot-starter-tomcat-2.1.11.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-boot-starter-web-2.1.11.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-context-5.1.12.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-core-5.1.12.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-expression-5.1.12.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-jcl-5.1.12.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-web-5.1.12.RELEASE.jar", "/workspace/BOOT-INF/lib/spring-webmvc-5.1.12.RELEASE.jar", "/workspace/BOOT-INF/lib/thymeleaf-3.0.11.RELEASE.jar", "/workspace/BOOT-INF/lib/thymeleaf-extras-java8time-3.0.4.RELEASE.jar", "/workspace/BOOT-INF/lib/thymeleaf-spring5-3.0.11.RELEASE.jar", "/workspace/BOOT-INF/lib/tomcat-embed-core-9.0.29.jar", "/workspace/BOOT-INF/lib/tomcat-embed-el-9.0.29.jar", "/workspace/BOOT-INF/lib/tomcat-embed-websocket-9.0.29.jar", "/workspace/BOOT-INF/lib/unbescape-1.1.6.RELEASE.jar", "/workspace/BOOT-INF/lib/validation-api-2.0.1.Final.jar"]
+    lib = "BOOT-INF/lib/"
+    start-class = "io.buildpacks.example.sample.SampleApplication"
+    version = "2.1.11.RELEASE"
+  [bom.buildpack]
+    id = "org.cloudfoundry.springboot"
+    version = "v1.0.123"
+
+[[bom]]
+  name = "auto-reconfiguration"
+  version = "2.11.0"
+  [bom.metadata]
+    name = "Spring Auto-reconfiguration"
+    sha256 = "46ab131165317d91fd4ad3186abf755222744e2d277dc413def06f3ad45ab150"
+    stacks = ["io.buildpacks.stacks.bionic", "org.cloudfoundry.stacks.cflinuxfs3"]
+    uri = "https://repo.spring.io/release/org/cloudfoundry/java-buildpack-auto-reconfiguration/2.11.0.RELEASE/java-buildpack-auto-reconfiguration-2.11.0.RELEASE.jar"
+
+    [[bom.metadata.licenses]]
+      type = "Apache-2.0"
+      uri = "https://github.com/cloudfoundry/java-buildpack-auto-reconfiguration/blob/master/LICENSE"
+  [bom.buildpack]
+    id = "org.cloudfoundry.springautoreconfiguration"
+    version = "v1.0.126"

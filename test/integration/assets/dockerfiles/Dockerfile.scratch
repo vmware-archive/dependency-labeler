@@ -1,0 +1,2 @@
+FROM scratch
+COPY example-buildpack-metadata.toml /dummy.txt

@@ -1,9 +1,6 @@
 package rpm
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -89,7 +86,7 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 		Packages: packages,
 	}
 
-	version, err := Digest(sourceMetadata)
+	version, err := common.Digest(sourceMetadata)
 	if err != nil {
 		return metadata.Dependency{}, errors.Wrapf(err, "Could not get digest for source metadata")
 	}
@@ -128,15 +125,4 @@ func exists(path string) (bool, error) {
 		return false, nil
 	}
 	return true, err
-}
-
-func Digest(sourceMetadata metadata.RpmPackageListSourceMetadata) (string, error) {
-	hash := sha256.New()
-	encoder := json.NewEncoder(hash)
-	err := encoder.Encode(sourceMetadata)
-	if err != nil {
-		return "", errors.Wrapf(err, "could not encode source metadata.")
-	}
-	version := hex.EncodeToString(hash.Sum(nil))
-	return version, nil
 }

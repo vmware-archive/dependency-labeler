@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pivotal/deplab/pkg/cnb"
+
 	"github.com/pivotal/deplab/pkg/additionalsources"
 	"github.com/pivotal/deplab/pkg/common"
 	"github.com/pivotal/deplab/pkg/rpm"
@@ -46,6 +48,7 @@ func Run(params common.RunParams) error {
 	for _, provider := range []provider{
 		dpkg.Provider,
 		rpm.Provider,
+		cnb.Provider,
 		git.Provider,
 		additionalsources.ArchiveUrlProvider,
 		additionalsources.AdditionalSourcesProvider,
@@ -79,6 +82,7 @@ func RunInspect(inputImage, inputImageTar string) error {
 	for _, provider := range []provider{
 		dpkg.Provider,
 		rpm.Provider,
+		cnb.Provider,
 		osrelease.Provider,
 		ProvenanceProvider,
 		ExistingLabelProvider,

@@ -8,203 +8,411 @@ import (
 )
 
 var _ = Describe("Merge", func() {
-	Context("provenance on both original and current", func() {
-		It("concatenates provenances from both", func() {
-			originalProvenance := metadata.Provenance{
-				Name:    "original",
-				Version: "original-v1",
-				URL:     "http://example.org/original",
-			}
-			labelMetadata := metadata.Metadata{
-				Provenance: []metadata.Provenance{originalProvenance},
-			}
-
-			currentProvenance := metadata.Provenance{
-				Name:    "current",
-				Version: "current-v1",
-				URL:     "http://example.org/original",
-			}
-			current := metadata.Metadata{
-				Provenance: []metadata.Provenance{currentProvenance},
-			}
-
-			result, warnings := metadata.Merge(labelMetadata, current)
-			Expect(result.Provenance).To(ConsistOf(originalProvenance, currentProvenance))
-			Expect(warnings).To(BeEmpty())
-		})
-	})
-
-	Context("base on both original and current", func() {
-		Context("when original and current match", func() {
-			It("retains only the base from the current metadata", func() {
-				originalBase := metadata.Base{
-					"name":    "original",
-					"version": "original-version",
+	Describe("provenance", func() {
+		Context("provenance on both original and current", func() {
+			It("concatenates provenances from both", func() {
+				originalProvenance := metadata.Provenance{
+					Name:    "original",
+					Version: "original-v1",
+					URL:     "http://example.org/original",
 				}
-				original := metadata.Metadata{
-					Base: originalBase,
+				labelMetadata := metadata.Metadata{
+					Provenance: []metadata.Provenance{originalProvenance},
 				}
 
+				currentProvenance := metadata.Provenance{
+					Name:    "current",
+					Version: "current-v1",
+					URL:     "http://example.org/original",
+				}
 				current := metadata.Metadata{
-					Base: originalBase,
+					Provenance: []metadata.Provenance{currentProvenance},
 				}
 
-				result, warnings := metadata.Merge(original, current)
-				Expect(result.Base).To(Equal(originalBase))
+				result, warnings := metadata.Merge(labelMetadata, current)
+				Expect(result.Provenance).To(ConsistOf(originalProvenance, currentProvenance))
 				Expect(warnings).To(BeEmpty())
 			})
 		})
+	})
 
-		Context("when original and current don't match", func() {
-			It("retains only the base from the current metadata and emits a warning", func() {
-				originalBase := metadata.Base{
-					"name":    "original",
-					"version": "original-version",
-				}
-				original := metadata.Metadata{
-					Base: originalBase,
-				}
+	Describe("base", func() {
+		Context("no base on original and base on current", func() {
+			It("does not report a warning", func() {
 				currentBase := metadata.Base{
-					"name": "current",
+					"name":    "current",
+					"version": "current-version",
 				}
+				original := metadata.Metadata{}
+
 				current := metadata.Metadata{
 					Base: currentBase,
 				}
 
 				result, warnings := metadata.Merge(original, current)
 				Expect(result.Base).To(Equal(currentBase))
-				Expect(warnings).To(ConsistOf(metadata.Warning("base")))
-			})
-		})
-	})
-
-	Context("git dependencies on original", func() {
-		It("retains the git dependencies from the original metadata", func() {
-			originalGit := metadata.Dependency{
-				Type: metadata.PackageType,
-				Source: metadata.Source{
-					Type: metadata.GitSourceType,
-				},
-			}
-			original := metadata.Metadata{
-				Dependencies: []metadata.Dependency{
-					originalGit,
-					originalGit,
-				},
-			}
-
-			current := metadata.Metadata{
-				Dependencies: []metadata.Dependency{},
-			}
-
-			result, warnings := metadata.Merge(original, current)
-			Expect(result.Dependencies).To(Equal([]metadata.Dependency{originalGit, originalGit}))
-			Expect(warnings).To(BeEmpty())
-		})
-	})
-
-	Context("dpkg list dependencies on both original and current", func() {
-		Context("when original and current match", func() {
-			It("retains only the dpkg list dependencies from the current metadata", func() {
-				originalDpkg := metadata.Dependency{
-					Type: metadata.DebianPackageListSourceType,
-					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "some-sha256",
-						},
-					},
-				}
-
-				currentDpkg := metadata.Dependency{
-					Type: metadata.DebianPackageListSourceType,
-					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "some-sha256",
-						},
-					},
-				}
-
-				result, warnings := metadata.Merge(metadata.Metadata{
-					Dependencies: []metadata.Dependency{originalDpkg},
-				}, metadata.Metadata{
-					Dependencies: []metadata.Dependency{currentDpkg},
-				})
-
 				Expect(warnings).To(BeEmpty())
-
-				dpkg, ok := test_utils.SelectDpkgDependency(result.Dependencies)
-				Expect(ok).To(BeTrue())
-				Expect(dpkg).To(Equal(currentDpkg))
 			})
 		})
 
-		Context("when original and current don't match", func() {
-			It("retains only the dpkg list dependencies from the current metadata and emits a warning", func() {
-				originalDpkg := metadata.Dependency{
-					Type: metadata.DebianPackageListSourceType,
-					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "original",
-						},
-					},
-				}
+		Context("base on both original and current", func() {
+			Context("when original and current match", func() {
+				It("retains only the base from the current metadata", func() {
+					originalBase := metadata.Base{
+						"name":    "original",
+						"version": "original-version",
+					}
+					original := metadata.Metadata{
+						Base: originalBase,
+					}
 
-				currentDpkg := metadata.Dependency{
-					Type: metadata.DebianPackageListSourceType,
-					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "current",
-						},
-					},
-				}
+					current := metadata.Metadata{
+						Base: originalBase,
+					}
 
-				result, warnings := metadata.Merge(metadata.Metadata{
-					Dependencies: []metadata.Dependency{originalDpkg},
-				}, metadata.Metadata{
-					Dependencies: []metadata.Dependency{currentDpkg},
+					result, warnings := metadata.Merge(original, current)
+					Expect(result.Base).To(Equal(originalBase))
+					Expect(warnings).To(BeEmpty())
 				})
+			})
 
-				Expect(warnings).To(ConsistOf(metadata.Warning(metadata.DebianPackageListSourceType)))
+			Context("when original and current don't match", func() {
+				It("retains only the base from the current metadata and emits a warning", func() {
+					originalBase := metadata.Base{
+						"name":    "original",
+						"version": "original-version",
+					}
+					original := metadata.Metadata{
+						Base: originalBase,
+					}
+					currentBase := metadata.Base{
+						"name": "current",
+					}
+					current := metadata.Metadata{
+						Base: currentBase,
+					}
 
-				dpkg, ok := test_utils.SelectDpkgDependency(result.Dependencies)
-				Expect(ok).To(BeTrue())
-				Expect(dpkg).To(Equal(currentDpkg))
+					result, warnings := metadata.Merge(original, current)
+					Expect(result.Base).To(Equal(currentBase))
+					Expect(warnings).To(ConsistOf(metadata.Warning("base")))
+				})
 			})
 		})
+	})
 
-		Context("when there is a original and there is no current", func() {
-			It("retains only the empty dpkg list dependencies from the current metadata and emits a warning", func() {
-				originalDpkg := metadata.Dependency{
-					Type: metadata.DebianPackageListSourceType,
+	Describe("git", func() {
+		Context("git dependencies on original", func() {
+			It("retains the git dependencies from the original metadata", func() {
+				originalGit := metadata.Dependency{
+					Type: metadata.PackageType,
 					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "original",
-						},
+						Type: metadata.GitSourceType,
+					},
+				}
+				original := metadata.Metadata{
+					Dependencies: []metadata.Dependency{
+						originalGit,
+						originalGit,
 					},
 				}
 
-				result, warnings := metadata.Merge(metadata.Metadata{
-					Dependencies: []metadata.Dependency{originalDpkg},
-				}, metadata.Metadata{
+				current := metadata.Metadata{
 					Dependencies: []metadata.Dependency{},
-				})
+				}
 
-				Expect(warnings).To(ConsistOf(metadata.Warning(metadata.DebianPackageListSourceType)))
-
-				_, ok := test_utils.SelectDpkgDependency(result.Dependencies)
-				Expect(ok).To(BeFalse())
+				result, warnings := metadata.Merge(original, current)
+				Expect(result.Dependencies).To(Equal([]metadata.Dependency{originalGit, originalGit}))
+				Expect(warnings).To(BeEmpty())
 			})
 		})
+	})
 
+	Describe("dpkg", func() {
+		Context("dpkg list dependencies on both original and current", func() {
+			Context("when original and current match", func() {
+				It("retains only the dpkg list dependencies from the current metadata", func() {
+					originalDpkg := metadata.Dependency{
+						Type: metadata.DebianPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "some-sha256",
+							},
+						},
+					}
+
+					currentDpkg := metadata.Dependency{
+						Type: metadata.DebianPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "some-sha256",
+							},
+						},
+					}
+
+					result, warnings := metadata.Merge(metadata.Metadata{
+						Dependencies: []metadata.Dependency{originalDpkg},
+					}, metadata.Metadata{
+						Dependencies: []metadata.Dependency{currentDpkg},
+					})
+
+					Expect(warnings).To(BeEmpty())
+
+					dpkg, ok := test_utils.SelectDpkgDependency(result.Dependencies)
+					Expect(ok).To(BeTrue())
+					Expect(dpkg).To(Equal(currentDpkg))
+				})
+			})
+
+			Context("when original and current don't match", func() {
+				It("retains only the dpkg list dependencies from the current metadata and emits a warning", func() {
+					originalDpkg := metadata.Dependency{
+						Type: metadata.DebianPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "original",
+							},
+						},
+					}
+
+					currentDpkg := metadata.Dependency{
+						Type: metadata.DebianPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "current",
+							},
+						},
+					}
+
+					result, warnings := metadata.Merge(metadata.Metadata{
+						Dependencies: []metadata.Dependency{originalDpkg},
+					}, metadata.Metadata{
+						Dependencies: []metadata.Dependency{currentDpkg},
+					})
+
+					Expect(warnings).To(ConsistOf(metadata.Warning(metadata.DebianPackageListSourceType)))
+
+					dpkg, ok := test_utils.SelectDpkgDependency(result.Dependencies)
+					Expect(ok).To(BeTrue())
+					Expect(dpkg).To(Equal(currentDpkg))
+				})
+			})
+
+			Context("when there is a original and there is no current", func() {
+				It("retains only the empty dpkg list dependencies from the current metadata and emits a warning", func() {
+					originalDpkg := metadata.Dependency{
+						Type: metadata.DebianPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "original",
+							},
+						},
+					}
+
+					result, warnings := metadata.Merge(metadata.Metadata{
+						Dependencies: []metadata.Dependency{originalDpkg},
+					}, metadata.Metadata{
+						Dependencies: []metadata.Dependency{},
+					})
+
+					Expect(warnings).To(ConsistOf(metadata.Warning(metadata.DebianPackageListSourceType)))
+
+					_, ok := test_utils.SelectDpkgDependency(result.Dependencies)
+					Expect(ok).To(BeFalse())
+				})
+			})
+
+			Context("when there is no original and only current", func() {
+				It("retains only the dpkg list dependencies from the current metadata", func() {
+					currentDpkg := metadata.Dependency{
+						Type: metadata.DebianPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "current",
+							},
+						},
+					}
+
+					result, warnings := metadata.Merge(metadata.Metadata{
+						Dependencies: []metadata.Dependency{},
+					}, metadata.Metadata{
+						Dependencies: []metadata.Dependency{currentDpkg},
+					})
+
+					Expect(warnings).To(BeEmpty())
+
+					dpkg, ok := test_utils.SelectDpkgDependency(result.Dependencies)
+					Expect(ok).To(BeTrue())
+					Expect(dpkg).To(Equal(currentDpkg))
+				})
+			})
+		})
+	})
+
+	Describe("rpm", func() {
+		Context("rpm list dependencies on both original and current", func() {
+			Context("when original and current match", func() {
+				It("retains only the rpm list dependencies from the current metadata", func() {
+					originalRpm := metadata.Dependency{
+						Type: metadata.RPMPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "some-sha256",
+							},
+						},
+					}
+
+					currentRpm := metadata.Dependency{
+						Type: metadata.RPMPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "some-sha256",
+							},
+						},
+					}
+
+					result, warnings := metadata.Merge(metadata.Metadata{
+						Dependencies: []metadata.Dependency{originalRpm},
+					}, metadata.Metadata{
+						Dependencies: []metadata.Dependency{currentRpm},
+					})
+
+					Expect(warnings).To(BeEmpty())
+
+					rpm, ok := test_utils.SelectRpmDependency(result.Dependencies)
+					Expect(ok).To(BeTrue())
+					Expect(rpm).To(Equal(currentRpm))
+				})
+			})
+
+			Context("when original and current don't match", func() {
+				It("retains only the rpm list dependencies from the current metadata and emits a warning", func() {
+					originalRpm := metadata.Dependency{
+						Type: metadata.RPMPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "original",
+							},
+						},
+					}
+
+					currentRpm := metadata.Dependency{
+						Type: metadata.RPMPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "current",
+							},
+						},
+					}
+
+					result, warnings := metadata.Merge(metadata.Metadata{
+						Dependencies: []metadata.Dependency{originalRpm},
+					}, metadata.Metadata{
+						Dependencies: []metadata.Dependency{currentRpm},
+					})
+
+					Expect(warnings).To(ConsistOf(metadata.Warning(metadata.RPMPackageListSourceType)))
+
+					rpm, ok := test_utils.SelectRpmDependency(result.Dependencies)
+					Expect(ok).To(BeTrue())
+					Expect(rpm).To(Equal(currentRpm))
+				})
+			})
+
+			Context("when there is a original and there is no current", func() {
+				It("retains only the empty rpm list dependencies from the current metadata and emits a warning", func() {
+					originalRpm := metadata.Dependency{
+						Type: metadata.RPMPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "original",
+							},
+						},
+					}
+
+					result, warnings := metadata.Merge(metadata.Metadata{
+						Dependencies: []metadata.Dependency{originalRpm},
+					}, metadata.Metadata{
+						Dependencies: []metadata.Dependency{},
+					})
+
+					Expect(warnings).To(ConsistOf(metadata.Warning(metadata.RPMPackageListSourceType)))
+
+					_, ok := test_utils.SelectRpmDependency(result.Dependencies)
+					Expect(ok).To(BeFalse())
+				})
+			})
+
+			Context("when there is no original and only current", func() {
+				It("retains only the rpm list dependencies from the current metadata", func() {
+					currentRpm := metadata.Dependency{
+						Type: metadata.RPMPackageListSourceType,
+						Source: metadata.Source{
+							Type: "inline",
+							Version: map[string]interface{}{
+								"sha256": "current",
+							},
+						},
+					}
+
+					result, warnings := metadata.Merge(metadata.Metadata{
+						Dependencies: []metadata.Dependency{},
+					}, metadata.Metadata{
+						Dependencies: []metadata.Dependency{currentRpm},
+					})
+
+					Expect(warnings).To(BeEmpty())
+
+					rpm, ok := test_utils.SelectRpmDependency(result.Dependencies)
+					Expect(ok).To(BeTrue())
+					Expect(rpm).To(Equal(currentRpm))
+				})
+			})
+		})
+	})
+
+	Describe("archive", func() {
+		Context("archive dependencies on original", func() {
+			It("retains the archives dependencies from the original metadata", func() {
+				originalArchive := metadata.Dependency{
+					Type: metadata.PackageType,
+					Source: metadata.Source{
+						Type: metadata.ArchiveType,
+					},
+				}
+				original := metadata.Metadata{
+					Dependencies: []metadata.Dependency{
+						originalArchive,
+						originalArchive,
+					},
+				}
+
+				current := metadata.Metadata{
+					Dependencies: []metadata.Dependency{},
+				}
+
+				result, warnings := metadata.Merge(original, current)
+				Expect(result.Dependencies).To(Equal([]metadata.Dependency{originalArchive, originalArchive}))
+				Expect(warnings).To(BeEmpty())
+			})
+		})
+	})
+
+	Describe("buildpacks", func() {
 		Context("when there is no original and only current", func() {
-			It("retains only the dpkg list dependencies from the current metadata", func() {
-				currentDpkg := metadata.Dependency{
-					Type: metadata.DebianPackageListSourceType,
+			It("retains only the buildpack list dependencies from the current metadata", func() {
+				currentBuildpack := metadata.Dependency{
+					Type: metadata.BuildpackMetadataType,
 					Source: metadata.Source{
 						Type: "inline",
 						Version: map[string]interface{}{
@@ -216,165 +424,15 @@ var _ = Describe("Merge", func() {
 				result, warnings := metadata.Merge(metadata.Metadata{
 					Dependencies: []metadata.Dependency{},
 				}, metadata.Metadata{
-					Dependencies: []metadata.Dependency{currentDpkg},
+					Dependencies: []metadata.Dependency{currentBuildpack},
 				})
 
 				Expect(warnings).To(BeEmpty())
 
-				dpkg, ok := test_utils.SelectDpkgDependency(result.Dependencies)
+				dpkg, ok := test_utils.SelectBuildpackDependency(result.Dependencies)
 				Expect(ok).To(BeTrue())
-				Expect(dpkg).To(Equal(currentDpkg))
+				Expect(dpkg).To(Equal(currentBuildpack))
 			})
-		})
-	})
-
-	Context("rpm list dependencies on both original and current", func() {
-		Context("when original and current match", func() {
-			It("retains only the rpm list dependencies from the current metadata", func() {
-				originalRpm := metadata.Dependency{
-					Type: metadata.RPMPackageListSourceType,
-					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "some-sha256",
-						},
-					},
-				}
-
-				currentRpm := metadata.Dependency{
-					Type: metadata.RPMPackageListSourceType,
-					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "some-sha256",
-						},
-					},
-				}
-
-				result, warnings := metadata.Merge(metadata.Metadata{
-					Dependencies: []metadata.Dependency{originalRpm},
-				}, metadata.Metadata{
-					Dependencies: []metadata.Dependency{currentRpm},
-				})
-
-				Expect(warnings).To(BeEmpty())
-
-				rpm, ok := test_utils.SelectRpmDependency(result.Dependencies)
-				Expect(ok).To(BeTrue())
-				Expect(rpm).To(Equal(currentRpm))
-			})
-		})
-
-		Context("when original and current don't match", func() {
-			It("retains only the rpm list dependencies from the current metadata and emits a warning", func() {
-				originalRpm := metadata.Dependency{
-					Type: metadata.RPMPackageListSourceType,
-					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "original",
-						},
-					},
-				}
-
-				currentRpm := metadata.Dependency{
-					Type: metadata.RPMPackageListSourceType,
-					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "current",
-						},
-					},
-				}
-
-				result, warnings := metadata.Merge(metadata.Metadata{
-					Dependencies: []metadata.Dependency{originalRpm},
-				}, metadata.Metadata{
-					Dependencies: []metadata.Dependency{currentRpm},
-				})
-
-				Expect(warnings).To(ConsistOf(metadata.Warning(metadata.RPMPackageListSourceType)))
-
-				rpm, ok := test_utils.SelectRpmDependency(result.Dependencies)
-				Expect(ok).To(BeTrue())
-				Expect(rpm).To(Equal(currentRpm))
-			})
-		})
-
-		Context("when there is a original and there is no current", func() {
-			It("retains only the empty rpm list dependencies from the current metadata and emits a warning", func() {
-				originalRpm := metadata.Dependency{
-					Type: metadata.RPMPackageListSourceType,
-					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "original",
-						},
-					},
-				}
-
-				result, warnings := metadata.Merge(metadata.Metadata{
-					Dependencies: []metadata.Dependency{originalRpm},
-				}, metadata.Metadata{
-					Dependencies: []metadata.Dependency{},
-				})
-
-				Expect(warnings).To(ConsistOf(metadata.Warning(metadata.RPMPackageListSourceType)))
-
-				_, ok := test_utils.SelectRpmDependency(result.Dependencies)
-				Expect(ok).To(BeFalse())
-			})
-		})
-
-		Context("when there is no original and only current", func() {
-			It("retains only the rpm list dependencies from the current metadata", func() {
-				currentRpm := metadata.Dependency{
-					Type: metadata.RPMPackageListSourceType,
-					Source: metadata.Source{
-						Type: "inline",
-						Version: map[string]interface{}{
-							"sha256": "current",
-						},
-					},
-				}
-
-				result, warnings := metadata.Merge(metadata.Metadata{
-					Dependencies: []metadata.Dependency{},
-				}, metadata.Metadata{
-					Dependencies: []metadata.Dependency{currentRpm},
-				})
-
-				Expect(warnings).To(BeEmpty())
-
-				rpm, ok := test_utils.SelectRpmDependency(result.Dependencies)
-				Expect(ok).To(BeTrue())
-				Expect(rpm).To(Equal(currentRpm))
-			})
-		})
-	})
-
-	Context("archive dependencies on original", func() {
-		It("retains the archives dependencies from the original metadata", func() {
-			originalArchive := metadata.Dependency{
-				Type: metadata.PackageType,
-				Source: metadata.Source{
-					Type: metadata.ArchiveType,
-				},
-			}
-			original := metadata.Metadata{
-				Dependencies: []metadata.Dependency{
-					originalArchive,
-					originalArchive,
-				},
-			}
-
-			current := metadata.Metadata{
-				Dependencies: []metadata.Dependency{},
-			}
-
-			result, warnings := metadata.Merge(original, current)
-			Expect(result.Dependencies).To(Equal([]metadata.Dependency{originalArchive, originalArchive}))
-			Expect(warnings).To(BeEmpty())
 		})
 	})
 
