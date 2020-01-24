@@ -8,6 +8,8 @@ import (
 
 	"github.com/pivotal/deplab/pkg/metadata"
 
+	"github.com/containerd/containerd/reference/docker"
+
 	"github.com/google/go-containerregistry/pkg/crane"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/mutate"
@@ -124,7 +126,12 @@ func (dli *RootFSImage) export(path string, tag string) error {
 		actualTag = tag
 	}
 
-	err := crane.Save(dli.image, actualTag, path)
+	name, err := docker.ParseDockerRef(actualTag)
+	if err != nil {
+		return fmt.Errorf("tag %s is invalid: %w", actualTag, err)
+	}
+
+	err = crane.Save(dli.image, name.String(), path)
 	if err != nil {
 		return fmt.Errorf("could not export to %s: %w", path, err)
 	}
