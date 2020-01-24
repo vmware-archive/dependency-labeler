@@ -1,6 +1,7 @@
 package image
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,8 +12,6 @@ import (
 	"github.com/google/go-containerregistry/pkg/v1/mutate"
 
 	"github.com/docker/docker/pkg/archive"
-
-	"github.com/pkg/errors"
 )
 
 type Interface interface {
@@ -30,7 +29,7 @@ func (rfs *RootFS) GetDirContents(path string) ([]string, error) {
 	var fileContents []string
 	files, err := ioutil.ReadDir(filepath.Join(rfs.rootfsLocation, path))
 	if err != nil {
-		return fileContents, errors.Wrapf(err, "could not find directory in rootFS: %s", err)
+		return fileContents, fmt.Errorf("could not find directory in rootFS: %w", err)
 	}
 
 	for _, f := range files {
@@ -40,7 +39,7 @@ func (rfs *RootFS) GetDirContents(path string) ([]string, error) {
 
 		thisFileContent, err := rfs.GetFileContent(filepath.Join(path, f.Name()))
 		if err != nil {
-			return fileContents, errors.Wrapf(err, "could not find file in directory in rootFS: %s", err)
+			return fileContents, fmt.Errorf("could not find file in directory in rootFS: %w", err)
 		}
 		fileContents = append(fileContents, thisFileContent)
 	}
@@ -51,7 +50,7 @@ func (rfs *RootFS) GetDirContents(path string) ([]string, error) {
 func (rfs *RootFS) GetFileContent(path string) (string, error) {
 	fileBytes, err := ioutil.ReadFile(filepath.Join(rfs.rootfsLocation, path))
 	if err != nil {
-		return "", errors.Wrapf(err, "could not find file in rootFS: %s", err)
+		return "", fmt.Errorf("could not find file in rootFS: %w", err)
 	}
 	return string(fileBytes), nil
 }
@@ -64,14 +63,14 @@ func NewRootFS(image v1.Image, excludePatterns []string) (RootFS, error) {
 
 	f, err := ioutil.TempFile("", "image")
 	if err != nil {
-		return RootFS{}, errors.Wrap(err, "Could not create temp file.")
+		return RootFS{}, fmt.Errorf("could not create temp file: %w", err)
 	}
 
 	fs := mutate.Extract(image)
 
 	rootFS, err = ioutil.TempDir("", RootfsPrefix)
 	if err != nil {
-		return RootFS{}, errors.Wrap(err, "Could not create rootFS temp directory.")
+		return RootFS{}, fmt.Errorf("could not create rootFS temp directory: %w", err)
 	}
 
 	err = archive.Untar(fs, rootFS, &archive.TarOptions{
@@ -79,7 +78,7 @@ func NewRootFS(image v1.Image, excludePatterns []string) (RootFS, error) {
 		ExcludePatterns: excludePatterns,
 	})
 	if err != nil {
-		return RootFS{}, errors.Wrapf(err, "Could not untar from tar %s to temp directory %s.", f.Name(), rootFS)
+		return RootFS{}, fmt.Errorf("could not untar from tar %s to temp directory %s: %w", f.Name(), rootFS, err)
 	}
 
 	return RootFS{rootfsLocation: rootFS}, nil

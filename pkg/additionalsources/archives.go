@@ -1,7 +1,6 @@
 package additionalsources
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -102,7 +101,7 @@ func ValidateURLs(additionalSourceUrls []string, fn HTTPHeadFn) error {
 		}
 	}
 	if len(errorMessages) != 0 {
-		return errors.New(strings.Join(errorMessages, ", "))
+		return fmt.Errorf(strings.Join(errorMessages, ", "))
 	}
 	return nil
 }

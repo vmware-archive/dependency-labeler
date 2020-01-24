@@ -22,8 +22,6 @@ import (
 	"github.com/pivotal/deplab/pkg/osrelease"
 
 	"github.com/pivotal/deplab/pkg/image"
-
-	"github.com/pkg/errors"
 )
 
 type provider func(image.Image, common.RunParams, metadata.Metadata) (metadata.Metadata, error)
@@ -39,7 +37,7 @@ func Run(params common.RunParams) error {
 	dli, err := image.NewDeplabImage(params.InputImage, params.InputImageTarPath)
 
 	if err != nil {
-		return errors.Wrapf(err, "could not load image.")
+		return fmt.Errorf("could not load image: %w", err)
 	}
 	defer dli.Cleanup()
 
@@ -58,13 +56,13 @@ func Run(params common.RunParams) error {
 		if md2, err := provider(&dli, params, md); err == nil {
 			md = md2
 		} else {
-			return errors.Wrapf(err, "error generating dependencies.")
+			return fmt.Errorf("error generating dependencies: %w", err)
 		}
 	}
 
 	err = writeOutputs(dli, params, md)
 	if err != nil {
-		return errors.Wrapf(err, "could not write outputs.")
+		return fmt.Errorf("could not write outputs: %w", err)
 	}
 
 	return nil
@@ -114,21 +112,21 @@ func writeOutputs(dli image.Image, params common.RunParams, md metadata.Metadata
 		err := dli.ExportWithMetadata(md, params.OutputImageTar, params.Tag)
 
 		if err != nil {
-			return errors.Wrapf(err, "error exporting tar to %s", params.OutputImageTar)
+			return fmt.Errorf("error exporting tar to %s: %w", params.OutputImageTar, err)
 		}
 	}
 
 	if params.MetadataFilePath != "" {
 		err := metadata.WriteMetadataFile(md, params.MetadataFilePath)
 		if err != nil {
-			return errors.Wrapf(err, "could not write metadata file.")
+			return fmt.Errorf("could not write metadata file: %w", err)
 		}
 	}
 
 	if params.DpkgFilePath != "" {
 		err := dpkg.WriteDpkgFile(md, params.DpkgFilePath, Version)
 		if err != nil {
-			return errors.Wrapf(err, "could not write dpkg file.")
+			return fmt.Errorf("could not write dpkg file: %w", err)
 		}
 	}
 

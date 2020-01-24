@@ -1,6 +1,7 @@
 package dpkg
 
 import (
+	"fmt"
 	"sort"
 	"strings"
 
@@ -12,8 +13,6 @@ import (
 
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
-
-	"github.com/pkg/errors"
 )
 
 func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
@@ -31,7 +30,7 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 	if len(packages) != 0 {
 		sources, err := getAptSources(dli)
 		if err != nil {
-			return metadata.Dependency{}, errors.Wrapf(err, "could not get apt sources")
+			return metadata.Dependency{}, fmt.Errorf("could not get apt sources: %w", err)
 		}
 
 		sourceMetadata := metadata.DebianPackageListSourceMetadata{
@@ -41,7 +40,7 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 
 		version, err := common.Digest(sourceMetadata)
 		if err != nil {
-			return metadata.Dependency{}, errors.Wrapf(err, "Could not get digest for source metadata")
+			return metadata.Dependency{}, fmt.Errorf("could not get digest for source metadata: %w", err)
 		}
 
 		dpkgList := metadata.Dependency{
@@ -123,7 +122,7 @@ func ParseStatDBEntry(content string) (metadata.DpkgPackage, error) {
 	pkg := metadata.DpkgPackage{}
 
 	if strings.TrimSpace(content) == "" {
-		return pkg, errors.New("invalid StatDB entry")
+		return pkg, fmt.Errorf("invalid StatDB entry")
 	}
 
 	for _, inputLine := range strings.Split(content, "\n") {

@@ -1,7 +1,6 @@
 package additionalsources
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -46,7 +45,7 @@ func ParseAdditionalSourcesFile(additionalSourcesFilePath string) ([]string, []m
 	}
 
 	if len(errorMessages) != 0 {
-		return urls, gitDependencies, errors.New(strings.Join(errorMessages, ", "))
+		return urls, gitDependencies, fmt.Errorf(strings.Join(errorMessages, ", "))
 	}
 
 	return urls, gitDependencies, nil

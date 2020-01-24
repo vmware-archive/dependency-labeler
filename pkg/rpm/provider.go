@@ -15,8 +15,6 @@ import (
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
-	"github.com/pkg/errors"
-
 	"github.com/pivotal/deplab/pkg/metadata"
 )
 
@@ -67,7 +65,7 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 	}
 
 	if strings.TrimSpace(stdOutBuffer.String()) == "" {
-		return metadata.Dependency{}, errors.New("no rpm packages data found")
+		return metadata.Dependency{}, fmt.Errorf("no rpm packages data found")
 	}
 
 	allPackagesDetails := strings.Split(strings.TrimSpace(stdOutBuffer.String()), "\n")
@@ -88,7 +86,7 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 
 	version, err := common.Digest(sourceMetadata)
 	if err != nil {
-		return metadata.Dependency{}, errors.Wrapf(err, "Could not get digest for source metadata")
+		return metadata.Dependency{}, fmt.Errorf("could not get digest for source metadata: %w", err)
 	}
 
 	return metadata.Dependency{

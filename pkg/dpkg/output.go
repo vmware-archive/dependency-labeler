@@ -8,15 +8,13 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/pkg/errors"
-
 	"github.com/pivotal/deplab/pkg/metadata"
 )
 
 func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion string) error {
 	f, err := os.Create(dpkgFilePath)
 	if err != nil {
-		return errors.Wrapf(err, "could not create file %s", dpkgFilePath)
+		return fmt.Errorf("could not create file %s: %w", dpkgFilePath, err)
 	}
 
 	defer func() {

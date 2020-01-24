@@ -2,6 +2,7 @@ package image
 
 import (
 	"encoding/json"
+	"fmt"
 	"path"
 	"path/filepath"
 
@@ -10,7 +11,6 @@ import (
 	"github.com/google/go-containerregistry/pkg/crane"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/mutate"
-	"github.com/pkg/errors"
 )
 
 type Image interface {
@@ -44,21 +44,21 @@ func NewDeplabImage(inputImage, inputImageTarPath string) (RootFSImage, error) {
 	if inputImage != "" {
 		image, err = crane.Pull(inputImage)
 		if err != nil {
-			return RootFSImage{}, errors.Wrapf(err, "failed to pull %s: %s", inputImage, err)
+			return RootFSImage{}, fmt.Errorf("failed to pull %s: %w", inputImage, err)
 		}
 	} else if inputImageTarPath != "" {
 		image, err = crane.Load(inputImageTarPath)
 		if err != nil {
-			return RootFSImage{}, errors.Wrapf(err, "failed to load %s: %s", inputImageTarPath, err)
+			return RootFSImage{}, fmt.Errorf("failed to load %s: %w", inputImageTarPath, err)
 		}
 	} else {
-		return RootFSImage{}, errors.New("You must provide either an inputImage or inputImageTarPath parameter")
+		return RootFSImage{}, fmt.Errorf("you must provide either an inputImage or inputImageTarPath parameter")
 	}
 
 	// this folder is unnecessary and may contain folders with bad permissions
 	rootFS, err := NewRootFS(image, []string{"usr/share/doc/"})
 	if err != nil {
-		return RootFSImage{}, errors.Wrapf(err, "could not create new image")
+		return RootFSImage{}, fmt.Errorf("could not create new image: %w", err)
 	}
 
 	return RootFSImage{image: image, rootFS: rootFS}, nil
@@ -71,12 +71,12 @@ func (dli *RootFSImage) Cleanup() {
 func (dli RootFSImage) ExportWithMetadata(metadata metadata.Metadata, path string, tag string) error {
 	err := dli.setMetadata(metadata)
 	if err != nil {
-		return errors.Wrapf(err, "error setting metadata: %s", err)
+		return fmt.Errorf("error setting metadata: %w", err)
 	}
 
 	err = dli.export(path, tag)
 	if err != nil {
-		return errors.Wrapf(err, "error exporting tar to %s: %s", path, err)
+		return fmt.Errorf("error exporting tar to %s: %w", path, err)
 	}
 	return nil
 }
@@ -92,11 +92,11 @@ func (dli RootFSImage) GetDirContents(s string) ([]string, error) {
 func (dli *RootFSImage) setMetadata(metadata metadata.Metadata) error {
 	config, err := dli.image.ConfigFile()
 	if err != nil {
-		return errors.Wrapf(err, "could not find config file in image : %s", err)
+		return fmt.Errorf("could not find config file in image: %w", err)
 	}
 	md, err := json.Marshal(metadata)
 	if err != nil {
-		return errors.Wrapf(err, "could not marshal json : %s", err)
+		return fmt.Errorf("could not marshal json: %w", err)
 	}
 	if config.Config.Labels == nil {
 		config.Config.Labels = map[string]string{}
@@ -106,7 +106,7 @@ func (dli *RootFSImage) setMetadata(metadata metadata.Metadata) error {
 
 	dli.image, err = mutate.Config(dli.image, config.Config)
 	if err != nil {
-		return errors.Wrapf(err, "could not mutate config in image : %s", err)
+		return fmt.Errorf("could not mutate config in image: %w", err)
 	}
 
 	return nil
@@ -117,7 +117,7 @@ func (dli *RootFSImage) export(path string, tag string) error {
 	if tag == "" {
 		h, err := dli.image.Digest()
 		if err != nil {
-			return errors.Wrapf(err, "could not retrieve image digest")
+			return fmt.Errorf("could not retrieve image digest: %w", err)
 		}
 		actualTag = h.String()
 	} else {
@@ -125,15 +125,18 @@ func (dli *RootFSImage) export(path string, tag string) error {
 	}
 
 	err := crane.Save(dli.image, actualTag, path)
+	if err != nil {
+		return fmt.Errorf("could not export to %s: %w", path, err)
+	}
 
-	return errors.Wrapf(err, "could not export to %s: %s", path, err)
+	return nil
 }
 
 func (dli RootFSImage) AbsolutePath(absPath string) (string, error) {
 	joinedPath := path.Join(dli.rootFS.rootfsLocation, absPath)
 	patheee, err := filepath.Abs(joinedPath)
 	if err != nil {
-		return "", errors.Wrapf(err, "could not create image absolute path, %s", absPath)
+		return "", fmt.Errorf("could not create image absolute path, %s: %w", absPath, err)
 	}
 	return patheee, nil
 }

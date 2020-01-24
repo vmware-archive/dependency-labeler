@@ -4,8 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-
-	"github.com/pkg/errors"
+	"fmt"
 )
 
 type RunParams struct {
@@ -26,7 +25,7 @@ func Digest(sourceMetadata interface{}) (string, error) {
 	encoder := json.NewEncoder(hash)
 	err := encoder.Encode(sourceMetadata)
 	if err != nil {
-		return "", errors.Wrapf(err, "could not encode source metadata.")
+		return "", fmt.Errorf("could not encode source metadata: %w", err)
 	}
 	version := hex.EncodeToString(hash.Sum(nil))
 	return version, nil

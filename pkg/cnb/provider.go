@@ -2,12 +2,12 @@ package cnb
 
 import (
 	"encoding/json"
+	"fmt"
 	"sort"
 
 	"github.com/pivotal/deplab/pkg/common"
 
 	"github.com/pivotal/deplab/pkg/metadata"
-	"github.com/pkg/errors"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
@@ -36,12 +36,12 @@ func buildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 	if buildpackMetadataContents != "" {
 		buildpackMetadata, err := parseMetadataJSON(buildpackMetadataContents)
 		if err != nil {
-			return metadata.Dependency{}, errors.Wrapf(err, "Could not parse buildpack metadata toml")
+			return metadata.Dependency{}, fmt.Errorf("could not parse buildpack metadata toml: %w", err)
 		}
 
 		version, err := common.Digest(buildpackMetadata)
 		if err != nil {
-			return metadata.Dependency{}, errors.Wrapf(err, "Could not get digest for buildpack metadata")
+			return metadata.Dependency{}, fmt.Errorf("could not get digest for buildpack metadata: %w", err)
 		}
 
 		return metadata.Dependency{
@@ -64,7 +64,7 @@ func parseMetadataJSON(buildpackMetadata string) (metadata.BuildpackBOMSourceMet
 
 	err := json.Unmarshal([]byte(buildpackMetadata), &bp)
 	if err != nil {
-		return metadata.BuildpackBOMSourceMetadata{}, errors.Wrapf(err, "could not decode json")
+		return metadata.BuildpackBOMSourceMetadata{}, fmt.Errorf("could not decode json: %w", err)
 	}
 
 	collator := collate.New(language.BritishEnglish)
