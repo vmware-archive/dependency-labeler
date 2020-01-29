@@ -46,18 +46,19 @@ var _ = Describe("deplab inspect", func() {
 
 	Context("image is already deplab'd", func() {
 		DescribeTable("prints all the metadata", func(flag, path string) {
-			stdOut, _ := runDepLab([]string{
+			stdOut, stdErr := runDepLab([]string{
 				"inspect",
 				flag, path,
 			}, 0)
 
 			md := metadata.Metadata{}
-			err := json.NewDecoder(stdOut).Decode(&md)
-
-			Expect(err).ToNot(HaveOccurred())
+			Expect(json.NewDecoder(stdOut).Decode(&md)).ToNot(HaveOccurred())
 			Expect(md.Provenance[0].Name).To(Equal("deplab"))
 			gitDependencies := selectGitDependencies(md.Dependencies)
 			Expect(gitDependencies).ToNot(BeEmpty())
+
+			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+			Expect(errorOutput).ToNot(ContainSubstring("Metadata elements already present on image"))
 		},
 			Entry("with a deplab'd image tarball", "--image-tar", getTestAssetPath("image-archives/tiny-deplabd.tgz")),
 			Entry("[remote-image][private-registry] with a deplab'd image from a registry", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-deplabd"),

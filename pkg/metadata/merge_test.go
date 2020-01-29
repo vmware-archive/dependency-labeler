@@ -1,6 +1,9 @@
 package metadata_test
 
 import (
+	"encoding/json"
+	"os"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/pivotal/deplab/pkg/metadata"
@@ -131,16 +134,6 @@ var _ = Describe("Merge", func() {
 		Context("dpkg list dependencies on both original and current", func() {
 			Context("when original and current match", func() {
 				It("retains only the dpkg list dependencies from the current metadata", func() {
-					originalDpkg := metadata.Dependency{
-						Type: metadata.DebianPackageListSourceType,
-						Source: metadata.Source{
-							Type: "inline",
-							Version: map[string]interface{}{
-								"sha256": "some-sha256",
-							},
-						},
-					}
-
 					currentDpkg := metadata.Dependency{
 						Type: metadata.DebianPackageListSourceType,
 						Source: metadata.Source{
@@ -148,8 +141,14 @@ var _ = Describe("Merge", func() {
 							Version: map[string]interface{}{
 								"sha256": "some-sha256",
 							},
+							Metadata: metadata.DebianPackageListSourceMetadata{
+								Packages:   nil,
+								AptSources: nil,
+							},
 						},
 					}
+
+					originalDpkg := serializeAndDeserializeDependency(currentDpkg)
 
 					result, warnings := metadata.Merge(metadata.Metadata{
 						Dependencies: []metadata.Dependency{originalDpkg},
@@ -258,16 +257,6 @@ var _ = Describe("Merge", func() {
 		Context("rpm list dependencies on both original and current", func() {
 			Context("when original and current match", func() {
 				It("retains only the rpm list dependencies from the current metadata", func() {
-					originalRpm := metadata.Dependency{
-						Type: metadata.RPMPackageListSourceType,
-						Source: metadata.Source{
-							Type: "inline",
-							Version: map[string]interface{}{
-								"sha256": "some-sha256",
-							},
-						},
-					}
-
 					currentRpm := metadata.Dependency{
 						Type: metadata.RPMPackageListSourceType,
 						Source: metadata.Source{
@@ -275,8 +264,11 @@ var _ = Describe("Merge", func() {
 							Version: map[string]interface{}{
 								"sha256": "some-sha256",
 							},
+							Metadata: metadata.RpmPackageListSourceMetadata{Packages: nil},
 						},
 					}
+
+					originalRpm := serializeAndDeserializeDependency(currentRpm)
 
 					result, warnings := metadata.Merge(metadata.Metadata{
 						Dependencies: []metadata.Dependency{originalRpm},
@@ -566,3 +558,22 @@ var _ = Describe("Merge", func() {
 		})
 	})
 })
+
+func serializeAndDeserializeDependency(currentDpkg metadata.Dependency) (originalDpkg metadata.Dependency) {
+	// this is done to mimic what happen in deplab where the label
+	// is deserialized and Metadata being an interface{} is deserialized to a map
+	// instead of the specific metadata struct
+
+	r, w, err := os.Pipe()
+	Expect(err).ToNot(HaveOccurred())
+
+	err = json.NewEncoder(w).Encode(currentDpkg)
+	Expect(err).ToNot(HaveOccurred())
+
+	Expect(w.Close()).ToNot(HaveOccurred())
+
+	err = json.NewDecoder(r).Decode(&originalDpkg)
+	Expect(err).ToNot(HaveOccurred())
+
+	return
+}

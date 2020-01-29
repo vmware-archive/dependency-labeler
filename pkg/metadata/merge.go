@@ -34,15 +34,18 @@ func Merge(original, current Metadata) (Metadata, []Warning) {
 }
 
 func selectAdditionalDependencies(sourceType string, dependencies []Dependency, warnings []Warning, original Metadata, current Metadata) ([]Dependency, []Warning) {
-	originalDpkgDependency, dpkgPresentInSource := SelectDependency(original.Dependencies, sourceType)
-	currentDpkgDependency, dpkgPresentInAdditional := SelectDependency(current.Dependencies, sourceType)
+	originalDependency, presentInSource := SelectDependency(original.Dependencies, sourceType)
+	currentDependency, presentInAdditional := SelectDependency(current.Dependencies, sourceType)
 
-	if dpkgPresentInSource && !reflect.DeepEqual(originalDpkgDependency, currentDpkgDependency) {
+	if presentInSource &&
+		// it's enough to check the property sha256 of the version because all 3 dependency are using this fields
+		// as digest of the serialized version of the Metadata Property
+		originalDependency.Source.Version["sha256"] != currentDependency.Source.Version["sha256"] {
 		warnings = append(warnings, Warning(sourceType))
 	}
 
-	if dpkgPresentInAdditional {
-		dependencies = append(dependencies, currentDpkgDependency)
+	if presentInAdditional {
+		dependencies = append(dependencies, currentDependency)
 	}
 
 	return dependencies, warnings
