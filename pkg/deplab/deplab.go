@@ -158,7 +158,7 @@ func ExistingLabelProvider(dli image.Image, _ common.RunParams, md metadata.Meta
 		for _, warning := range warnings {
 			warnStrings = append(warnStrings, string(warning))
 		}
-		fmt.Fprintln(os.Stderr, "Metadata elements already present on image:", strings.Join(warnStrings, ", "))
+		fmt.Fprintln(os.Stderr, "Difference identified in matching metadata elements already present on image:", strings.Join(warnStrings, ", "))
 	}
 
 	return mergedMetadata, nil

@@ -58,7 +58,7 @@ var _ = Describe("deplab inspect", func() {
 			Expect(gitDependencies).ToNot(BeEmpty())
 
 			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
-			Expect(errorOutput).ToNot(ContainSubstring("Metadata elements already present on image"))
+			Expect(errorOutput).ToNot(ContainSubstring("metadata elements already present on image"))
 		},
 			Entry("with a deplab'd image tarball", "--image-tar", getTestAssetPath("image-archives/tiny-deplabd.tgz")),
 			Entry("[remote-image][private-registry] with a deplab'd image from a registry", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-deplabd"),
@@ -149,7 +149,7 @@ var _ = Describe("deplab inspect", func() {
 			Expect(ioutil.ReadAll(stderr)).To(
 				SatisfyAll(
 					ContainSubstring("base"),
-					ContainSubstring("Metadata elements already present on image"),
+					ContainSubstring("metadata elements already present on image"),
 				))
 		})
 	})
