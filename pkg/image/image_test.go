@@ -65,6 +65,20 @@ var _ = Describe("Image", func() {
 				Expect(err).To(HaveOccurred())
 			})
 		})
+
+		Context("[remote-image] when the image contains block device file", func() {
+			It("successfully does something", func() {
+				var (
+					image RootFSImage
+					err   error
+				)
+
+				image, err = NewDeplabImage("index.docker.io/bitnami/postgresql@sha256:dd82d42ceb4aa922621e1ec6784090b5747b9ffce62759b6069ca814dd32e753", "")
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(image).ToNot(BeNil())
+			})
+		})
 	})
 
 	Describe("ExportWithMetadata", func() {

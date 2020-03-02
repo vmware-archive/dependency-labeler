@@ -74,9 +74,11 @@ func NewRootFS(image v1.Image, excludePatterns []string) (RootFS, error) {
 	}
 
 	err = archive.Untar(fs, rootFS, &archive.TarOptions{
-		NoLchown:        true,
 		ExcludePatterns: excludePatterns,
+		NoLchown:        true,
+		InUserNS:        true,
 	})
+
 	if err != nil {
 		return RootFS{}, fmt.Errorf("could not untar from tar %s to temp directory %s: %w", f.Name(), rootFS, err)
 	}
