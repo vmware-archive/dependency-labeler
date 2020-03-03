@@ -20,17 +20,19 @@ func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (m
 	if err != nil {
 		return metadata.Metadata{}, err
 	}
-	md.Dependencies = append(md.Dependencies, dependency)
+	if dependency != nil {
+		md.Dependencies = append(md.Dependencies, *dependency)
+	}
 	return md, nil
 }
 
-func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
+func BuildDependencyMetadata(dli image.Image) (*metadata.Dependency, error) {
 	packages, err := getDebianPackages(dli)
 
 	if len(packages) != 0 {
 		sources, err := getAptSources(dli)
 		if err != nil {
-			return metadata.Dependency{}, fmt.Errorf("could not get apt sources: %w", err)
+			return nil, fmt.Errorf("could not get apt sources: %w", err)
 		}
 
 		sourceMetadata := metadata.DebianPackageListSourceMetadata{
@@ -40,7 +42,7 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 
 		version, err := common.Digest(sourceMetadata)
 		if err != nil {
-			return metadata.Dependency{}, fmt.Errorf("could not get digest for source metadata: %w", err)
+			return nil, fmt.Errorf("could not get digest for source metadata: %w", err)
 		}
 
 		dpkgList := metadata.Dependency{
@@ -54,10 +56,10 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 			},
 		}
 
-		return dpkgList, nil
+		return &dpkgList, nil
 	}
 
-	return metadata.Dependency{}, err
+	return nil, err
 }
 
 func getAptSources(dli image.Image) ([]string, error) {

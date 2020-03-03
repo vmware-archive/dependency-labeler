@@ -78,7 +78,7 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 		}
 	})
 
-	It("returns an empty struct if no rpm database folder is found", func() {
+	It("returns nil if no rpm database folder is found", func() {
 		tempDirPath := "/tmp/this-path-does-not-exists"
 		defer func() {
 			_ = os.Remove(tempDirPath)
@@ -86,11 +86,11 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 		packages, err := rpm.BuildDependencyMetadata(MockImage{tempDirPath})
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(packages).To(Equal(metadata.Dependency{}))
+		Expect(packages).To(BeNil())
 
 	})
 
-	It("returns an empty struct if no Package file is found in the rpm database folder", func() {
+	It("returns nil if no Package file is found in the rpm database folder", func() {
 		tempDirPath, err := ioutil.TempDir("", "")
 		Expect(err).NotTo(HaveOccurred())
 		defer func() {
@@ -99,7 +99,7 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 		packages, err := rpm.BuildDependencyMetadata(MockImage{tempDirPath})
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(packages).To(Equal(metadata.Dependency{}))
+		Expect(packages).To(BeNil())
 	})
 
 	It("returns an error if rpm is not in the PATH", func() {
@@ -118,7 +118,7 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 
 	})
 
-	It("returns an empty struct if no database and rpm is not in the PATH", func() {
+	It("returns nil if no database and rpm is not in the PATH", func() {
 		PATH := os.Getenv("PATH")
 		tempDirPath := "/tmp/this-path-does-not-exists"
 		Expect(os.Setenv("PATH", "")).ToNot(HaveOccurred())
@@ -132,6 +132,6 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 		packages, err := rpm.BuildDependencyMetadata(MockImage{tempDirPath})
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(packages).To(Equal(metadata.Dependency{}))
+		Expect(packages).To(BeNil())
 	})
 })

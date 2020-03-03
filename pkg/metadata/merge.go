@@ -8,7 +8,7 @@ type Warning string
 
 func Merge(original, current Metadata) (Metadata, []Warning) {
 	var warnings []Warning
-	var newDependencies []Dependency
+	newDependencies := make([]Dependency, 0)
 
 	if len(original.Base) > 0 && !reflect.DeepEqual(original.Base, current.Base) {
 		warnings = append(warnings, "base")

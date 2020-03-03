@@ -19,16 +19,18 @@ func Provider(dli image.Image, _ common.RunParams, md metadata.Metadata) (metada
 	if err != nil {
 		return metadata.Metadata{}, err
 	}
-	md.Dependencies = append(md.Dependencies, dependency)
+	if dependency != nil {
+		md.Dependencies = append(md.Dependencies, *dependency)
+	}
 	return md, nil
 }
 
-func buildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
+func buildDependencyMetadata(dli image.Image) (*metadata.Dependency, error) {
 	var buildpackMetadataContents string
 	config, err := dli.GetConfig()
 
 	if err != nil {
-		return metadata.Dependency{}, err
+		return nil, err
 	}
 
 	buildpackMetadataContents = config.Config.Labels["io.buildpacks.build.metadata"]
@@ -36,15 +38,15 @@ func buildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 	if buildpackMetadataContents != "" {
 		buildpackMetadata, err := parseMetadataJSON(buildpackMetadataContents)
 		if err != nil {
-			return metadata.Dependency{}, fmt.Errorf("could not parse buildpack metadata toml: %w", err)
+			return nil, fmt.Errorf("could not parse buildpack metadata toml: %w", err)
 		}
 
 		version, err := common.Digest(buildpackMetadata)
 		if err != nil {
-			return metadata.Dependency{}, fmt.Errorf("could not get digest for buildpack metadata: %w", err)
+			return nil, fmt.Errorf("could not get digest for buildpack metadata: %w", err)
 		}
 
-		return metadata.Dependency{
+		return &metadata.Dependency{
 			Type: metadata.BuildpackMetadataType,
 			Source: metadata.Source{
 				Type:     "inline",
@@ -56,7 +58,7 @@ func buildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 		}, nil
 	}
 
-	return metadata.Dependency{}, nil
+	return nil, nil
 }
 
 func parseMetadataJSON(buildpackMetadata string) (metadata.BuildpackBOMSourceMetadata, error) {
