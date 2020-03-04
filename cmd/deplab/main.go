@@ -36,11 +36,6 @@ func init() {
 	rootCmd.Flags().StringArrayVarP(&additionalSourceUrls, "additional-source-url", "u", []string{}, "`url` to the source of an added dependency")
 	rootCmd.Flags().StringArrayVarP(&additionalSourceFilePaths, "additional-sources-file", "a", []string{}, "`path` to file describing additional sources")
 	rootCmd.Flags().BoolVar(&ignoreValidationErrors, "ignore-validation-errors", false, "Set flag to ignore validation errors")
-
-	err := rootCmd.MarkFlagRequired("git")
-	if err != nil {
-		log.Printf("could not mark flag as required. %s\n", err)
-	}
 }
 
 var rootCmd = &cobra.Command{
