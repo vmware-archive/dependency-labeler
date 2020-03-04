@@ -21,33 +21,22 @@ import (
 const RPMDbPath = "/var/lib/rpm"
 
 func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
-	dependency, err := BuildDependencyMetadata(dli)
-	if err != nil {
-		return metadata.Metadata{}, err
-	}
-	if dependency != nil {
-		md.Dependencies = append(md.Dependencies, *dependency)
-	}
-	return md, nil
-}
-
-func BuildDependencyMetadata(dli image.Image) (*metadata.Dependency, error) {
 
 	absPath, err := dli.AbsolutePath(RPMDbPath)
 	if err != nil {
-		return nil, fmt.Errorf("absolute path for rpm database: %w", err)
+		return metadata.Metadata{}, fmt.Errorf("absolute path for rpm database: %w", err)
 	}
 
 	exists, err := exists(path.Join(absPath, "Packages"))
 	if err != nil {
-		return nil, fmt.Errorf("rpm could not find existance of path: %w", err)
+		return metadata.Metadata{}, fmt.Errorf("rpm could not find existance of path: %w", err)
 	}
 	if !exists {
-		return nil, nil
+		return md, nil
 	}
 
 	if !isRPMInstalled() {
-		return nil, fmt.Errorf("an rpm database exists at %s but rpm is not installed and available on your path: %w", RPMDbPath, err)
+		return metadata.Metadata{}, fmt.Errorf("an rpm database exists at %s but rpm is not installed and available on your path: %w", RPMDbPath, err)
 	}
 
 	query := QueryFormat()
@@ -62,12 +51,12 @@ func BuildDependencyMetadata(dli image.Image) (*metadata.Dependency, error) {
 	err = cmd.Run()
 
 	if err != nil {
-		return nil,
+		return metadata.Metadata{},
 			fmt.Errorf("failed to execute rpm at path, %s, with query, %s: %w", absPath, query, err)
 	}
 
 	if strings.TrimSpace(stdOutBuffer.String()) == "" {
-		return nil, fmt.Errorf("no rpm packages data found")
+		return metadata.Metadata{}, fmt.Errorf("no rpm packages data found")
 	}
 
 	allPackagesDetails := strings.Split(strings.TrimSpace(stdOutBuffer.String()), "\n")
@@ -88,10 +77,10 @@ func BuildDependencyMetadata(dli image.Image) (*metadata.Dependency, error) {
 
 	version, err := common.Digest(sourceMetadata)
 	if err != nil {
-		return nil, fmt.Errorf("could not get digest for source metadata: %w", err)
+		return metadata.Metadata{}, fmt.Errorf("could not get digest for source metadata: %w", err)
 	}
 
-	return &metadata.Dependency{
+	md.Dependencies = append(md.Dependencies, metadata.Dependency{
 		Type: metadata.RPMPackageListSourceType,
 		Source: metadata.Source{
 			Type: "inline",
@@ -100,7 +89,9 @@ func BuildDependencyMetadata(dli image.Image) (*metadata.Dependency, error) {
 			},
 			Metadata: sourceMetadata,
 		},
-	}, nil
+	})
+
+	return md, nil
 }
 
 func isRPMInstalled() bool {

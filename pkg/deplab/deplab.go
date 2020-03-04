@@ -41,7 +41,7 @@ func Run(params common.RunParams) error {
 	}
 	defer dli.Cleanup()
 
-	md := metadata.Metadata{}
+	md := metadata.Metadata{Dependencies: make([]metadata.Dependency, 0)}
 
 	for _, provider := range []provider{
 		dpkg.Provider,

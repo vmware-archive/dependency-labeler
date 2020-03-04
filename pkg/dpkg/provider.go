@@ -15,24 +15,22 @@ import (
 	"golang.org/x/text/language"
 )
 
-func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
-	dependency, err := BuildDependencyMetadata(dli)
-	if err != nil {
-		return metadata.Metadata{}, err
-	}
-	if dependency != nil {
-		md.Dependencies = append(md.Dependencies, *dependency)
-	}
-	return md, nil
-}
+//func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
+//	dependency, err := BuildDependencyMetadata(dli)
+//	if err != nil {
+//		return metadata.Metadata{}, err
+//	}
+//	md.Dependencies = append(md.Dependencies, dependency)
+//	return md, nil
+//}
 
-func BuildDependencyMetadata(dli image.Image) (*metadata.Dependency, error) {
-	packages, err := getDebianPackages(dli)
+func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
+	packages := getDebianPackages(dli)
 
 	if len(packages) != 0 {
 		sources, err := getAptSources(dli)
 		if err != nil {
-			return nil, fmt.Errorf("could not get apt sources: %w", err)
+			return metadata.Metadata{}, fmt.Errorf("could not get apt sources: %w", err)
 		}
 
 		sourceMetadata := metadata.DebianPackageListSourceMetadata{
@@ -42,10 +40,10 @@ func BuildDependencyMetadata(dli image.Image) (*metadata.Dependency, error) {
 
 		version, err := common.Digest(sourceMetadata)
 		if err != nil {
-			return nil, fmt.Errorf("could not get digest for source metadata: %w", err)
+			return metadata.Metadata{}, fmt.Errorf("could not get digest for source metadata: %w", err)
 		}
 
-		dpkgList := metadata.Dependency{
+		md.Dependencies = append(md.Dependencies, metadata.Dependency{
 			Type: metadata.DebianPackageListSourceType,
 			Source: metadata.Source{
 				Type: "inline",
@@ -54,12 +52,10 @@ func BuildDependencyMetadata(dli image.Image) (*metadata.Dependency, error) {
 				},
 				Metadata: sourceMetadata,
 			},
-		}
+		})
 
-		return &dpkgList, nil
 	}
-
-	return nil, err
+	return md, nil
 }
 
 func getAptSources(dli image.Image) ([]string, error) {
@@ -93,31 +89,18 @@ func getAptSources(dli image.Image) ([]string, error) {
 	return sources, nil
 }
 
-func getDebianPackages(dli image.Image) ([]metadata.DpkgPackage, error) {
+func getDebianPackages(dli image.Image) ([]metadata.DpkgPackage) {
 	var packages []metadata.DpkgPackage
 
-	statusPackages, err := listPackagesFromStatus(dli)
-
-	if err != nil {
-		return []metadata.DpkgPackage{}, err
-	}
-
-	packages = append(packages, statusPackages...)
-
-	statusDPackages, err := listPackagesFromStatusD(dli)
-
-	if err != nil {
-		return []metadata.DpkgPackage{}, err
-	}
-
-	packages = append(packages, statusDPackages...)
+	packages = append(packages, listPackagesFromStatus(dli)...)
+	packages = append(packages, listPackagesFromStatusD(dli)...)
 
 	collator := collate.New(language.BritishEnglish)
 	sort.Slice(packages, func(i, j int) bool {
 		return collator.CompareString(packages[i].Package, packages[j].Package) < 0
 	})
 
-	return packages, nil
+	return packages
 }
 
 func ParseStatDBEntry(content string) (metadata.DpkgPackage, error) {
@@ -171,7 +154,7 @@ func ParseStatDBEntry(content string) (metadata.DpkgPackage, error) {
 	return pkg, nil
 }
 
-func listPackagesFromStatusD(dli image.Image) (packages []metadata.DpkgPackage, err error) {
+func listPackagesFromStatusD(dli image.Image) (packages []metadata.DpkgPackage) {
 	fileList, err := dli.GetDirContents("/var/lib/dpkg/status.d")
 	if err != nil {
 		// in this case an empty or non-existent directory is not an error
@@ -185,10 +168,10 @@ func listPackagesFromStatusD(dli image.Image) (packages []metadata.DpkgPackage, 
 		}
 	}
 
-	return packages, nil
+	return packages
 }
 
-func listPackagesFromStatus(dli image.Image) (packages []metadata.DpkgPackage, err error) {
+func listPackagesFromStatus(dli image.Image) (packages []metadata.DpkgPackage) {
 	statDBString, err := dli.GetFileContent("/var/lib/dpkg/status")
 	if err != nil {
 		// in this case an empty or non-existent file is not an error
@@ -203,7 +186,7 @@ func listPackagesFromStatus(dli image.Image) (packages []metadata.DpkgPackage, e
 		}
 	}
 
-	return packages, nil
+	return packages
 }
 
 func getUpstreamVersion(input string) string {

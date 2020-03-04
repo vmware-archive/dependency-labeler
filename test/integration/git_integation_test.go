@@ -1,9 +1,6 @@
 package integration_test
 
 import (
-	"io/ioutil"
-	"os"
-
 	"github.com/pivotal/deplab/pkg/metadata"
 
 	. "github.com/onsi/ginkgo"
@@ -76,22 +73,6 @@ var _ = Describe("deplab git", func() {
 			}, 1)
 
 			Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("cannot open git repository \"/dev/null\""))
-		})
-	})
-
-	Context("when I don't supply a git flag as an argument", func() {
-		It("has no git metadata", func() {
-			By("executing it")
-			d, err := ioutil.TempDir("", "deplab-integration-test")
-			metadatafileName := d + "/metadata-file.yml"
-			defer os.Remove(d)
-			Expect(err).To(Not(HaveOccurred()))
-			_, stdErr := runDepLab([]string{
-				"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
-				"--metadata-file", metadatafileName,
-			}, 1)
-
-			Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("required flag(s) \"git\" not set"))
 		})
 	})
 })

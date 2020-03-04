@@ -1,42 +1,14 @@
 package dpkg_test
 
 import (
-	"os"
+	"github.com/pivotal/deplab/pkg/common"
+	"github.com/pivotal/deplab/test/test_utils"
 
-	v1 "github.com/google/go-containerregistry/pkg/v1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/pivotal/deplab/pkg/dpkg"
 	"github.com/pivotal/deplab/pkg/metadata"
 )
-
-type MockImage struct {
-	path string
-}
-
-func (m MockImage) GetConfig() (*v1.ConfigFile, error) {
-	panic("implement me")
-}
-
-func (m MockImage) Cleanup() {
-	panic("implement me")
-}
-
-func (m MockImage) GetFileContent(string) (string, error) {
-	return "", nil
-}
-
-func (m MockImage) GetDirContents(string) ([]string, error) {
-	return []string{}, nil
-}
-
-func (m MockImage) AbsolutePath(string) (string, error) {
-	panic("implement me")
-}
-
-func (m MockImage) ExportWithMetadata(metadata.Metadata, string, string) error {
-	panic("implement me")
-}
 
 var _ = Describe("Dpkg", func() {
 	Describe("ParseStatDBEntry", func() {
@@ -76,17 +48,14 @@ Original-Maintainer: Debian GCC Maintainers <debian-gcc@lists.debian.org>`)).To(
 		})
 	})
 
-	Describe("Pkg/dpkg/Provider BuildDependencyMetadata", func() {
-		It("returns nil if no packages are found", func() {
-			tempDirPath := "/tmp/this-path-does-not-exists"
-			defer func() {
-				_ = os.Remove(tempDirPath)
-			}()
-			packages, err := BuildDependencyMetadata(MockImage{tempDirPath})
-			Expect(err).NotTo(HaveOccurred())
+	Describe("Provider", func() {
+		Context("when the image has no database packages", func() {
+			It("does not modify the metadata content", func() {
+				md, err := Provider(test_utils.MockImage{}, common.RunParams{}, metadata.Metadata{})
+				Expect(err).NotTo(HaveOccurred())
 
-			Expect(packages).To(BeNil())
-
+				Expect(md).To(Equal(metadata.Metadata{}))
+			})
 		})
 	})
 })

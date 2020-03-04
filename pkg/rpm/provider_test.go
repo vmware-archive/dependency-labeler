@@ -1,6 +1,8 @@
 package rpm_test
 
 import (
+	"github.com/pivotal/deplab/pkg/common"
+	"github.com/pivotal/deplab/test/test_utils"
 	"io/ioutil"
 	"os"
 
@@ -60,10 +62,10 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 	})
 
 	It("should generate list of dependencies", func() {
-		md, err := rpm.BuildDependencyMetadata(MockImage{"../../test/integration/assets/rpm"})
+		md, err := rpm.Provider(MockImage{"../../test/integration/assets/rpm"}, common.RunParams{}, metadata.Metadata{})
 
 		Expect(err).ToNot(HaveOccurred())
-		packages := md.Source.Metadata.(metadata.RpmPackageListSourceMetadata).Packages
+		packages := md.Dependencies[0].Source.Metadata.(metadata.RpmPackageListSourceMetadata).Packages
 		Expect(packages).To(HaveLen(34))
 
 		for _, p := range packages {
@@ -78,15 +80,19 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 		}
 	})
 
-	It("returns nil if no rpm database folder is found", func() {
+	It("does not modify the metadata if no rpm database folder is found", func() {
 		tempDirPath := "/tmp/this-path-does-not-exists"
 		defer func() {
 			_ = os.Remove(tempDirPath)
 		}()
-		packages, err := rpm.BuildDependencyMetadata(MockImage{tempDirPath})
+		packages, err := rpm.Provider(MockImage{tempDirPath}, common.RunParams{}, metadata.Metadata{Dependencies: []metadata.Dependency{{
+			Type: "Do not touch this one!!!!!",
+		}}})
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(packages).To(BeNil())
+		Expect(packages).To(Equal(metadata.Metadata{Dependencies: []metadata.Dependency{{
+			Type: "Do not touch this one!!!!!",
+		}}}))
 
 	})
 
@@ -96,10 +102,16 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 		defer func() {
 			_ = os.Remove(tempDirPath)
 		}()
-		packages, err := rpm.BuildDependencyMetadata(MockImage{tempDirPath})
+		packages, err := rpm.Provider(test_utils.NewMockImageWithPath(tempDirPath), common.RunParams{}, metadata.Metadata{
+			Dependencies: []metadata.Dependency{{
+				Type: "Do not touch this one!!!!!",
+			}},
+		})
 		Expect(err).NotTo(HaveOccurred())
 
-		Expect(packages).To(BeNil())
+		Expect(packages).To(Equal(metadata.Metadata{Dependencies: []metadata.Dependency{{
+			Type: "Do not touch this one!!!!!",
+		}}}))
 	})
 
 	It("returns an error if rpm is not in the PATH", func() {
@@ -110,28 +122,11 @@ var _ = Describe("Pkg/Rpm/Provider", func() {
 			Expect(os.Setenv("PATH", PATH)).ToNot(HaveOccurred())
 		}()
 
-		_, err := rpm.BuildDependencyMetadata(MockImage{"../../test/integration/assets/rpm"})
+		_, err := rpm.Provider(MockImage{"../../test/integration/assets/rpm"}, common.RunParams{}, metadata.Metadata{})
 
 		Expect(err).To(MatchError(SatisfyAll(
 			ContainSubstring("an rpm database exists at"),
 			ContainSubstring("but rpm is not installed and available on your path"))))
 
-	})
-
-	It("returns nil if no database and rpm is not in the PATH", func() {
-		PATH := os.Getenv("PATH")
-		tempDirPath := "/tmp/this-path-does-not-exists"
-		Expect(os.Setenv("PATH", "")).ToNot(HaveOccurred())
-
-		defer func() {
-			Expect(os.Setenv("PATH", PATH)).ToNot(HaveOccurred())
-			_ = os.Remove(tempDirPath)
-		}()
-
-		tempDirPath = "/tmp/this-path-does-not-exists"
-		packages, err := rpm.BuildDependencyMetadata(MockImage{tempDirPath})
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(packages).To(BeNil())
 	})
 })
