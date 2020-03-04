@@ -1,0 +1,3 @@
+FROM alpine
+
+RUN mknod char-device c 89 1

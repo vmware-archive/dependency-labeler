@@ -117,4 +117,17 @@ var _ = Describe("rootFS", func() {
 			})
 		})
 	})
+	Context("when the image contains char device file", func() {
+		It("successfully does something", func() {
+			inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/char-device.tgz")
+			Expect(err).ToNot(HaveOccurred())
+
+			image, err := crane.Load(inputTarPath)
+			Expect(err).ToNot(HaveOccurred())
+
+			rootfs, err := NewRootFS(image, []string{})
+			defer rootfs.Cleanup()
+			Expect(err).ToNot(HaveOccurred())
+		})
+	})
 })

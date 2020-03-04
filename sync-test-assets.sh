@@ -27,7 +27,8 @@ images=( "cloudfoundry/run:tiny" \
           "$DEPLAB_ASSET_REPOSITORY:tiny-with-invalid-label" \
           "$DEPLAB_ASSET_REPOSITORY:os-release-on-scratch" \
           "$DEPLAB_ASSET_REPOSITORY:scratch" \
-          "$DEPLAB_ASSET_REPOSITORY:scratch-with-buildpack-metadata")
+          "$DEPLAB_ASSET_REPOSITORY:scratch-with-buildpack-metadata" \
+          "$DEPLAB_ASSET_REPOSITORY:char-device")
 
 for image in "${images[@]}"; do
   filename="${image##*:}.tgz"
