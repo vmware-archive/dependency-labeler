@@ -49,6 +49,11 @@ type BuildpackBOMSourceMetadata struct {
 	Launcher        map[string]interface{} `json:"launcher"`
 }
 
+type KpackRepoSourceMetadata struct {
+	Url  string        `json:"url"`
+	Refs []interface{} `json:"refs"`
+}
+
 type GitSourceMetadata struct {
 	URL  string   `json:"url"`
 	Refs []string `json:"refs"`

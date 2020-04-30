@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/pivotal/deplab/pkg/kpack"
 	"os"
 	"strings"
 
@@ -82,6 +83,7 @@ func RunInspect(inputImage, inputImageTar string) error {
 		rpm.Provider,
 		cnb.Provider,
 		osrelease.Provider,
+		kpack.Provider,
 		ProvenanceProvider,
 		ExistingLabelProvider,
 	} {

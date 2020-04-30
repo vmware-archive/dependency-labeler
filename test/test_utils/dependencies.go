@@ -13,3 +13,7 @@ func SelectRpmDependency(dependencies []metadata.Dependency) (metadata.Dependenc
 func SelectBuildpackDependency(dependencies []metadata.Dependency) (metadata.Dependency, bool) {
 	return metadata.SelectDependency(dependencies, metadata.BuildpackMetadataType)
 }
+
+func SelectKpackDependency(dependencies []metadata.Dependency) (metadata.Dependency, bool) {
+	return metadata.SelectDependency(dependencies, metadata.PackageType)
+}

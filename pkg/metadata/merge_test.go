@@ -428,6 +428,41 @@ var _ = Describe("Merge", func() {
 		})
 	})
 
+	Describe("kpack", func() {
+		Context("when there is no original and only current", func() {
+			It("retains only the kpack list dependencies from the current metadata", func() {
+				kpackMD := metadata.KpackRepoSourceMetadata {
+					Url: "some-url",
+					Refs: []interface{}{},
+				}
+
+				currentKpack := metadata.Dependency{
+					Type: metadata.PackageType,
+					Source: metadata.Source{
+						Type: "git",
+						Version: map[string]interface{}{
+							"commit": "some-sha",
+						},
+						Metadata: kpackMD,
+					},
+				}
+
+				result, warnings := metadata.Merge(metadata.Metadata{
+					Dependencies: []metadata.Dependency{},
+				}, metadata.Metadata{
+					Dependencies: []metadata.Dependency{currentKpack},
+				})
+
+				Expect(warnings).To(BeEmpty())
+
+				dpkg, ok := test_utils.SelectKpackDependency(result.Dependencies)
+				Expect(ok).To(BeTrue())
+				Expect(dpkg).To(Equal(currentKpack))
+			})
+		})
+	})
+
+
 	Context("all possible types of metadata in both original and current", func() {
 		It("should merge", func() {
 			originalGit1 := metadata.Dependency{
