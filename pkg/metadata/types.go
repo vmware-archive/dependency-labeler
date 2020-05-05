@@ -108,4 +108,5 @@ var BusyboxBase = Base{
 	"name":             "busybox",
 	"version_codename": "unknown",
 	"version_id":       "unknown",
+	"pretty_name":      "busybox",
 }
