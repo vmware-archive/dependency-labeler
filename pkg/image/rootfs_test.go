@@ -48,6 +48,20 @@ var _ = Describe("rootFS", func() {
 						)))
 			})
 
+			It("retrieves all the file names inside a directory", func() {
+				statusFiles, err := rfs.GetDirFileNames("/all-files")
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(statusFiles).To(
+					SatisfyAll(
+						HaveLen(3),
+						ConsistOf(
+							ContainSubstring("hard-link-file"),
+							ContainSubstring("start-file"),
+							ContainSubstring("symbolic-link-file"),
+						)))
+			})
+
 			It("ignores subdirectory in the given directory", func() {
 				statusFiles, err := rfs.GetDirContents("/all-files")
 				Expect(err).ToNot(HaveOccurred())
@@ -73,6 +87,11 @@ var _ = Describe("rootFS", func() {
 				_, err := rfs.GetDirContents("/this/directory/does/not/exist")
 				Expect(err).To(MatchError(ContainSubstring("could not find directory in rootFS")))
 			})
+
+			It("returns an error when trying to access a directory", func() {
+				_, err := rfs.GetDirFileNames("/this/directory/does/not/exist")
+				Expect(err).To(MatchError(ContainSubstring("could not find directory in rootFS")))
+			})
 		})
 
 		Context("when rootFS is cleaned", func() {
@@ -85,12 +104,18 @@ var _ = Describe("rootFS", func() {
 				_, err = rfs.GetDirContents("/all-files/folder")
 				Expect(err).ToNot(HaveOccurred())
 
+				_, err = rfs.GetDirFileNames("/all-files")
+				Expect(err).ToNot(HaveOccurred())
+
 				rfs.Cleanup()
 
 				_, err = rfs.GetFileContent("/all-files/start-file")
 				Expect(err).To(HaveOccurred())
 
 				_, err = rfs.GetDirContents("/all-files/folder")
+				Expect(err).To(HaveOccurred())
+
+				_, err = rfs.GetDirFileNames("/all-files")
 				Expect(err).To(HaveOccurred())
 			})
 		})

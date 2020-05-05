@@ -18,6 +18,7 @@ import (
 type Image interface {
 	GetFileContent(string) (string, error)
 	GetDirContents(string) ([]string, error)
+	GetDirFileNames(string) ([]string, error)
 	AbsolutePath(string) (string, error)
 	GetConfig() (*v1.ConfigFile, error)
 	ExportWithMetadata(metadata.Metadata, string, string) error
@@ -89,6 +90,10 @@ func (dli RootFSImage) GetFileContent(s string) (string, error) {
 
 func (dli RootFSImage) GetDirContents(s string) ([]string, error) {
 	return dli.rootFS.GetDirContents(s)
+}
+
+func (dli RootFSImage) GetDirFileNames(s string) ([]string, error) {
+	return dli.rootFS.GetDirFileNames(s)
 }
 
 func (dli *RootFSImage) setMetadata(metadata metadata.Metadata) error {

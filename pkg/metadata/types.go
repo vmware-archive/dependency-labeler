@@ -103,3 +103,9 @@ var UnknownBase = Base{
 	"version_codename": "unknown",
 	"version_id":       "unknown",
 }
+
+var BusyboxBase = Base{
+	"name":             "busybox",
+	"version_codename": "unknown",
+	"version_id":       "unknown",
+}

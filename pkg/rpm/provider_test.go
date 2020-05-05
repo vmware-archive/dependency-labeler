@@ -34,6 +34,10 @@ func (m MockImage) GetFileContent(string) (string, error) {
 	panic("implement me")
 }
 
+func (m MockImage) GetDirFileNames(string) ([]string, error) {
+	panic("implement me")
+}
+
 func (m MockImage) GetDirContents(string) ([]string, error) {
 	panic("implement me")
 }

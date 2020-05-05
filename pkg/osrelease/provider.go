@@ -21,6 +21,16 @@ func BuildOSMetadata(dli image.Image) metadata.Base {
 	osRelease, err := dli.GetFileContent("/etc/os-release")
 
 	if err != nil {
+		binContents, binErr := dli.GetDirFileNames("/bin")
+		if binErr != nil {
+			return metadata.UnknownBase
+		}
+
+		hasAsh := contains(binContents, "ash")
+		if hasAsh {
+			return metadata.BusyboxBase
+		}
+
 		return metadata.UnknownBase
 	}
 
@@ -35,4 +45,13 @@ func BuildOSMetadata(dli image.Image) metadata.Base {
 	}
 
 	return mdBase
+}
+
+func contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
 }
