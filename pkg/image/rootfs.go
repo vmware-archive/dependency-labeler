@@ -17,7 +17,7 @@ import (
 type Interface interface {
 	GetFileContent(path string) (string, error)
 	GetDirContents(path string) ([]string, error)
-	GetDirFileNames(path string) ([]string, error)
+	GetDirFileNames(path string, includeDir bool) ([]string, error)
 }
 
 type RootFS struct {
@@ -48,7 +48,7 @@ func (rfs *RootFS) GetDirContents(path string) ([]string, error) {
 	return fileContents, nil
 }
 
-func (rfs *RootFS) GetDirFileNames(path string) ([]string, error) {
+func (rfs *RootFS) GetDirFileNames(path string, includeDir bool) ([]string, error) {
 	var fileNames []string
 	files, err := ioutil.ReadDir(filepath.Join(rfs.rootfsLocation, path))
 	if err != nil {
@@ -56,7 +56,7 @@ func (rfs *RootFS) GetDirFileNames(path string) ([]string, error) {
 	}
 
 	for _, f := range files {
-		if f.IsDir() {
+		if f.IsDir() && !includeDir {
 			continue
 		}
 

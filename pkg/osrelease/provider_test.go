@@ -27,7 +27,7 @@ func (m MockImage) GetFileContent(string) (string, error) {
 	return m.fileContent, m.fileContentError
 }
 
-func (m MockImage) GetDirFileNames(string) ([]string, error) {
+func (m MockImage) GetDirFileNames(string, bool) ([]string, error) {
 	return m.dirFileNames, nil
 }
 
@@ -83,6 +83,15 @@ var _ = Describe("OsRelease", func() {
 			})
 
 			Context("when the image does not have /bin/ash", func() {
+				Context("when there are 3 or less file/folders in the root directory", func() {
+					It("returns scratch base os metadata", func() {
+						fileContentError := fmt.Errorf("could not find the file")
+						rootContentNames := []string{"bin", "dev", "sys"}
+
+						Expect(BuildOSMetadata(MockImage{dirFileNames:rootContentNames, fileContentError:fileContentError})).To(Equal(metadata.ScratchBase))
+					})
+				})
+
 				It("returns unknown base os metadata", func() {
 					dirFileNames := []string{"sh", "bash", "rash", "dash", "stash"}
 					fileContentError := fmt.Errorf("could not find the file")

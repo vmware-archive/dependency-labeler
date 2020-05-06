@@ -30,7 +30,7 @@ func (m MockImage) GetFileContent(string) (string, error) {
 	return "", nil
 }
 
-func (m MockImage) GetDirFileNames(string) ([]string, error) {
+func (m MockImage) GetDirFileNames(string, bool) ([]string, error) {
 	return []string{}, nil
 }
 

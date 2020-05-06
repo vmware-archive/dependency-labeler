@@ -106,7 +106,14 @@ var UnknownBase = Base{
 
 var BusyboxBase = Base{
 	"name":             "busybox",
+	"pretty_name":      "busybox",
 	"version_codename": "unknown",
 	"version_id":       "unknown",
-	"pretty_name":      "busybox",
+}
+
+var ScratchBase = Base{
+	"name":             "scratch",
+	"pretty_name":      "scratch",
+	"version_codename": "unknown",
+	"version_id":       "unknown",
 }

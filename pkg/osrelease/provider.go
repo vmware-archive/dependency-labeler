@@ -21,9 +21,9 @@ func BuildOSMetadata(dli image.Image) metadata.Base {
 	osRelease, err := dli.GetFileContent("/etc/os-release")
 
 	if err != nil {
-		binContents, binErr := dli.GetDirFileNames("/bin")
+		binContents, binErr := dli.GetDirFileNames("/bin", false)
 		if binErr != nil {
-			return metadata.UnknownBase
+			return checkScratchBase(dli)
 		}
 
 		hasAsh := contains(binContents, "ash")
@@ -31,7 +31,7 @@ func BuildOSMetadata(dli image.Image) metadata.Base {
 			return metadata.BusyboxBase
 		}
 
-		return metadata.UnknownBase
+		return checkScratchBase(dli)
 	}
 
 	envMap, err := godotenv.Unmarshal(osRelease)
@@ -45,6 +45,15 @@ func BuildOSMetadata(dli image.Image) metadata.Base {
 	}
 
 	return mdBase
+}
+
+func checkScratchBase(dli image.Image) metadata.Base {
+	rootContents, rootErr := dli.GetDirFileNames("/", true)
+	if rootErr == nil  && len(rootContents) <= 3 {
+		return metadata.ScratchBase
+	}
+
+	return metadata.UnknownBase
 }
 
 func contains(a []string, x string) bool {
