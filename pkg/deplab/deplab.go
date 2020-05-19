@@ -147,10 +147,19 @@ func ExistingLabelProvider(dli image.Image, _ common.RunParams, md metadata.Meta
 	}
 
 	existingMetadata := metadata.Metadata{}
-	if existinglabel, ok := cf.Config.Labels["io.pivotal.metadata"]; ok {
+	existinglabel, foundDeplab := cf.Config.Labels["io.deplab.metadata"]
+
+	if foundDeplab {
 		var err = json.Unmarshal([]byte(existinglabel), &existingMetadata)
 		if err != nil {
 			return metadata.Metadata{}, fmt.Errorf("cannot parse the label %s: %w", existinglabel, err)
+		}
+	} else {
+		if existinglabel, ok := cf.Config.Labels["io.pivotal.metadata"]; ok {
+			var err = json.Unmarshal([]byte(existinglabel), &existingMetadata)
+			if err != nil {
+				return metadata.Metadata{}, fmt.Errorf("cannot parse the label %s: %w", existinglabel, err)
+			}
 		}
 	}
 

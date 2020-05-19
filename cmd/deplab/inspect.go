@@ -18,7 +18,7 @@ func init() {
 var inspectCmd = &cobra.Command{
 	Use:     "inspect",
 	Short:   "prints the deplab label to stdout",
-	Long:    `prints the deplab "io.pivotal.metadata" label in the config file of an OCI compatible image to stdout.  The label will be printed in json format.`,
+	Long:    `prints the deplab "io.deplab.metadata" label in the config file of an OCI compatible image to stdout.  The label will be printed in json format.`,
 	PreRunE: validateInspectFlags,
 	RunE: func(_ *cobra.Command, _ []string) error {
 		return deplab.RunInspect(inputImage, inputImageTar)

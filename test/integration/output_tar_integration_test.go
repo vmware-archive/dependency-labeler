@@ -130,7 +130,7 @@ func getMetadataFromImageTarball(tarDestinationPath string) metadata.Metadata {
 	err = json.Unmarshal(rawConfig, &config)
 	Expect(err).ToNot(HaveOccurred())
 
-	mdString := config["config"].(map[string]interface{})["Labels"].(map[string]interface{})["io.pivotal.metadata"].(string)
+	mdString := config["config"].(map[string]interface{})["Labels"].(map[string]interface{})["io.deplab.metadata"].(string)
 
 	md := metadata.Metadata{}
 

@@ -64,93 +64,185 @@ var _ = Describe("deplab inspect", func() {
 			Entry("[remote-image][private-registry] with a deplab'd image from a registry", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-deplabd"),
 		)
 
-		It("merge metadata according to the rules and returns a warning", func() {
-			provenance := metadata.Provenance{
-				Name:    "not-deplab",
-				Version: "0.42.42",
-				URL:     "",
-			}
+		Context("has io.deplab.metadata", func() {
+			It("merge metadata according to the rules and returns a warning", func() {
+				provenance := metadata.Provenance{
+					Name:    "not-deplab",
+					Version: "0.42.42",
+					URL:     "",
+				}
 
-			base := metadata.Base{
-				"some-key": "some-value",
-			}
+				base := metadata.Base{
+					"some-key": "some-value",
+				}
 
-			gitDependency := metadata.Dependency{
-				Type: metadata.PackageType,
-				Source: metadata.Source{
-					Type: metadata.GitSourceType,
-					Version: map[string]interface{}{
-						"commit": "git-commit",
+				gitDependency := metadata.Dependency{
+					Type: metadata.PackageType,
+					Source: metadata.Source{
+						Type: metadata.GitSourceType,
+						Version: map[string]interface{}{
+							"commit": "git-commit",
+						},
 					},
-				},
-			}
+				}
 
-			archiveDependency := metadata.Dependency{
-				Type: metadata.PackageType,
-				Source: metadata.Source{
-					Type: metadata.ArchiveType,
-					Version: map[string]interface{}{
-						"sha256": "somesha",
+				archiveDependency := metadata.Dependency{
+					Type: metadata.PackageType,
+					Source: metadata.Source{
+						Type: metadata.ArchiveType,
+						Version: map[string]interface{}{
+							"sha256": "somesha",
+						},
 					},
-				},
-			}
+				}
 
-			dpkgDependency := metadata.Dependency{
-				Type: metadata.DebianPackageListSourceType,
-				Source: metadata.Source{
-					Version: map[string]interface{}{
-						"sha256": "some-sha",
+				dpkgDependency := metadata.Dependency{
+					Type: metadata.DebianPackageListSourceType,
+					Source: metadata.Source{
+						Version: map[string]interface{}{
+							"sha256": "some-sha",
+						},
 					},
-				},
-			}
+				}
 
-			imagePath := CreateTinyImageWithDeplabLabel(metadata.Metadata{
-				Base:       base,
-				Provenance: []metadata.Provenance{provenance},
-				Dependencies: []metadata.Dependency{
-					gitDependency,
-					archiveDependency,
-					dpkgDependency,
-				},
+				imagePath := CreateTinyImageWithDeplabLabel("io.deplab.metadata", metadata.Metadata{
+					Base:       base,
+					Provenance: []metadata.Provenance{provenance},
+					Dependencies: []metadata.Dependency{
+						gitDependency,
+						archiveDependency,
+						dpkgDependency,
+					},
+				})
+
+				defer os.Remove(imagePath)
+
+				stdOut, stderr := runDepLab([]string{
+					"inspect",
+					"--image-tar", imagePath,
+				}, 0)
+
+				md := metadata.Metadata{}
+				err := json.NewDecoder(stdOut).Decode(&md)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(md.Provenance).To(
+					SatisfyAll(
+						HaveLen(2),
+						ContainElement(provenance),
+					))
+				Expect(md.Base).To(
+					SatisfyAll(
+						Not(Equal(base)),
+						HaveKeyWithValue("pretty_name", "Cloud Foundry Tiny"),
+					))
+				Expect(md.Dependencies).To(
+					SatisfyAll(
+						ContainElement(gitDependency),
+						ContainElement(archiveDependency),
+						Not(ContainElement(dpkgDependency)),
+						ContainElement(MatchFields(IgnoreExtras, Fields{
+							"Type": Equal(metadata.DebianPackageListSourceType),
+						})),
+					))
+
+				By("emitting warning for duplicated items")
+				Expect(ioutil.ReadAll(stderr)).To(
+					SatisfyAll(
+						ContainSubstring("base"),
+						ContainSubstring("metadata elements already present on image"),
+					))
 			})
+		})
+		Context("has io.pivotal.metadata", func() {
+			It("merge metadata according to the rules and returns a warning", func() {
+				provenance := metadata.Provenance{
+					Name:    "not-deplab",
+					Version: "0.42.42",
+					URL:     "",
+				}
 
-			defer os.Remove(imagePath)
+				base := metadata.Base{
+					"some-key": "some-value",
+				}
 
-			stdOut, stderr := runDepLab([]string{
-				"inspect",
-				"--image-tar", imagePath,
-			}, 0)
+				gitDependency := metadata.Dependency{
+					Type: metadata.PackageType,
+					Source: metadata.Source{
+						Type: metadata.GitSourceType,
+						Version: map[string]interface{}{
+							"commit": "git-commit",
+						},
+					},
+				}
 
-			md := metadata.Metadata{}
-			err := json.NewDecoder(stdOut).Decode(&md)
-			Expect(err).ToNot(HaveOccurred())
+				archiveDependency := metadata.Dependency{
+					Type: metadata.PackageType,
+					Source: metadata.Source{
+						Type: metadata.ArchiveType,
+						Version: map[string]interface{}{
+							"sha256": "somesha",
+						},
+					},
+				}
 
-			Expect(md.Provenance).To(
-				SatisfyAll(
-					HaveLen(2),
-					ContainElement(provenance),
-				))
-			Expect(md.Base).To(
-				SatisfyAll(
-					Not(Equal(base)),
-					HaveKeyWithValue("pretty_name", "Cloud Foundry Tiny"),
-				))
-			Expect(md.Dependencies).To(
-				SatisfyAll(
-					ContainElement(gitDependency),
-					ContainElement(archiveDependency),
-					Not(ContainElement(dpkgDependency)),
-					ContainElement(MatchFields(IgnoreExtras, Fields{
-						"Type": Equal(metadata.DebianPackageListSourceType),
-					})),
-				))
+				dpkgDependency := metadata.Dependency{
+					Type: metadata.DebianPackageListSourceType,
+					Source: metadata.Source{
+						Version: map[string]interface{}{
+							"sha256": "some-sha",
+						},
+					},
+				}
 
-			By("emitting warning for duplicated items")
-			Expect(ioutil.ReadAll(stderr)).To(
-				SatisfyAll(
-					ContainSubstring("base"),
-					ContainSubstring("metadata elements already present on image"),
-				))
+				imagePath := CreateTinyImageWithDeplabLabel("io.pivotal.metadata", metadata.Metadata{
+					Base:       base,
+					Provenance: []metadata.Provenance{provenance},
+					Dependencies: []metadata.Dependency{
+						gitDependency,
+						archiveDependency,
+						dpkgDependency,
+					},
+				})
+
+				defer os.Remove(imagePath)
+
+				stdOut, stderr := runDepLab([]string{
+					"inspect",
+					"--image-tar", imagePath,
+				}, 0)
+
+				md := metadata.Metadata{}
+				err := json.NewDecoder(stdOut).Decode(&md)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(md.Provenance).To(
+					SatisfyAll(
+						HaveLen(2),
+						ContainElement(provenance),
+					))
+				Expect(md.Base).To(
+					SatisfyAll(
+						Not(Equal(base)),
+						HaveKeyWithValue("pretty_name", "Cloud Foundry Tiny"),
+					))
+				Expect(md.Dependencies).To(
+					SatisfyAll(
+						ContainElement(gitDependency),
+						ContainElement(archiveDependency),
+						Not(ContainElement(dpkgDependency)),
+						ContainElement(MatchFields(IgnoreExtras, Fields{
+							"Type": Equal(metadata.DebianPackageListSourceType),
+						})),
+					))
+
+				By("emitting warning for duplicated items")
+				Expect(ioutil.ReadAll(stderr)).To(
+					SatisfyAll(
+						ContainSubstring("base"),
+						ContainSubstring("metadata elements already present on image"),
+					))
+			})
 		})
 	})
 
@@ -204,7 +296,7 @@ var _ = Describe("deplab inspect", func() {
 	)
 })
 
-func CreateTinyImageWithDeplabLabel(m metadata.Metadata) string {
+func CreateTinyImageWithDeplabLabel(label string, m metadata.Metadata) string {
 	i, _ := crane.Load(getTestAssetPath("image-archives/tiny.tgz"))
 
 	config, err := i.ConfigFile()
@@ -217,7 +309,7 @@ func CreateTinyImageWithDeplabLabel(m metadata.Metadata) string {
 		config.Config.Labels = map[string]string{}
 	}
 
-	config.Config.Labels["io.pivotal.metadata"] = string(md)
+	config.Config.Labels[label] = string(md)
 
 	i, err = mutate.Config(i, config.Config)
 	Expect(err).ToNot(HaveOccurred())

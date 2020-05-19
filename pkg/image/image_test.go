@@ -100,7 +100,7 @@ var _ = Describe("Image", func() {
 				cf, err := labelledImage.ConfigFile()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(cf.Config.Labels["io.pivotal.metadata"]).To(MatchJSON(`{
+				Expect(cf.Config.Labels["io.deplab.metadata"]).To(MatchJSON(`{
 					"base": null,
 					"provenance": null,
 					"dependencies": null

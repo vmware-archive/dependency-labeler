@@ -42,7 +42,7 @@ var rootCmd = &cobra.Command{
 	Use:   "deplab",
 	Short: "dependency labeler adds a metadata label to a container image",
 	Long: `Dependency labeler adds information about a container image to that image's config. 
-	The information can be found in a "io.pivotal.metadata" label on the output image. 
+	The information can be found in a "io.deplab.metadata" label on the output image. 
 	Complete documentation is available at http://github.com/pivotal/deplab`,
 	Version: deplab.Version,
 

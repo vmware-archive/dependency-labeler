@@ -109,7 +109,7 @@ func (dli *RootFSImage) setMetadata(metadata metadata.Metadata) error {
 		config.Config.Labels = map[string]string{}
 	}
 
-	config.Config.Labels["io.pivotal.metadata"] = string(md)
+	config.Config.Labels["io.deplab.metadata"] = string(md)
 
 	dli.image, err = mutate.Config(dli.image, config.Config)
 	if err != nil {
