@@ -20,7 +20,7 @@ require (
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/spf13/cobra v0.0.5
-	golang.org/x/text v0.3.2
+	golang.org/x/text v0.3.3
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.2.7
 
