@@ -22,7 +22,7 @@ require (
 	github.com/spf13/cobra v0.0.5
 	golang.org/x/text v0.3.2
 	gopkg.in/src-d/go-git.v4 v4.13.1
-	gopkg.in/yaml.v2 v2.2.7
+	gopkg.in/yaml.v2 v2.3.0
 
 )
 
