@@ -11,18 +11,17 @@ require (
 	github.com/containerd/continuity v0.0.0-20190827140505-75bee3e2ccb6 // indirect
 	github.com/docker/docker v1.4.2-0.20180531152204-71cd53e4a197
 	github.com/docker/go-units v0.4.0 // indirect
-	github.com/golang/protobuf v1.3.1 // indirect
 	github.com/google/go-containerregistry v0.0.0-20191008160043-1e84d6375038
 	github.com/joho/godotenv v1.3.0
 
-	github.com/onsi/ginkgo v1.10.3
-	github.com/onsi/gomega v1.7.1
+	github.com/onsi/ginkgo v1.12.1
+	github.com/onsi/gomega v1.10.1
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/spf13/cobra v0.0.5
 	golang.org/x/text v0.3.2
 	gopkg.in/src-d/go-git.v4 v4.13.1
-	gopkg.in/yaml.v2 v2.2.7
+	gopkg.in/yaml.v2 v2.3.0
 
 )
 
