@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
+
 ### requires to be logged in the target registry
 
 set -eux -o pipefail

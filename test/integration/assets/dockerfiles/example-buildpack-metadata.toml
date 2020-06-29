@@ -1,3 +1,6 @@
+# Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
+
 [[processes]]
   type = "executable-jar"
   command = "java -cp $CLASSPATH $JAVA_OPTS org.springframework.boot.loader.JarLauncher"
@@ -10,7 +13,7 @@
 
 [[processes]]
   type = "task"
-  command = "java -cp $CLASSPATH $JAVA_OPTS io.buildpacks.example.sample.SampleApplication"
+  command = "java -cp $CLASSPATH $JAVA_OPTS io.buildpacOks.example.sample.SampleApplication"
   direct = false
 
 [[processes]]
