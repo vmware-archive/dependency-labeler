@@ -111,10 +111,9 @@ Supported format of the yaml file:
 ```yaml
 archives:
 - url: <url to source archive>
-- url: <url to source archive>
 vcs:
 - protocol: git
-  commit: <commit sha>
+  version: <commit sha>
   url: <git repository url>
 ```
 
