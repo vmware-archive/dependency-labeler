@@ -11,7 +11,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 )
 
 func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion string) error {

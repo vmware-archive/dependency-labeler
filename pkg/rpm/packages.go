@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 )
 
 const sep = "\t"

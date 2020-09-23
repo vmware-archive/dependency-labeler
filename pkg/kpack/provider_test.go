@@ -7,10 +7,10 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/deplab/pkg/common"
-	. "github.com/pivotal/deplab/pkg/kpack"
-	"github.com/pivotal/deplab/pkg/metadata"
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
+	. "github.com/vmware-tanzu/dependency-labeler/pkg/kpack"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 )
 
 type MockImage struct {

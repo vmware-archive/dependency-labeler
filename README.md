@@ -4,7 +4,7 @@ deplab generates and shows metadata about a container image's dependencies.
 
 ## Obtain
 
-Download the latest deplab release matching your OS from https://github.com/pivotal/deplab/releases/latest. Make it executable and move it to a directory in your `PATH` renaming it `deplab`.
+Download the latest deplab release matching your OS from https://github.com/vmware-tanzu/dependency-labeler/releases/latest. Make it executable and move it to a directory in your `PATH` renaming it `deplab`.
 
 ## Usage
 
@@ -302,7 +302,7 @@ Example of `apt_sources` content
              "commit":  "d2c[...]efd"
             },
            "metadata": {
-             "url": "https://github.com/pivotal/deplab.git",
+             "url": "https://github.com/vmware-tanzu/dependency-labeler.git",
              "refs": ["0.5.0"]
            }
          }
@@ -362,7 +362,7 @@ Provenance is a list of the tools which have added information to the image. It 
     {
       "name": "deplab",
       "version": "0.0.0-dev",
-      "url": "https://github.com/pivotal/deplab"
+      "url": "https://github.com/vmware-tanzu/dependency-labeler"
     }
   ]
 ```

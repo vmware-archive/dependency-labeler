@@ -6,10 +6,10 @@ package cnb_test
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/pivotal/deplab/pkg/cnb"
-	"github.com/pivotal/deplab/pkg/common"
-	"github.com/pivotal/deplab/pkg/metadata"
-	"github.com/pivotal/deplab/test/test_utils"
+	. "github.com/vmware-tanzu/dependency-labeler/pkg/cnb"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 )
 
 var _ = Describe("Cnb", func() {

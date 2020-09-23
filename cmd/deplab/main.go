@@ -8,9 +8,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/pivotal/deplab/pkg/common"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
 
-	"github.com/pivotal/deplab/pkg/deplab"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/deplab"
 
 	"github.com/spf13/cobra"
 )
@@ -46,7 +46,7 @@ var rootCmd = &cobra.Command{
 	Short: "dependency labeler adds a metadata label to a container image",
 	Long: `Dependency labeler adds information about a container image to that image's config. 
 	The information can be found in a "io.deplab.metadata" label on the output image. 
-	Complete documentation is available at http://github.com/pivotal/deplab`,
+	Complete documentation is available at http://github.com/vmware-tanzu/dependency-labeler`,
 	Version: deplab.Version,
 
 	PreRunE: validateFlags,

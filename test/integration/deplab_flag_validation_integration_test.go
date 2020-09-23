@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"github.com/onsi/gomega/ghttp"
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
 // SPDX-License-Identifier: BSD-2-Clause
 
-module github.com/pivotal/deplab
+module github.com/vmware-tanzu/dependency-labeler
 
 go 1.12
 

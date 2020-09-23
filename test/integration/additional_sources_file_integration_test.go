@@ -12,9 +12,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 
 	"github.com/onsi/gomega/ghttp"
 
@@ -118,7 +118,7 @@ var _ = Describe("deplab additional sources file", func() {
 				Expect(gitDependency.Source.Version["commit"]).To(Equal("abc123"))
 
 				By("adding the git remote to a git dependency")
-				Expect(gitSourceMetadata["url"].(string)).To(Equal("git@github.com:pivotal/deplab.git"))
+				Expect(gitSourceMetadata["url"].(string)).To(Equal("git@github.com:vmware-tanzu/dependency-labeler.git"))
 			})
 		})
 
@@ -248,7 +248,7 @@ var _ = Describe("deplab additional sources file", func() {
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 				Expect(errorOutput).To(SatisfyAll(
 					ContainSubstring("error"),
-					ContainSubstring("pivotal/deplab.git"),
+					ContainSubstring("vmware-tanzu/dependency-labeler.git"),
 				))
 			})
 
@@ -271,7 +271,7 @@ var _ = Describe("deplab additional sources file", func() {
 					errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 					Expect(errorOutput).To(SatisfyAll(
 						ContainSubstring("warning"),
-						ContainSubstring("pivotal/deplab.git"),
+						ContainSubstring("vmware-tanzu/dependency-labeler.git"),
 					))
 
 					By("by including a vcs git dependency")

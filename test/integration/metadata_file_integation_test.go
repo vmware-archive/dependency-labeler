@@ -4,7 +4,7 @@
 package integration_test
 
 import (
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

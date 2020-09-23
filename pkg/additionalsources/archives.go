@@ -9,11 +9,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/common"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
 
-	"github.com/pivotal/deplab/pkg/image"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/image"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 )
 
 type HTTPHeadFn func(url string) (resp *http.Response, err error)
