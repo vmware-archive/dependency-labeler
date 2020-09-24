@@ -221,11 +221,6 @@ deplab --image <image-reference> \
 deplab inspect --image-tar <image-reference>
 ```
 
-## Usage in Concourse
-
-Please see [CONCOURSE.md](CONCOURSE.md) for information about using deplab as a task in your
-Concourse pipeline.
- 
 ## Data
 
 ##### debian package list
