@@ -391,6 +391,4 @@ go build -o deplab ./cmd/deplab
 
 ## Support
 
-This tool is currently maintained by the Pivotal NavCon team; #navcon-team channel on Pivotal Slack.
-
-Please reach out to us on Slack first, and then raise a Github issue.
+This tool is currently maintained by the VMware Tanzu Source Insight Tooling Team.  Please raise a Github issue for any isssues, suggestions, and question.
