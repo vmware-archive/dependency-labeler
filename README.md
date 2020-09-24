@@ -1,6 +1,6 @@
-# deplab
+# Dependency Labeler
 
-deplab generates and shows metadata about a container image's dependencies.
+Dependency Labeler(or deplab for short) generates and shows metadata about a container image's dependencies.
 
 ## Obtain
 
