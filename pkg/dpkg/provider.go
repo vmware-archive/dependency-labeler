@@ -8,11 +8,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/common"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
-	"github.com/pivotal/deplab/pkg/image"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/image"
 
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"

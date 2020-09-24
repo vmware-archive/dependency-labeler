@@ -12,12 +12,12 @@ import (
 	"path"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"github.com/google/go-containerregistry/pkg/crane"
 
 	. "github.com/onsi/ginkgo/extensions/table"
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

@@ -9,9 +9,9 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"
 	"github.com/onsi/gomega"
-	"github.com/pivotal/deplab/pkg/dpkg"
-	"github.com/pivotal/deplab/pkg/metadata"
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/dpkg"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 )
 
 var _ = Describe("dpkg", func() {

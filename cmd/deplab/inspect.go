@@ -6,7 +6,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/pivotal/deplab/pkg/deplab"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/deplab"
 
 	"github.com/spf13/cobra"
 )

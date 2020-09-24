@@ -3,7 +3,7 @@
 
 package test_utils
 
-import "github.com/pivotal/deplab/pkg/metadata"
+import "github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 func SelectDpkgDependency(dependencies []metadata.Dependency) (metadata.Dependency, bool) {
 	return metadata.SelectDependency(dependencies, metadata.DebianPackageListSourceType)

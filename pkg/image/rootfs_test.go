@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/pivotal/deplab/pkg/image"
+	. "github.com/vmware-tanzu/dependency-labeler/pkg/image"
 )
 
 var rfs RootFS

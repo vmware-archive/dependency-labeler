@@ -1,5 +1,5 @@
 vcs:
   - protocol: git
     version: abc123
-    url: pivotal/deplab.git
+    url: vmware-tanzu/dependency-labeler.git
     refs: v0.44.0
