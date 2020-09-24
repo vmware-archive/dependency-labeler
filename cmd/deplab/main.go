@@ -95,6 +95,7 @@ func run(_ *cobra.Command, _ []string) {
 	if err != nil {
 		log.Fatalf("deplab failed to run. %s\n", err)
 	}
+
 }
 
 func main() {
