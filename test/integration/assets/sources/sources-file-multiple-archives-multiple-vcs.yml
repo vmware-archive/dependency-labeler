@@ -1,7 +1,7 @@
 vcs:
   - protocol: git
     version: abc123
-    url: git@github.com:pivotal/deplab.git
+    url: git@github.com:vmware-tanzu/dependency-labeler.git
   - protocol: git
     version: def456
     url: git@github.com:cloudfoundry/stacks.git

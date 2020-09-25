@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/pivotal/deplab/pkg/common"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
-	"github.com/pivotal/deplab/pkg/image"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/image"
 )
 
 func Provider(dli image.Image, _ common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {

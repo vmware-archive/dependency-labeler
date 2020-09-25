@@ -9,8 +9,8 @@ import (
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/deplab/pkg/metadata"
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 )
 
 var _ = Describe("Merge", func() {

@@ -8,8 +8,8 @@ import (
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/pivotal/deplab/pkg/metadata"
-	. "github.com/pivotal/deplab/pkg/osrelease"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
+	. "github.com/vmware-tanzu/dependency-labeler/pkg/osrelease"
 )
 
 type MockImage struct {

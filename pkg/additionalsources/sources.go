@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/git"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/git"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"gopkg.in/yaml.v2"
 )

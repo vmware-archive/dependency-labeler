@@ -7,25 +7,25 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/pivotal/deplab/pkg/kpack"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/kpack"
 	"os"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/cnb"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/cnb"
 
-	"github.com/pivotal/deplab/pkg/additionalsources"
-	"github.com/pivotal/deplab/pkg/common"
-	"github.com/pivotal/deplab/pkg/rpm"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/additionalsources"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/rpm"
 
-	"github.com/pivotal/deplab/pkg/git"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/git"
 
-	"github.com/pivotal/deplab/pkg/dpkg"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/dpkg"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
-	"github.com/pivotal/deplab/pkg/osrelease"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/osrelease"
 
-	"github.com/pivotal/deplab/pkg/image"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/image"
 )
 
 type provider func(image.Image, common.RunParams, metadata.Metadata) (metadata.Metadata, error)
@@ -34,7 +34,7 @@ var Version = "0.0.0-dev"
 var Provenance = metadata.Provenance{
 	Name:    "deplab",
 	Version: Version,
-	URL:     "https://github.com/pivotal/deplab",
+	URL:     "https://github.com/vmware-tanzu/dependency-labeler",
 }
 
 func Run(params common.RunParams) error {

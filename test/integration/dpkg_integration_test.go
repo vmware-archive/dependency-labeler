@@ -6,9 +6,9 @@ package integration_test
 import (
 	"sort"
 
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"

@@ -1,14 +1,14 @@
-# deplab
+# Dependency Labeler
 
-deplab generates and shows metadata about a container image's dependencies.
+Dependency Labeler(or deplab for short) generates and shows metadata about a container image's dependencies.
 
 ## Obtain
 
-Download the latest deplab release matching your OS from https://github.com/pivotal/deplab/releases/latest. Make it executable and move it to a directory in your `PATH` renaming it `deplab`.
+Download the latest deplab release matching your OS from https://github.com/vmware-tanzu/dependency-labeler/releases/latest. Make it executable and move it to a directory in your `PATH` renaming it `deplab`.
 
 ## Usage
 
-By default `deplab` [generates](#generate-metadata) the metadata of an image and the provided git repository (from where the image is built). The metadata is placed in a label on the output image, which are read by Pivotal's Open Source Licensing (OSL) process when using the container_image scan root. Once an image is labelled with `deplab` the metadata can be visualized using [inspect](#inspect).
+By default `deplab` [generates](#generate-metadata) the metadata of an image and the provided git repository (from where the image is built). The metadata is placed in a label on the output image, which can be read by any automated process. Once an image is labelled with `deplab` the metadata can be visualized using [inspect](#inspect).
 
 `deplab` currently supports the auto-generation of dpkg and rpm package lists.  RPM support is currently experimental.  It necessitates the presence of the `rpm` binary in the  `$PATH` where `deplab` is run.  Additional sources can be entered manually.
 
@@ -111,10 +111,9 @@ Supported format of the yaml file:
 ```yaml
 archives:
 - url: <url to source archive>
-- url: <url to source archive>
 vcs:
 - protocol: git
-  commit: <commit sha>
+  version: <commit sha>
   url: <git repository url>
 ```
 
@@ -222,11 +221,6 @@ deplab --image <image-reference> \
 deplab inspect --image-tar <image-reference>
 ```
 
-## Usage in Concourse
-
-Please see [CONCOURSE.md](CONCOURSE.md) for information about using deplab as a task in your
-Concourse pipeline.
- 
 ## Data
 
 ##### debian package list
@@ -303,7 +297,7 @@ Example of `apt_sources` content
              "commit":  "d2c[...]efd"
             },
            "metadata": {
-             "url": "https://github.com/pivotal/deplab.git",
+             "url": "https://github.com/vmware-tanzu/dependency-labeler.git",
              "refs": ["0.5.0"]
            }
          }
@@ -363,7 +357,7 @@ Provenance is a list of the tools which have added information to the image. It 
     {
       "name": "deplab",
       "version": "0.0.0-dev",
-      "url": "https://github.com/pivotal/deplab"
+      "url": "https://github.com/vmware-tanzu/dependency-labeler"
     }
   ]
 ```
@@ -392,6 +386,4 @@ go build -o deplab ./cmd/deplab
 
 ## Support
 
-This tool is currently maintained by the Pivotal NavCon team; #navcon-team channel on Pivotal Slack.
-
-Please reach out to us on Slack first, and then raise a Github issue.
+This tool is currently maintained by the VMware Tanzu Source Insight Tooling Team.  Please raise a Github issue for any isssues, suggestions, and question.

@@ -6,11 +6,11 @@ package git
 import (
 	"fmt"
 
-	"github.com/pivotal/deplab/pkg/common"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
 
-	"github.com/pivotal/deplab/pkg/image"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/image"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"

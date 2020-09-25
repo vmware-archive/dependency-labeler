@@ -8,12 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"github.com/google/go-containerregistry/pkg/crane"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/pivotal/deplab/pkg/image"
+	. "github.com/vmware-tanzu/dependency-labeler/pkg/image"
 )
 
 var _ = Describe("Image", func() {
