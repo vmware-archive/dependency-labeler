@@ -13,14 +13,13 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/google/go-containerregistry v0.0.0-20191008160043-1e84d6375038
 	github.com/joho/godotenv v1.3.0
-
-	github.com/onsi/ginkgo v1.10.3
-	github.com/onsi/gomega v1.7.1
+	github.com/onsi/ginkgo v1.14.1
+	github.com/onsi/gomega v1.10.1
 	github.com/opencontainers/runc v0.1.1 // indirect
-	github.com/pkg/errors v0.9.1
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sirupsen/logrus v1.4.2 // indirect
-	golang.org/x/text v0.3.3
 	github.com/spf13/cobra v0.0.7
+	golang.org/x/text v0.3.3
 	gopkg.in/src-d/go-git.v4 v4.13.1
 	gopkg.in/yaml.v2 v2.3.0
 
