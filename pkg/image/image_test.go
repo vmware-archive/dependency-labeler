@@ -1,3 +1,6 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package image_test
 
 import (
@@ -5,12 +8,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"github.com/google/go-containerregistry/pkg/crane"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/pivotal/deplab/pkg/image"
+	. "github.com/vmware-tanzu/dependency-labeler/pkg/image"
 )
 
 var _ = Describe("Image", func() {
@@ -23,7 +26,7 @@ var _ = Describe("Image", func() {
 			)
 
 			It("[remote-image][private-registry] instantiates an image starting from a remote source", func() {
-				image, err = NewDeplabImage("dev.registry.pivotal.io/navcon/deplab-test-asset:all-file-types", "", nil)
+				image, err = NewDeplabImage("dev.registry.pivotal.io/navcon/deplab-test-asset:all-file-types", "")
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(image).ToNot(BeNil())
@@ -33,7 +36,7 @@ var _ = Describe("Image", func() {
 				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/all-file-types.tgz")
 				Expect(err).ToNot(HaveOccurred())
 
-				image, err = NewDeplabImage("", inputTarPath, nil)
+				image, err = NewDeplabImage("", inputTarPath)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(image).ToNot(BeNil())
@@ -46,7 +49,7 @@ var _ = Describe("Image", func() {
 
 		Context("when cannot be instantiated", func() {
 			It("returns an error if no image at the remote source", func() {
-				_, err := NewDeplabImage("pivotalnavcon/this-does-not-exists", "", nil)
+				_, err := NewDeplabImage("pivotalnavcon/this-does-not-exists", "")
 
 				Expect(err).To(HaveOccurred())
 			})
@@ -55,32 +58,14 @@ var _ = Describe("Image", func() {
 				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/invalid-image-archive.tgz")
 				Expect(err).ToNot(HaveOccurred())
 
-				_, err = NewDeplabImage("", inputTarPath, nil)
+				_, err = NewDeplabImage("", inputTarPath)
 				Expect(err).To(HaveOccurred())
 			})
 
 			It("returns an error if no image at the tarball path", func() {
-				_, err := NewDeplabImage("", "non-existing-tar-ball", nil)
+				_, err := NewDeplabImage("", "non-existing-tar-ball")
 
 				Expect(err).To(HaveOccurred())
-			})
-		})
-
-		Context("when the image contains a directory with no permissions", func() {
-			It("instantiates an image starting from a tarball", func() {
-				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/broken-files.tgz")
-				Expect(err).ToNot(HaveOccurred())
-
-				di, err := NewDeplabImage(
-					"",
-					inputTarPath,
-					[]string{"all-files/broken-folder/"})
-
-				Expect(err).ToNot(HaveOccurred())
-				defer di.Cleanup()
-
-				_, err = di.GetDirContents("all-files/broken-folder/no-permissions")
-				Expect(err).To(MatchError(ContainSubstring("all-files/broken-folder/no-permissions")))
 			})
 		})
 	})
@@ -102,7 +87,7 @@ var _ = Describe("Image", func() {
 				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/all-file-types.tgz")
 				Expect(err).ToNot(HaveOccurred())
 
-				image, err = NewDeplabImage("", inputTarPath, nil)
+				image, err = NewDeplabImage("", inputTarPath)
 				Expect(err).ToNot(HaveOccurred())
 
 				dir, err = ioutil.TempDir("", "deplab-")
@@ -118,7 +103,7 @@ var _ = Describe("Image", func() {
 				cf, err := labelledImage.ConfigFile()
 				Expect(err).ToNot(HaveOccurred())
 
-				Expect(cf.Config.Labels["io.pivotal.metadata"]).To(MatchJSON(`{
+				Expect(cf.Config.Labels["io.deplab.metadata"]).To(MatchJSON(`{
 					"base": null,
 					"provenance": null,
 					"dependencies": null
@@ -132,7 +117,7 @@ var _ = Describe("Image", func() {
 				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/all-file-types.tgz")
 				Expect(err).ToNot(HaveOccurred())
 
-				image, err = NewDeplabImage("", inputTarPath, nil)
+				image, err = NewDeplabImage("", inputTarPath)
 				Expect(err).ToNot(HaveOccurred())
 
 				err = image.ExportWithMetadata(metadata.Metadata{}, "/tmp/this-path-does-not-exist/this-file-does-not-matter", "")
@@ -148,7 +133,7 @@ var _ = Describe("Image", func() {
 				inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/all-file-types.tgz")
 				Expect(err).ToNot(HaveOccurred())
 
-				image, err = NewDeplabImage("", inputTarPath, nil)
+				image, err = NewDeplabImage("", inputTarPath)
 				Expect(err).ToNot(HaveOccurred())
 
 				path, err := image.AbsolutePath("/var/lib/rpm")

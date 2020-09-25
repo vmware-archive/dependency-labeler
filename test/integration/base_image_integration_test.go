@@ -1,3 +1,6 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package integration_test
 
 import (
@@ -23,7 +26,8 @@ var _ = Describe("deplab", func() {
 			HaveKeyWithValue("pretty_name", "Ubuntu 18.04.3 LTS"),
 		),
 		Entry("an image that doesn't have an os-release", "image-archives/all-file-types.tgz",
-			HaveKeyWithValue("name", "unknown"),
+			HaveKeyWithValue("name", "scratch"),
+			HaveKeyWithValue("pretty_name", "scratch"),
 			HaveKeyWithValue("version_codename", "unknown"),
 			HaveKeyWithValue("version_id", "unknown"),
 		),

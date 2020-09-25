@@ -1,12 +1,10 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package integration_test
 
 import (
-	"io/ioutil"
-	"os"
-
-	"github.com/pivotal/deplab/pkg/git"
-
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -80,28 +78,12 @@ var _ = Describe("deplab git", func() {
 			Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("cannot open git repository \"/dev/null\""))
 		})
 	})
-
-	Context("when I don't supply a git flag as an argument", func() {
-		It("has no git metadata", func() {
-			By("executing it")
-			d, err := ioutil.TempDir("", "deplab-integration-test")
-			metadatafileName := d + "/metadata-file.yml"
-			defer os.Remove(d)
-			Expect(err).To(Not(HaveOccurred()))
-			_, stdErr := runDepLab([]string{
-				"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
-				"--metadata-file", metadatafileName,
-			}, 1)
-
-			Expect(string(getContentsOfReader(stdErr))).To(ContainSubstring("required flag(s) \"git\" not set"))
-		})
-	})
 })
 
 func selectGitDependencies(dependencies []metadata.Dependency) []metadata.Dependency {
 	var gitDependencies []metadata.Dependency
 	for _, dependency := range dependencies {
-		if dependency.Source.Type == git.SourceType {
+		if dependency.Source.Type == metadata.GitSourceType {
 			gitDependencies = append(gitDependencies, dependency)
 		}
 	}

@@ -1,3 +1,6 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package main
 
 import (
@@ -5,7 +8,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/pivotal/deplab/pkg/deplab"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
+
+	"github.com/vmware-tanzu/dependency-labeler/pkg/deplab"
 
 	"github.com/spf13/cobra"
 )
@@ -34,19 +39,14 @@ func init() {
 	rootCmd.Flags().StringArrayVarP(&additionalSourceUrls, "additional-source-url", "u", []string{}, "`url` to the source of an added dependency")
 	rootCmd.Flags().StringArrayVarP(&additionalSourceFilePaths, "additional-sources-file", "a", []string{}, "`path` to file describing additional sources")
 	rootCmd.Flags().BoolVar(&ignoreValidationErrors, "ignore-validation-errors", false, "Set flag to ignore validation errors")
-
-	err := rootCmd.MarkFlagRequired("git")
-	if err != nil {
-		log.Printf("could not mark flag as required. %s\n", err)
-	}
 }
 
 var rootCmd = &cobra.Command{
 	Use:   "deplab",
 	Short: "dependency labeler adds a metadata label to a container image",
 	Long: `Dependency labeler adds information about a container image to that image's config. 
-	The information can be found in a "io.pivotal.metadata" label on the output image. 
-	Complete documentation is available at http://github.com/pivotal/deplab`,
+	The information can be found in a "io.deplab.metadata" label on the output image. 
+	Complete documentation is available at http://github.com/vmware-tanzu/dependency-labeler`,
 	Version: deplab.Version,
 
 	PreRunE: validateFlags,
@@ -80,7 +80,7 @@ func isFlagSet(cmd *cobra.Command, flagName string) bool {
 
 func run(_ *cobra.Command, _ []string) {
 	err := deplab.Run(
-		deplab.RunParams{
+		common.RunParams{
 			InputImageTarPath:         inputImageTar,
 			InputImage:                inputImage,
 			GitPaths:                  gitPaths,

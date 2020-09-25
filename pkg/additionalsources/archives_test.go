@@ -1,3 +1,6 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package additionalsources_test
 
 import (
@@ -7,7 +10,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	. "github.com/pivotal/deplab/pkg/additionalsources"
+	. "github.com/vmware-tanzu/dependency-labeler/pkg/additionalsources"
 )
 
 var _ = Describe("additionalsources", func() {

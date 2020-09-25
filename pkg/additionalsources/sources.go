@@ -1,14 +1,16 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package additionalsources
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/git"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/git"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"gopkg.in/yaml.v2"
 )
@@ -35,7 +37,7 @@ func ParseAdditionalSourcesFile(additionalSourcesFilePath string) ([]string, []m
 	var errorMessages []string
 	for _, vcs := range additionalSources.Vcs {
 		switch vcs.Protocol {
-		case git.SourceType:
+		case metadata.GitSourceType:
 			if !git.IsValidGitDependency(vcs.Url) {
 				errorMessages = append(errorMessages, fmt.Sprintf("vcs git url in an unsupported format: %s", vcs.Url))
 			}
@@ -46,7 +48,7 @@ func ParseAdditionalSourcesFile(additionalSourcesFilePath string) ([]string, []m
 	}
 
 	if len(errorMessages) != 0 {
-		return urls, gitDependencies, errors.New(strings.Join(errorMessages, ", "))
+		return urls, gitDependencies, fmt.Errorf(strings.Join(errorMessages, ", "))
 	}
 
 	return urls, gitDependencies, nil
@@ -56,7 +58,7 @@ func CreateGitDependency(vcs AdditionalSourceVcs) metadata.Dependency {
 	return metadata.Dependency{
 		Type: "package",
 		Source: metadata.Source{
-			Type: git.SourceType,
+			Type: metadata.GitSourceType,
 			Version: map[string]interface{}{
 				"commit": vcs.Version,
 			},

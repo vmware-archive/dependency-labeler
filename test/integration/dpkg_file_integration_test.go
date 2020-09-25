@@ -1,9 +1,12 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package integration_test
 
 import (
 	"io/ioutil"
 
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

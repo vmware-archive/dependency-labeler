@@ -1,15 +1,18 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package metadata_test
 
 import (
 	"io/ioutil"
 
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 
 	. "github.com/onsi/ginkgo"
 
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	. "github.com/pivotal/deplab/pkg/metadata"
+	. "github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 )
 
 var _ = Describe("outputs", func() {

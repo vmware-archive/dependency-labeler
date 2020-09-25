@@ -1,3 +1,6 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package dpkg
 
 import (
@@ -8,15 +11,13 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/pkg/errors"
-
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 )
 
 func WriteDpkgFile(md metadata.Metadata, dpkgFilePath string, deplabVersion string) error {
 	f, err := os.Create(dpkgFilePath)
 	if err != nil {
-		return errors.Wrapf(err, "could not create file %s", dpkgFilePath)
+		return fmt.Errorf("could not create file %s: %w", dpkgFilePath, err)
 	}
 
 	defer func() {
@@ -99,10 +100,10 @@ func (df *dpkgFile) printf(format string, a ...interface{}) *dpkgFile {
 
 func findDpkgListInMetadata(md metadata.Metadata) (metadata.Dependency, error) {
 	for _, v := range md.Dependencies {
-		if v.Type == PackageListSourceType {
+		if v.Type == metadata.DebianPackageListSourceType {
 			return v, nil
 		}
 	}
 
-	return metadata.Dependency{}, fmt.Errorf("could not find %s in metadata", PackageListSourceType)
+	return metadata.Dependency{}, fmt.Errorf("could not find %s in metadata", metadata.DebianPackageListSourceType)
 }

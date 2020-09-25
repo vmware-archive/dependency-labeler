@@ -1,3 +1,6 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package integration_test
 
 import (
@@ -7,9 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/additionalsources"
-
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"github.com/onsi/gomega/ghttp"
 
@@ -168,14 +169,13 @@ var _ = Describe("deplab", func() {
 
 				server := startServer(
 					ghttp.RespondWith(http.StatusNotFound, []byte("HTTP status not found code returned")),
-					ghttp.RespondWith(http.StatusOK, ""),
 					ghttp.RespondWith(http.StatusOK, ""))
 				defer server.Close()
 
 				addresses := []string{
 					"/foo/bar",
 					"https://package.some.invalid/unreachable-package",
-					server.URL() + "/404-package",
+					server.URL() + "/404-package.tgz",
 					server.URL() + "/invalid-extension",
 					server.URL() + "/should-pass.tgz",
 				}
@@ -216,7 +216,7 @@ var _ = Describe("deplab", func() {
 					By("adding the invalid additional-source-url to the archive dependency")
 					Expect(archiveDependency.Type).ToNot(BeEmpty())
 					Expect(archiveDependency.Type).To(Equal("package"))
-					Expect(archiveDependency.Source.Type).To(Equal(additionalsources.ArchiveType))
+					Expect(archiveDependency.Source.Type).To(Equal(metadata.ArchiveType))
 
 					archiveSourceMetadata := archiveDependency.Source.Metadata.(map[string]interface{})
 					Expect(archiveSourceMetadata["url"]).To(Equal(addresses[i]))

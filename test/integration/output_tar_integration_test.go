@@ -1,3 +1,6 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package integration_test
 
 import (
@@ -9,12 +12,12 @@ import (
 	"path"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"github.com/google/go-containerregistry/pkg/crane"
 
 	. "github.com/onsi/ginkgo/extensions/table"
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -60,31 +63,40 @@ var _ = Describe("deplab", func() {
 			)
 
 			Context("when there is a tag", func() {
-				It("writes the image as a tar", func() {
+				DescribeTable("writes the image as a tar", func(tag, expected string) {
 					tempDir, err := ioutil.TempDir(outputFilesDestination, "deplab-integration-output-tar-file-")
 					Expect(err).ToNot(HaveOccurred())
 					tarDestinationPath = path.Join(tempDir, "image.tar")
 
 					Expect(err).ToNot(HaveOccurred())
-					_ = runDeplabAgainstTar(getTestAssetPath("image-archives/tiny.tgz"), "--output-tar", tarDestinationPath, "--tag", "foo:bar")
+					_ = runDeplabAgainstTar(getTestAssetPath("image-archives/tiny.tgz"), "--output-tar", tarDestinationPath, "--tag", tag)
 
 					manifest := getManifestFromImageTarball(tarDestinationPath)
-					Expect(manifest["RepoTags"]).To(ConsistOf("foo:bar"))
-				})
+					Expect(manifest["RepoTags"]).To(ConsistOf(ContainSubstring(expected)))
+				},
+					Entry("tag has a suffix, use the tag", "foo:bar", "foo:bar"),
+					Entry("tag is empty, use digest", "", "sha256:"),
+					Entry("tag has no suffix, add 'latest' as suffix", "foo", "foo:latest"),
+				)
 
-				It("exits with an error if the tag passed is not valid", func() {
+				DescribeTable("exits with an error if the tag passed is not valid", func(tag string) {
 					_, stdErr := runDepLab([]string{"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
 						"--git", pathToGitRepo,
-						"--tag", "foo:testtag/bar",
+						"--tag", tag,
 						"--output-tar", test_utils.ExistingFileName(),
 					}, 1)
 
 					errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 					Expect(errorOutput).To(SatisfyAll(
-						ContainSubstring("foo:testtag/bar"),
 						ContainSubstring("error exporting tar"),
+						ContainSubstring("tag"),
+						ContainSubstring(tag),
+						ContainSubstring("is invalid"),
 					))
-				})
+				},
+					Entry("semi-colon after tag separator", "foo:testtag/bar"),
+					Entry("empty suffix after tag separator", "foo:"),
+				)
 			})
 
 			AfterEach(func() {
@@ -121,7 +133,7 @@ func getMetadataFromImageTarball(tarDestinationPath string) metadata.Metadata {
 	err = json.Unmarshal(rawConfig, &config)
 	Expect(err).ToNot(HaveOccurred())
 
-	mdString := config["config"].(map[string]interface{})["Labels"].(map[string]interface{})["io.pivotal.metadata"].(string)
+	mdString := config["config"].(map[string]interface{})["Labels"].(map[string]interface{})["io.deplab.metadata"].(string)
 
 	md := metadata.Metadata{}
 

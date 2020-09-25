@@ -1,0 +1,6 @@
+# Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
+
+FROM scratch
+COPY example-buildpack-metadata.toml /dummy.txt
+LABEL "io.buildpacks.build.metadata" '{"bom":[{"name":"openjdk-jdk","version":"11.0.6","metadata":{"licenses":[{"type":"GPL-2.0 WITH Classpath-exception-2.0","uri":"https://openjdk.java.net/legal/gplv2+ce.html"}],"name":"OpenJDK JDK","sha256":"330d19a2eaa07ed02757d7a785a77bab49f5ee710ea03b4ee2fa220ddd0feffc","stacks":["io.buildpacks.stacks.bionic","org.cloudfoundry.stacks.cflinuxfs3"],"uri":"https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.6%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.6_10.tar.gz"},"buildpack":{"id":"org.cloudfoundry.openjdk","version":"v1.0.86"}}],"buildpacks":[{"id":"org.cloudfoundry.openjdk","version":"v1.0.86"}],"launcher":{"version":"0.5.0","source":{"git":{"repository":"https://github.com/buildpack/lifecycle","commit":"f0a279f"}}}}'

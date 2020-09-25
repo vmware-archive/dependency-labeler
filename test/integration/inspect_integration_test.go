@@ -1,10 +1,19 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package integration_test
 
 import (
 	"encoding/json"
+	"io/ioutil"
+	"os"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	. "github.com/onsi/gomega/gstruct"
+
+	"github.com/google/go-containerregistry/pkg/crane"
+	"github.com/google/go-containerregistry/pkg/v1/mutate"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
@@ -38,21 +47,239 @@ var _ = Describe("deplab inspect", func() {
 		Expect(errorOutput).To(ContainSubstring("could not parse reference"))
 	})
 
-	DescribeTable("prints the label", func(flag, path string) {
-		stdOut, _ := runDepLab([]string{
-			"inspect",
-			flag, path,
-		}, 0)
+	Context("image is already deplab'd", func() {
+		DescribeTable("prints all the metadata", func(flag, path string) {
+			stdOut, stdErr := runDepLab([]string{
+				"inspect",
+				flag, path,
+			}, 0)
 
-		md := metadata.Metadata{}
-		err := json.NewDecoder(stdOut).Decode(&md)
+			md := metadata.Metadata{}
+			Expect(json.NewDecoder(stdOut).Decode(&md)).ToNot(HaveOccurred())
+			Expect(md.Provenance[0].Name).To(Equal("deplab"))
+			gitDependencies := selectGitDependencies(md.Dependencies)
+			Expect(gitDependencies).ToNot(BeEmpty())
 
-		Expect(err).ToNot(HaveOccurred())
-		Expect(md.Provenance[0].Name).To(Equal("deplab"))
-	},
-		Entry("with a deplab'd image tarball", "--image-tar", getTestAssetPath("image-archives/tiny-deplabd.tgz")),
-		Entry("[remote-image][private-registry] with a deplab'd image from a registry", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-deplabd"),
-	)
+			errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+			Expect(errorOutput).ToNot(ContainSubstring("metadata elements already present on image"))
+		},
+			Entry("with a deplab'd image tarball", "--image-tar", getTestAssetPath("image-archives/tiny-deplabd.tgz")),
+			Entry("[remote-image][private-registry] with a deplab'd image from a registry", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-deplabd"),
+		)
+
+		Context("has io.deplab.metadata", func() {
+			It("merge metadata according to the rules and returns a warning", func() {
+				provenance := metadata.Provenance{
+					Name:    "not-deplab",
+					Version: "0.42.42",
+					URL:     "",
+				}
+
+				base := metadata.Base{
+					"some-key": "some-value",
+				}
+
+				gitDependency := metadata.Dependency{
+					Type: metadata.PackageType,
+					Source: metadata.Source{
+						Type: metadata.GitSourceType,
+						Version: map[string]interface{}{
+							"commit": "git-commit",
+						},
+					},
+				}
+
+				archiveDependency := metadata.Dependency{
+					Type: metadata.PackageType,
+					Source: metadata.Source{
+						Type: metadata.ArchiveType,
+						Version: map[string]interface{}{
+							"sha256": "somesha",
+						},
+					},
+				}
+
+				dpkgDependency := metadata.Dependency{
+					Type: metadata.DebianPackageListSourceType,
+					Source: metadata.Source{
+						Version: map[string]interface{}{
+							"sha256": "some-sha",
+						},
+					},
+				}
+
+				imagePath := CreateTinyImageWithDeplabLabel("io.deplab.metadata", metadata.Metadata{
+					Base:       base,
+					Provenance: []metadata.Provenance{provenance},
+					Dependencies: []metadata.Dependency{
+						gitDependency,
+						archiveDependency,
+						dpkgDependency,
+					},
+				})
+
+				defer os.Remove(imagePath)
+
+				stdOut, stderr := runDepLab([]string{
+					"inspect",
+					"--image-tar", imagePath,
+				}, 0)
+
+				md := metadata.Metadata{}
+				err := json.NewDecoder(stdOut).Decode(&md)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(md.Provenance).To(
+					SatisfyAll(
+						HaveLen(2),
+						ContainElement(provenance),
+					))
+				Expect(md.Base).To(
+					SatisfyAll(
+						Not(Equal(base)),
+						HaveKeyWithValue("pretty_name", "Cloud Foundry Tiny"),
+					))
+				Expect(md.Dependencies).To(
+					SatisfyAll(
+						ContainElement(gitDependency),
+						ContainElement(archiveDependency),
+						Not(ContainElement(dpkgDependency)),
+						ContainElement(MatchFields(IgnoreExtras, Fields{
+							"Type": Equal(metadata.DebianPackageListSourceType),
+						})),
+					))
+
+				By("emitting warning for duplicated items")
+				Expect(ioutil.ReadAll(stderr)).To(
+					SatisfyAll(
+						ContainSubstring("base"),
+						ContainSubstring("metadata elements already present on image"),
+					))
+			})
+		})
+		Context("has io.pivotal.metadata", func() {
+			It("merge metadata according to the rules and returns a warning", func() {
+				provenance := metadata.Provenance{
+					Name:    "not-deplab",
+					Version: "0.42.42",
+					URL:     "",
+				}
+
+				base := metadata.Base{
+					"some-key": "some-value",
+				}
+
+				gitDependency := metadata.Dependency{
+					Type: metadata.PackageType,
+					Source: metadata.Source{
+						Type: metadata.GitSourceType,
+						Version: map[string]interface{}{
+							"commit": "git-commit",
+						},
+					},
+				}
+
+				archiveDependency := metadata.Dependency{
+					Type: metadata.PackageType,
+					Source: metadata.Source{
+						Type: metadata.ArchiveType,
+						Version: map[string]interface{}{
+							"sha256": "somesha",
+						},
+					},
+				}
+
+				dpkgDependency := metadata.Dependency{
+					Type: metadata.DebianPackageListSourceType,
+					Source: metadata.Source{
+						Version: map[string]interface{}{
+							"sha256": "some-sha",
+						},
+					},
+				}
+
+				imagePath := CreateTinyImageWithDeplabLabel("io.pivotal.metadata", metadata.Metadata{
+					Base:       base,
+					Provenance: []metadata.Provenance{provenance},
+					Dependencies: []metadata.Dependency{
+						gitDependency,
+						archiveDependency,
+						dpkgDependency,
+					},
+				})
+
+				defer os.Remove(imagePath)
+
+				stdOut, stderr := runDepLab([]string{
+					"inspect",
+					"--image-tar", imagePath,
+				}, 0)
+
+				md := metadata.Metadata{}
+				err := json.NewDecoder(stdOut).Decode(&md)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(md.Provenance).To(
+					SatisfyAll(
+						HaveLen(2),
+						ContainElement(provenance),
+					))
+				Expect(md.Base).To(
+					SatisfyAll(
+						Not(Equal(base)),
+						HaveKeyWithValue("pretty_name", "Cloud Foundry Tiny"),
+					))
+				Expect(md.Dependencies).To(
+					SatisfyAll(
+						ContainElement(gitDependency),
+						ContainElement(archiveDependency),
+						Not(ContainElement(dpkgDependency)),
+						ContainElement(MatchFields(IgnoreExtras, Fields{
+							"Type": Equal(metadata.DebianPackageListSourceType),
+						})),
+					))
+
+				By("emitting warning for duplicated items")
+				Expect(ioutil.ReadAll(stderr)).To(
+					SatisfyAll(
+						ContainSubstring("base"),
+						ContainSubstring("metadata elements already present on image"),
+					))
+			})
+		})
+	})
+
+	Context("image is not previously deplab'd", func() {
+		Context("image does not have an /etc/os-release file", func() {
+			It("prints the label", func() {
+				stdOut, stdErr := runDepLab([]string{
+					"inspect",
+					"--image-tar", getTestAssetPath("image-archives/scratch.tgz"),
+				}, 0)
+
+				md := metadata.Metadata{}
+				err := json.NewDecoder(stdOut).Decode(&md)
+
+				Expect(err).ToNot(HaveOccurred())
+				Expect(md.Provenance[0].Name).To(Equal("deplab"))
+
+				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
+				Expect(errorOutput).ToNot(ContainSubstring("base"))
+			})
+		})
+		It("prints the label", func() {
+			stdOut, _ := runDepLab([]string{
+				"inspect",
+				"--image-tar", getTestAssetPath("image-archives/tiny.tgz"),
+			}, 0)
+
+			md := metadata.Metadata{}
+			err := json.NewDecoder(stdOut).Decode(&md)
+
+			Expect(err).ToNot(HaveOccurred())
+			Expect(md.Provenance[0].Name).To(Equal("deplab"))
+		})
+	})
 
 	DescribeTable("provides an error", func(flag, path, errorMsg string) {
 		_, stderr := runDepLab([]string{
@@ -65,11 +292,36 @@ var _ = Describe("deplab inspect", func() {
 				ContainSubstring(errorMsg),
 				ContainSubstring(path)))
 	},
-		Entry("with a undeplab'd image tar path", "--image-tar", getTestAssetPath("image-archives/tiny.tgz"), "deplab cannot find the 'io.pivotal.metadata' label on the provided image"),
-		Entry("[remote-image] with a undeplab'd image from a registry", "--image", "cloudfoundry/run:tiny", "deplab cannot find the 'io.pivotal.metadata' label on the provided image"),
-		Entry("with a invalid image tarball", "--image-tar", getTestAssetPath("image-archives/invalid-image-archive.tgz"), "deplab cannot open the provided image"),
-		Entry("with a non-existent image from registry", "--image", "pivotalnavcon/does-not-exist", "deplab cannot retrieve the Config file"),
-		Entry("with a valid image tar ball with invalid json label", "--image-tar", getTestAssetPath("image-archives/tiny-with-invalid-label.tgz"), "deplab cannot parse the label"),
-		Entry("[remote-image][private-registry] with a valid image from a registry with invalid json label", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-with-invalid-label", "deplab cannot parse the label"),
+		Entry("with a invalid image tarball", "--image-tar", getTestAssetPath("image-archives/invalid-image-archive.tgz"), "cannot open the provided image"),
+		Entry("with a non-existent image from registry", "--image", "pivotalnavcon/does-not-exist", "cannot open the provided image"),
+		Entry("with a valid image tar ball with invalid json label", "--image-tar", getTestAssetPath("image-archives/tiny-with-invalid-label.tgz"), "cannot parse the label"),
+		Entry("[remote-image][private-registry] with a valid image from a registry with invalid json label", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-with-invalid-label", "cannot parse the label"),
 	)
 })
+
+func CreateTinyImageWithDeplabLabel(label string, m metadata.Metadata) string {
+	i, _ := crane.Load(getTestAssetPath("image-archives/tiny.tgz"))
+
+	config, err := i.ConfigFile()
+	Expect(err).ToNot(HaveOccurred())
+
+	md, err := json.Marshal(m)
+	Expect(err).ToNot(HaveOccurred())
+
+	if config.Config.Labels == nil {
+		config.Config.Labels = map[string]string{}
+	}
+
+	config.Config.Labels[label] = string(md)
+
+	i, err = mutate.Config(i, config.Config)
+	Expect(err).ToNot(HaveOccurred())
+
+	imagePath, err := ioutil.TempFile("", "")
+	Expect(err).ToNot(HaveOccurred())
+
+	err = crane.Save(i, "latest", imagePath.Name())
+	Expect(err).ToNot(HaveOccurred())
+
+	return imagePath.Name()
+}

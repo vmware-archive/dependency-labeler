@@ -1,3 +1,6 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package image_test
 
 import (
@@ -8,7 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	. "github.com/pivotal/deplab/pkg/image"
+	. "github.com/vmware-tanzu/dependency-labeler/pkg/image"
 )
 
 var rfs RootFS
@@ -48,6 +51,35 @@ var _ = Describe("rootFS", func() {
 						)))
 			})
 
+			It("retrieves all the file names inside a directory", func() {
+				statusFiles, err := rfs.GetDirFileNames("/all-files", false)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(statusFiles).To(
+					SatisfyAll(
+						HaveLen(3),
+						ConsistOf(
+							ContainSubstring("hard-link-file"),
+							ContainSubstring("start-file"),
+							ContainSubstring("symbolic-link-file"),
+						)))
+			})
+
+			It("retrieves all the file/folder names inside a directory", func() {
+				statusFiles, err := rfs.GetDirFileNames("/all-files", true)
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(statusFiles).To(
+					SatisfyAll(
+						HaveLen(4),
+						ConsistOf(
+							ContainSubstring("folder"),
+							ContainSubstring("hard-link-file"),
+							ContainSubstring("start-file"),
+							ContainSubstring("symbolic-link-file"),
+						)))
+			})
+
 			It("ignores subdirectory in the given directory", func() {
 				statusFiles, err := rfs.GetDirContents("/all-files")
 				Expect(err).ToNot(HaveOccurred())
@@ -73,6 +105,11 @@ var _ = Describe("rootFS", func() {
 				_, err := rfs.GetDirContents("/this/directory/does/not/exist")
 				Expect(err).To(MatchError(ContainSubstring("could not find directory in rootFS")))
 			})
+
+			It("returns an error when trying to access a directory", func() {
+				_, err := rfs.GetDirFileNames("/this/directory/does/not/exist", false)
+				Expect(err).To(MatchError(ContainSubstring("could not find directory in rootFS")))
+			})
 		})
 
 		Context("when rootFS is cleaned", func() {
@@ -85,12 +122,18 @@ var _ = Describe("rootFS", func() {
 				_, err = rfs.GetDirContents("/all-files/folder")
 				Expect(err).ToNot(HaveOccurred())
 
+				_, err = rfs.GetDirFileNames("/all-files", false)
+				Expect(err).ToNot(HaveOccurred())
+
 				rfs.Cleanup()
 
 				_, err = rfs.GetFileContent("/all-files/start-file")
 				Expect(err).To(HaveOccurred())
 
 				_, err = rfs.GetDirContents("/all-files/folder")
+				Expect(err).To(HaveOccurred())
+
+				_, err = rfs.GetDirFileNames("/all-files", false)
 				Expect(err).To(HaveOccurred())
 			})
 		})
@@ -115,6 +158,19 @@ var _ = Describe("rootFS", func() {
 				_, err = rootfs.GetDirContents("all-files/broken-folder/no-permissions")
 				Expect(err).To(MatchError(ContainSubstring("all-files/broken-folder/no-permissions")))
 			})
+		})
+	})
+	Context("when the image contains char device file", func() {
+		It("successfully does something", func() {
+			inputTarPath, err := filepath.Abs("../../test/integration/assets/image-archives/char-device.tgz")
+			Expect(err).ToNot(HaveOccurred())
+
+			image, err := crane.Load(inputTarPath)
+			Expect(err).ToNot(HaveOccurred())
+
+			rootfs, err := NewRootFS(image, []string{})
+			defer rootfs.Cleanup()
+			Expect(err).ToNot(HaveOccurred())
 		})
 	})
 })

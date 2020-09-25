@@ -1,15 +1,32 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package git
 
 import (
 	"fmt"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
+
+	"github.com/vmware-tanzu/dependency-labeler/pkg/image"
+
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )
 
-const SourceType = "git"
+func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
+	for _, path := range params.GitPaths {
+		dependency, err := BuildDependencyMetadata(path)
+		if err != nil {
+			return metadata.Metadata{}, err
+		}
+		md.Dependencies = append(md.Dependencies, dependency)
+	}
+
+	return md, nil
+}
 
 func BuildDependencyMetadata(pathToGit string) (metadata.Dependency, error) {
 	repo, err := git.PlainOpen(pathToGit)
@@ -44,7 +61,7 @@ func BuildDependencyMetadata(pathToGit string) (metadata.Dependency, error) {
 	return metadata.Dependency{
 		Type: "package",
 		Source: metadata.Source{
-			Type: SourceType,
+			Type: metadata.GitSourceType,
 			Version: map[string]interface{}{
 				"commit": ref.Hash().String(),
 			},

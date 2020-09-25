@@ -1,3 +1,6 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package integration_test
 
 import (
@@ -14,7 +17,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 	"github.com/onsi/gomega/ghttp"
 
@@ -43,7 +46,7 @@ func TestDeplab(t *testing.T) {
 
 		commitHash, pathToGitRepo = makeFakeGitRepo()
 
-		pathToBin, err = gexec.Build("github.com/pivotal/deplab/cmd/deplab")
+		pathToBin, err = gexec.Build("github.com/vmware-tanzu/dependency-labeler/cmd/deplab")
 		Expect(err).ToNot(HaveOccurred())
 	})
 

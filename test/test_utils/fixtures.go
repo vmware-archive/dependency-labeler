@@ -1,6 +1,9 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package test_utils
 
-import "github.com/pivotal/deplab/pkg/metadata"
+import "github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
 var MetadataSample = metadata.Metadata{
 	Dependencies: []metadata.Dependency{

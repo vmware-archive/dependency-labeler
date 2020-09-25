@@ -1,3 +1,6 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package integration_test
 
 import (
@@ -9,13 +12,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/pivotal/deplab/pkg/additionalsources"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 
-	"github.com/pivotal/deplab/pkg/git"
-
-	"github.com/pivotal/deplab/pkg/metadata"
-
-	"github.com/pivotal/deplab/test/test_utils"
+	"github.com/vmware-tanzu/dependency-labeler/test/test_utils"
 
 	"github.com/onsi/gomega/ghttp"
 
@@ -60,7 +59,7 @@ var _ = Describe("deplab additional sources file", func() {
 
 				By("adding the source archive url to the archive dependency")
 				Expect(archiveDependency.Type).To(Equal("package"))
-				Expect(archiveDependency.Source.Type).To(Equal(additionalsources.ArchiveType))
+				Expect(archiveDependency.Source.Type).To(Equal(metadata.ArchiveType))
 				Expect(archiveSourceMetadata["url"]).To(Equal(server.URL() + "/ubuntu/pool/main/c/ca-certificates/ca-certificates_20180409.tar.xz"))
 			})
 		})
@@ -119,7 +118,7 @@ var _ = Describe("deplab additional sources file", func() {
 				Expect(gitDependency.Source.Version["commit"]).To(Equal("abc123"))
 
 				By("adding the git remote to a git dependency")
-				Expect(gitSourceMetadata["url"].(string)).To(Equal("git@github.com:pivotal/deplab.git"))
+				Expect(gitSourceMetadata["url"].(string)).To(Equal("git@github.com:vmware-tanzu/dependency-labeler.git"))
 			})
 		})
 
@@ -249,7 +248,7 @@ var _ = Describe("deplab additional sources file", func() {
 				errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 				Expect(errorOutput).To(SatisfyAll(
 					ContainSubstring("error"),
-					ContainSubstring("pivotal/deplab.git"),
+					ContainSubstring("vmware-tanzu/dependency-labeler.git"),
 				))
 			})
 
@@ -272,7 +271,7 @@ var _ = Describe("deplab additional sources file", func() {
 					errorOutput := strings.TrimSpace(string(getContentsOfReader(stdErr)))
 					Expect(errorOutput).To(SatisfyAll(
 						ContainSubstring("warning"),
-						ContainSubstring("pivotal/deplab.git"),
+						ContainSubstring("vmware-tanzu/dependency-labeler.git"),
 					))
 
 					By("by including a vcs git dependency")
@@ -295,7 +294,7 @@ func selectVcsGitDependencies(dependencies []metadata.Dependency) []metadata.Dep
 	for _, dependency := range dependencies {
 		Expect(dependency.Source.Metadata).To(Not(BeNil()))
 		gitSourceMetadata := dependency.Source.Metadata.(map[string]interface{})
-		if dependency.Source.Type == git.SourceType && gitSourceMetadata["url"].(string) != "https://example.com/example.git" {
+		if dependency.Source.Type == metadata.GitSourceType && gitSourceMetadata["url"].(string) != "https://example.com/example.git" {
 			gitDependencies = append(gitDependencies, dependency)
 		}
 	}

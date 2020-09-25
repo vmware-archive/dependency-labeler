@@ -1,9 +1,9 @@
+// Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+// SPDX-License-Identifier: BSD-2-Clause
+
 package rpm
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,37 +11,35 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pivotal/deplab/pkg/image"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/common"
+
+	"github.com/vmware-tanzu/dependency-labeler/pkg/image"
 
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"
 
-	"github.com/pkg/errors"
-
-	"github.com/pivotal/deplab/pkg/metadata"
+	"github.com/vmware-tanzu/dependency-labeler/pkg/metadata"
 )
-
-const PackageListSourceType = "rpm_package_list"
 
 const RPMDbPath = "/var/lib/rpm"
 
-func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
+func Provider(dli image.Image, params common.RunParams, md metadata.Metadata) (metadata.Metadata, error) {
 
 	absPath, err := dli.AbsolutePath(RPMDbPath)
 	if err != nil {
-		return metadata.Dependency{}, fmt.Errorf("absolute path for rpm database: %w", err)
+		return metadata.Metadata{}, fmt.Errorf("absolute path for rpm database: %w", err)
 	}
 
 	exists, err := exists(path.Join(absPath, "Packages"))
 	if err != nil {
-		return metadata.Dependency{}, fmt.Errorf("rpm could not find existance of path: %w", err)
+		return metadata.Metadata{}, fmt.Errorf("rpm could not find existance of path: %w", err)
 	}
 	if !exists {
-		return metadata.Dependency{}, nil
+		return md, nil
 	}
 
 	if !isRPMInstalled() {
-		return metadata.Dependency{}, fmt.Errorf("an rpm database exists at %s but rpm is not installed and available on your path: %w", RPMDbPath, err)
+		return metadata.Metadata{}, fmt.Errorf("an rpm database exists at %s but rpm is not installed and available on your path: %w", RPMDbPath, err)
 	}
 
 	query := QueryFormat()
@@ -56,12 +54,12 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 	err = cmd.Run()
 
 	if err != nil {
-		return metadata.Dependency{},
+		return metadata.Metadata{},
 			fmt.Errorf("failed to execute rpm at path, %s, with query, %s: %w", absPath, query, err)
 	}
 
 	if strings.TrimSpace(stdOutBuffer.String()) == "" {
-		return metadata.Dependency{}, errors.New("no rpm packages data found")
+		return metadata.Metadata{}, fmt.Errorf("no rpm packages data found")
 	}
 
 	allPackagesDetails := strings.Split(strings.TrimSpace(stdOutBuffer.String()), "\n")
@@ -80,13 +78,13 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 		Packages: packages,
 	}
 
-	version, err := Digest(sourceMetadata)
+	version, err := common.Digest(sourceMetadata)
 	if err != nil {
-		return metadata.Dependency{}, errors.Wrapf(err, "Could not get digest for source metadata")
+		return metadata.Metadata{}, fmt.Errorf("could not get digest for source metadata: %w", err)
 	}
 
-	return metadata.Dependency{
-		Type: PackageListSourceType,
+	md.Dependencies = append(md.Dependencies, metadata.Dependency{
+		Type: metadata.RPMPackageListSourceType,
 		Source: metadata.Source{
 			Type: "inline",
 			Version: map[string]interface{}{
@@ -94,7 +92,9 @@ func BuildDependencyMetadata(dli image.Image) (metadata.Dependency, error) {
 			},
 			Metadata: sourceMetadata,
 		},
-	}, nil
+	})
+
+	return md, nil
 }
 
 func isRPMInstalled() bool {
@@ -119,15 +119,4 @@ func exists(path string) (bool, error) {
 		return false, nil
 	}
 	return true, err
-}
-
-func Digest(sourceMetadata metadata.RpmPackageListSourceMetadata) (string, error) {
-	hash := sha256.New()
-	encoder := json.NewEncoder(hash)
-	err := encoder.Encode(sourceMetadata)
-	if err != nil {
-		return "", errors.Wrapf(err, "could not encode source metadata.")
-	}
-	version := hex.EncodeToString(hash.Sum(nil))
-	return version, nil
 }

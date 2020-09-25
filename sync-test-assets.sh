@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Copyright (c) 2019-2020 VMware, Inc. All Rights Reserved.
+# SPDX-License-Identifier: BSD-2-Clause
+
 ### requires to be logged in the target registry
 
 set -eux -o pipefail
@@ -25,7 +28,10 @@ images=( "cloudfoundry/run:tiny" \
           "$DEPLAB_ASSET_REPOSITORY:all-file-types" \
           "$DEPLAB_ASSET_REPOSITORY:broken-files" \
           "$DEPLAB_ASSET_REPOSITORY:tiny-with-invalid-label" \
-          "$DEPLAB_ASSET_REPOSITORY:os-release-on-scratch" )
+          "$DEPLAB_ASSET_REPOSITORY:os-release-on-scratch" \
+          "$DEPLAB_ASSET_REPOSITORY:scratch" \
+          "$DEPLAB_ASSET_REPOSITORY:scratch-with-buildpack-metadata" \
+          "$DEPLAB_ASSET_REPOSITORY:char-device")
 
 for image in "${images[@]}"; do
   filename="${image##*:}.tgz"
