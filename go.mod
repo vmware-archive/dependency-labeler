@@ -13,7 +13,6 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/google/go-containerregistry v0.0.0-20191008160043-1e84d6375038
 	github.com/joho/godotenv v1.3.0
-
 	github.com/onsi/ginkgo v1.14.1
 	github.com/onsi/gomega v1.10.1
 	github.com/opencontainers/runc v0.1.1 // indirect
