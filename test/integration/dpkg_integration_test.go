@@ -24,7 +24,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("[remote-image][private-registry] with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
-			metadataLabel = runDeplabAgainstImage("dev.registry.pivotal.io/navcon/deplab-test-asset:additional-sources")
+			metadataLabel = runDeplabAgainstImage("projects.registry.vmware.com/dependency-labeler/deplab-test-asset:additional-sources")
 		})
 
 		It("applies a metadata label", func() {
@@ -73,7 +73,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("[remote-image][private-registry] with an image with dpkg, but no apt sources", func() {
 		BeforeEach(func() {
-			metadataLabel = runDeplabAgainstImage("dev.registry.pivotal.io/navcon/deplab-test-asset:no-sources")
+			metadataLabel = runDeplabAgainstImage("projects.registry.vmware.com/dependency-labeler/deplab-test-asset:no-sources")
 		})
 
 		It("does not return a dpkg list", func() {
@@ -89,7 +89,7 @@ var _ = Describe("deplab dpkg", func() {
 
 	Context("[remote-image][private-registry] with an ubuntu:bionic based image with a non-shell entrypoint", func() {
 		BeforeEach(func() {
-			metadataLabel = runDeplabAgainstImage("dev.registry.pivotal.io/navcon/deplab-test-asset:entrypoint-return-stdout")
+			metadataLabel = runDeplabAgainstImage("projects.registry.vmware.com/dependency-labeler/deplab-test-asset:entrypoint-return-stdout")
 		})
 
 		It("should return the apt source list", func() {

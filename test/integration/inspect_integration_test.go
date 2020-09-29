@@ -64,7 +64,7 @@ var _ = Describe("deplab inspect", func() {
 			Expect(errorOutput).ToNot(ContainSubstring("metadata elements already present on image"))
 		},
 			Entry("with a deplab'd image tarball", "--image-tar", getTestAssetPath("image-archives/tiny-deplabd.tgz")),
-			Entry("[remote-image][private-registry] with a deplab'd image from a registry", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-deplabd"),
+			Entry("[remote-image][private-registry] with a deplab'd image from a registry", "--image", "projects.registry.vmware.com/dependency-labeler/deplab-test-asset:tiny-deplabd"),
 		)
 
 		Context("has io.deplab.metadata", func() {
@@ -295,7 +295,7 @@ var _ = Describe("deplab inspect", func() {
 		Entry("with a invalid image tarball", "--image-tar", getTestAssetPath("image-archives/invalid-image-archive.tgz"), "cannot open the provided image"),
 		Entry("with a non-existent image from registry", "--image", "pivotalnavcon/does-not-exist", "cannot open the provided image"),
 		Entry("with a valid image tar ball with invalid json label", "--image-tar", getTestAssetPath("image-archives/tiny-with-invalid-label.tgz"), "cannot parse the label"),
-		Entry("[remote-image][private-registry] with a valid image from a registry with invalid json label", "--image", "dev.registry.pivotal.io/navcon/deplab-test-asset:tiny-with-invalid-label", "cannot parse the label"),
+		Entry("[remote-image][private-registry] with a valid image from a registry with invalid json label", "--image", "projects.registry.vmware.com/dependency-labeler/deplab-test-asset:tiny-with-invalid-label", "cannot parse the label"),
 	)
 })
 

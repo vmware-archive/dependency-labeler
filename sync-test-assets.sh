@@ -7,7 +7,8 @@
 
 set -eux -o pipefail
 
-DEPLAB_ASSET_REPOSITORY="dev.registry.pivotal.io/navcon/deplab-test-asset"
+DEPLAB_ASSET_REPOSITORY="projects.registry.vmware.com/dependency-labeler/deplab-test-asset"
+
 IMAGE_ARCHIVES="test/integration/assets/image-archives"
 
 ### Build and push all dockerfiles to registry

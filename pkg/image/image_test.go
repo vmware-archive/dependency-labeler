@@ -26,7 +26,7 @@ var _ = Describe("Image", func() {
 			)
 
 			It("[remote-image][private-registry] instantiates an image starting from a remote source", func() {
-				image, err = NewDeplabImage("dev.registry.pivotal.io/navcon/deplab-test-asset:all-file-types", "")
+				image, err = NewDeplabImage("projects.registry.vmware.com/dependency-labeler/deplab-test-asset:all-file-types", "")
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(image).ToNot(BeNil())
