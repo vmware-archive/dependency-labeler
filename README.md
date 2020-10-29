@@ -364,17 +364,17 @@ Provenance is a list of the tools which have added information to the image. It 
 
 
 ## Testing
-Testing requires `go` to be installed. To run tests you need to be authenticated against `dev.registry.pivotal.io` and be authorized for read access to `navcon/deplab-test-asset` repository.
+Testing requires `go` to be installed.
 ```bash
 go test ./...
 ```
 
-Tests that pull images from registry are tagged `[remote-image]`. Tests that pull from a private registry that require authentication are tagged `[private-registry]`.
+Tests that pull images from registry are tagged `[remote-image]`.
 
-To skip tests you can run 
+To skip those tests, you can run 
 
 ```bash
-go test ./...  -ginkgo.skip='\[private-registry\]'
+go test ./...  -ginkgo.skip='\[remote-image\]'
 ```
 
 ## Building
