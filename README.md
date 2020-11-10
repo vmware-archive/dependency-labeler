@@ -104,7 +104,7 @@ Additional sources file allows you to specify sources for additional dependencie
 
 Validation: 
 * archives: The urls must be valid and reachable.  There is also a check to ensure that the url points to a compressed file type. Only the extension is checked and not the contents of the file.
- * vcs: The url for git repository urls must start with on of the following: git:, ssh:, http:, https: or git@xxxx. 
+ * vcs: The url for git repository urls must start with one of the following: git:, ssh:, http:, https: or git@xxxx. 
  On encountering an invalid value, deplab will provide an error message in StdErr.  By default deplab will exit with a non-zero exit code.  This default behaviour can be altered by using the `--ignore-validation-errors` flag, and deplab will continue and exit with a zero exit code.
 
 Supported format of the yaml file:
@@ -386,4 +386,4 @@ go build -o deplab ./cmd/deplab
 
 ## Support
 
-This tool is currently maintained by the VMware Tanzu Source Insight Tooling Team.  Please raise a Github issue for any isssues, suggestions, and question.
+This tool is currently maintained by the VMware Tanzu Source Insight Tooling Team.  Please raise a GitHub issue for any issues, suggestions, and questions.
