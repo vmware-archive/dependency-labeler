@@ -22,6 +22,45 @@ var _ = Describe("deplab dpkg", func() {
 		metadataLabel metadata.Metadata
 	)
 
+	Context("[remote-image] with a public ubuntu:focal image", func() {
+		BeforeEach(func() {
+			metadataLabel = runDeplabAgainstImage("ubuntu:focal-20220113")
+		})
+
+		It("applies a metadata label", func() {
+			dependencyMetadata := metadataLabel.Dependencies[0].Source.Metadata
+			dpkgMetadata := dependencyMetadata.(map[string]interface{})
+
+			By("listing the dpkg sources, sorted alphabetically")
+			sources, ok := dpkgMetadata["apt_sources"].([]interface{})
+			Expect(ok).To(BeTrue())
+			Expect(len(sources)).To(BeNumerically(">", 0))
+			Expect(sources).To(ConsistOf(
+				"deb http://archive.ubuntu.com/ubuntu/ focal main restricted",
+				"deb http://archive.ubuntu.com/ubuntu/ focal universe",
+				"deb http://archive.ubuntu.com/ubuntu/ focal-updates main restricted",
+				"deb http://archive.ubuntu.com/ubuntu/ focal-updates universe",
+				"deb http://archive.ubuntu.com/ubuntu/ focal multiverse",
+				"deb http://archive.ubuntu.com/ubuntu/ focal-updates multiverse",
+				"deb http://archive.ubuntu.com/ubuntu/ focal-backports main restricted universe multiverse",
+				"deb http://security.ubuntu.com/ubuntu/ focal-security main restricted",
+				"deb http://security.ubuntu.com/ubuntu/ focal-security universe",
+				"deb http://security.ubuntu.com/ubuntu/ focal-security multiverse",
+			))
+			Expect(AreSourcesSorted(sources)).To(BeTrue())
+
+			By("listing debian package dependencies in the image, sorted by name")
+			Expect(metadataLabel.Dependencies[0].Type).To(Equal(metadata.DebianPackageListSourceType))
+
+			pkgs := dpkgMetadata["packages"].([]interface{})
+			Expect(pkgs).To(HaveLen(92))
+			Expect(ArePackagesSorted(pkgs)).To(BeTrue())
+
+			By("generating a sha256 digest of the metadata content as version")
+			Expect(metadataLabel.Dependencies[0].Source.Version["sha256"]).To(MatchRegexp(`^[0-9a-f]{64}$`))
+		})
+	})
+
 	Context("[remote-image][private-registry] with an ubuntu:bionic image", func() {
 		BeforeEach(func() {
 			metadataLabel = runDeplabAgainstImage("dependencylabeler/deplab-test-asset:additional-sources")
