@@ -8,7 +8,7 @@ go 1.17
 require (
 	github.com/Microsoft/hcsshim v0.9.2 // indirect
 	github.com/containerd/cgroups v1.0.3 // indirect
-	github.com/containerd/containerd v1.5.10
+	github.com/containerd/containerd v1.6.1
 	github.com/containerd/continuity v0.2.2 // indirect
 	github.com/containerd/stargz-snapshotter/estargz v0.11.0 // indirect
 	github.com/docker/distribution v2.8.0+incompatible // indirect
